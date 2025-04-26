@@ -1,2 +1,2 @@
-from .log import *
+from .logger import *
 from .simulation import *

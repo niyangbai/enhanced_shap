@@ -1,4 +1,4 @@
-from ..base import ESHAPAABC
+from ESHAP.base import ESHAPAABC
 from typing import Any
 import numpy as np
 import torch
