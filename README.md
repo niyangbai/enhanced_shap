@@ -1,50 +1,163 @@
-## Overview
-Enhanced SHAP is a library designed to improve the interpretability of machine learning models for sequential and sparse data, particularly in the context of Predictive Process Monitoring. It extends the SHAP (SHapley Additive exPlanations) framework to handle complex data structures and provide more insightful explanations.
+# SHAP-Enhanced: Advanced Explainability Toolkit
 
-## Features
-- Support for sequential and sparse data.
-- Enhanced interpretability for predictive process monitoring tasks.
-- Integration with popular machine learning frameworks.
-- Customizable explanation methods for domain-specific use cases.
+[![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
 
-## Installation
-To install the library, clone the repository and install the required dependencies:
+---
 
-```bash
-git https://github.com/niyangbai/enhanced_shap.git
-cd enhanced_shap
+## Project Overview
+
+**SHAP-Enhanced** is a **next-generation explainability framework** developed for **research-grade model interpretation**.
+It is built to **extend** and **surpass** traditional methods like **SHAP**, **LIME**, and **Integrated Gradients**, offering **new algorithms**, **more complex simulation engines**, and **multimodal support** across:
+
+- Tabular
+- Sequential (Time-Series)
+- Vision
+- Sparse and Multimodal datasets
+
+This framework is created following **PEP8 standards**, **Sphinx documentation format**, and is released under the **GNU Affero General Public License v3.0**.
+
+Developed as part of a **Master Thesis**.
+
+## ✨ Key Features
+
+- ✅ Unified **Explainability Interface** (`BaseExplainer`)
+- ✅ Extensive **Gradient-Based** and **Perturbation-Based** explainers
+- ✅ **Sequential/Attention Explainability** (LSTM, Transformer)
+- ✅ **Sparse Tabular** and **PCA Sparse** models
+- ✅ **Tree-Based Explainers** (Advanced SHAP for Decision Trees)
+- ✅ **Simulation Engine** with ground-truth SHAP validation
+- ✅ **Evaluation Metrics**: MSE, Correlation, Advanced Metrics
+- ✅ **Visualization Toolkit**: Feature Importance, Time Series, Attention, Interactions
+- ✅ **Multimodal Models** (Tabular + Image + Text Fusion)
+- ✅ 100% **Modular Design** for future methods
+- ✅ **No external SHAP package dependency** — **pure internal kernels**
+
+
+
+## 📦 Project Structure
+
+```
+src/shap_enhanced/
+    explainers/         # All explanation modules
+    algorithms/         # Core mathematical tools (kernels, integration, perturbation)
+    models/             # Tabular, Sequential, Vision, Multimodal models
+    simulation/         # Synthetic data, Evaluation, Explainer Comparison
+    visualization/      # Plotting and Visualization utilities
+    datasets/           # Synthetic Dataset Generators
+    utils/              # Logger, Config Loader, Timer, Random Seed
+examples/               # How-to Scripts
+tests/                  # Organized Unit Tests
+README.md               # This file
+LICENSE                 # GNU Affero General Public License
+requirements.txt        # Dependencies
+setup.py                # Install Script (optional)
+```
+
+
+## 📚 Documentation Style
+
+All functions, classes, and methods are documented using **Sphinx-style docstrings**, for example:
+
+```python
+def foo(a: int) -> str:
+    """Convert an integer to a string.
+
+    :param int a: An integer input.
+    :return str: The string representation of the input.
+    """
+    return str(a)
+```
+
+- **Auto Documentation** is compatible with **Sphinx**.
+- Every public method, class, and module is **properly typed** and documented.
+
+
+
+## ⚙️ Installation
+
+You can install the package locally:
+
+```sh
+git clone https://github.com/niyangbai/enhanced_shap.git
+cd shap-enhanced
 pip install -r requirements.txt
 ```
 
-## Usage
-Here is a basic example of how to use Enhanced SHAP:
+**Requirements** include:
 
+- `torch`
+- `numpy`
+- `scikit-learn`
+- `matplotlib`
+- `seaborn`
+- `pyyaml`
+
+(See `requirements.txt` for full list.)
+
+
+
+## 🚀 Quick Example
 ```python
-from ESHAP import EnhancedSHAP
+from shap_enhanced.models.tabular.tabular_mlp import TabularMLP
+from shap_enhanced.explainers.gradient_based.integrated_gradients_explainer import IntegratedGradientsExplainer
+from shap_enhanced.datasets.synthetic_tabular import generate_tabular_data
 
-# Load your model and data
-model = load_your_model()
-data = load_your_data()
+# Generate synthetic data
+X, y = generate_tabular_data(n_samples=100, n_features=10)
 
-# Initialize Enhanced SHAP
-explainer = EnhancedSHAP(model, data)
+# Initialize model and explainer
+model = TabularMLP(input_size=10, hidden_size=64, output_size=1)
+explainer = IntegratedGradientsExplainer(model=model, baseline=torch.zeros(1, 10))
 
-# Generate explanations
-explanations = explainer.explain()
-
-# Visualize explanations
-explainer.visualize(explanations)
+# Explain a sample
+sample = X[0:1]
+attributions = explainer.explain(sample)
+print(attributions)
 ```
 
-## Contributing
-Contributions are welcome! Please follow these steps to contribute:
-1. Fork the repository.
-2. Create a new branch for your feature or bug fix.
-3. Commit your changes and push them to your fork.
-4. Submit a pull request with a detailed description of your changes.
 
-## License
-This project is licensed under the AGUN License. See the `LICENSE` file for details.
+## 🧪 Simulation and Benchmarking
 
-## Contact
-For questions or feedback, please contact [niyang.bai@fau.de](mailto:niyang.bai@fau.de).
+Evaluate your explainers against **true SHAP values**:
+
+```python
+from shap_enhanced.simulation.simulator import ModelSimulation
+
+simulation = ModelSimulation(model=model, explainer=explainer, true_shap_function=lambda X, y: X)
+mse = simulation.run_simulation()
+print(f"Mean Squared Error: {mse:.4f}")
+```
+
+Use `simulation/comparison.py` to benchmark multiple explainers side-by-side!
+
+
+
+## 🎨 Visualization
+
+from shap_enhanced.visualization.feature_importance_plot import plot_feature_importance
+
+plot_feature_importance(importances=attributions, feature_names=[f"Feature {i}" for i in range(10)])
+
+Available visualization modules:
+- `Feature Importance`
+- `Time Series Attribution`
+- `Attention Weights`
+- `SHAP Interaction Effects`
+- `Evaluation Metrics Comparison`
+
+
+
+## 📜 License
+
+This project is licensed under the **GNU Affero General Public License v3.0** (AGPL-3.0).
+See the LICENSE file for details.
+
+> **Note**: Any modified versions must also be made publicly available under the same license if deployed.
+
+
+
+## ✍️ About
+
+Developed by **Niyang Bai**  
+Master Thesis — **Enhanced SHAP for Sequential and Sparse Data in Predictive Process Monitoring**  
+University: **Friedrich-Alexander-Universität Erlangen-Nürnberg**
