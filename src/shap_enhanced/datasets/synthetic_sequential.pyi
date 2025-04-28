@@ -1,5 +1,3 @@
-# src/shap_enhanced/datasets/synthetic_sequential.py
-
 import numpy as np
 import torch
 from typing import Callable, Optional, Tuple
@@ -26,21 +24,3 @@ def generate_sequential_data(
             Defaults to summing over timesteps and features, defaults to None
     :return Tuple[torch.Tensor, torch.Tensor]: A tuple containing the generated data (X) and targets (y).
     """
-    if pattern_function is None:
-        # Default pattern: sinusoidal
-        def pattern_function(t, f, i):
-            return np.sin(np.linspace(0, 10, f))
-
-    if target_function is None:
-        # Default target: sum over timesteps and features
-        def target_function(data):
-            return np.sum(data, axis=(1, 2))
-
-    X = np.zeros((n_samples, n_timesteps, n_features))
-    for i in range(n_samples):
-        for j in range(n_timesteps):
-            X[i, j, :] = pattern_function(n_timesteps, n_features, i) + noise_std * np.random.randn(n_features)
-
-    y = target_function(X)
-
-    return torch.tensor(X, dtype=torch.float32), torch.tensor(y, dtype=torch.float32)

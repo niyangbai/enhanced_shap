@@ -1,8 +1,8 @@
 # SHAP-Enhanced: Advanced Explainability Toolkit
 
-[![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
+[![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0) [![Python Version](https://img.shields.io/badge/python-3.8%2B-blue)](https://www.python.org/) [![C++ Code](https://img.shields.io/badge/Code-C%2B%2B-orange)](https://isocpp.org/)
 
----
+> **Note**: Portions of this project, particularly the **core simulation engine** and **performance-critical algorithms**, were developed in **C++** for enhanced computational efficiency and integration with Python via **Pybind11**.
 
 ## Project Overview
 
@@ -50,28 +50,7 @@ tests/                  # Organized Unit Tests
 README.md               # This file
 LICENSE                 # GNU Affero General Public License
 requirements.txt        # Dependencies
-setup.py                # Install Script (optional)
 ```
-
-
-## 📚 Documentation Style
-
-All functions, classes, and methods are documented using **Sphinx-style docstrings**, for example:
-
-```python
-def foo(a: int) -> str:
-    """Convert an integer to a string.
-
-    :param int a: An integer input.
-    :return str: The string representation of the input.
-    """
-    return str(a)
-```
-
-- **Auto Documentation** is compatible with **Sphinx**.
-- Every public method, class, and module is **properly typed** and documented.
-
-
 
 ## ⚙️ Installation
 
@@ -145,7 +124,45 @@ Available visualization modules:
 - `SHAP Interaction Effects`
 - `Evaluation Metrics Comparison`
 
+## 🤝 Contribution
 
+We welcome contributions to **SHAP-Enhanced**! To contribute, please follow these steps:
+
+1. **Fork the Repository**: Click the "Fork" button on the GitHub repository page.
+2. **Clone Your Fork**: Clone your forked repository to your local machine:
+    ```sh
+    git clone https://github.com/niyangbai/enhanced_shap.git
+    cd enhanced_shap
+    ```
+3. **Create a Branch**: Create a new branch for your feature or bug fix:
+    ```sh
+    git checkout -b feature-or-bugfix-name
+    ```
+4. **Make Changes**: Implement your changes, ensuring they follow **PEP8 standards** and include proper **Sphinx-style docstrings**.
+5. **Write Tests**: Add or update unit tests in the `tests/` directory to cover your changes.
+6. **Run Tests**: Ensure all tests pass before submitting your changes:
+    ```sh
+    pytest
+    ```
+7. **Commit Changes**: Commit your changes with a descriptive message:
+    ```sh
+    git add .
+    git commit -m "Description of your changes"
+    ```
+8. **Push Changes**: Push your branch to your forked repository:
+    ```sh
+    git push origin feature-or-bugfix-name
+    ```
+9. **Submit a Pull Request**: Open a pull request to the main repository, describing your changes in detail.
+
+### Contribution Guidelines
+- Follow the **PEP8 coding style**.
+- Document all public methods, classes, and modules using **Sphinx-style docstrings**.
+- Ensure your code is **properly typed** and includes type hints.
+- Write clear and concise commit messages.
+- Be respectful and collaborative in code reviews.
+
+Thank you for helping improve **SHAP-Enhanced**!
 
 ## 📜 License
 
@@ -154,10 +171,12 @@ See the LICENSE file for details.
 
 > **Note**: Any modified versions must also be made publicly available under the same license if deployed.
 
-
-
 ## ✍️ About
 
 Developed by **Niyang Bai**  
 Master Thesis — **Enhanced SHAP for Sequential and Sparse Data in Predictive Process Monitoring**  
 University: **Friedrich-Alexander-Universität Erlangen-Nürnberg**
+
+## 📧 Contact
+
+For inquiries, please reach out via GitHub Issues.

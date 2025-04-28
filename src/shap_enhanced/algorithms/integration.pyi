@@ -6,4 +6,3 @@ def trapezoidal_integrate(values: torch.Tensor) -> torch.Tensor:
     :param torch.Tensor values: Tensor of shape (steps+1, ...)
     :return torch.Tensor: Integrated value across steps.
     """
-    return (values[:-1] + values[1:]).mean(dim=0)
