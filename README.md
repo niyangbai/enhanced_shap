@@ -8,7 +8,7 @@
 ## Project Overview
 
 **SHAP-Enhanced** is a **next-generation explainability framework** developed for **research-grade model interpretation**.
-It is built to **extend** and **surpass** traditional methods like **SHAP**, **LIME**, and **Integrated Gradients**, offering **new algorithms**, **more complex simulation engines**, and **multimodal support** across:
+It is built to **extend** traditional methods like **SHAP**, **LIME**, and **Integrated Gradients**, offering **new algorithms**, **more complex simulation engines**, and **multimodal support** across:
 
 - Tabular
 - Sequential (Time-Series)
@@ -114,9 +114,11 @@ Use `simulation/comparison.py` to benchmark multiple explainers side-by-side!
 
 ## 🎨 Visualization
 
+```python
 from shap_enhanced.visualization.feature_importance_plot import plot_feature_importance
 
 plot_feature_importance(importances=attributions, feature_names=[f"Feature {i}" for i in range(10)])
+```
 
 Available visualization modules:
 - `Feature Importance`
@@ -174,9 +176,8 @@ See the LICENSE file for details.
 
 ## ✍️ About
 
-Developed by **Niyang Bai**  
-Master Thesis — **Enhanced SHAP for Sequential and Sparse Data in Predictive Process Monitoring**  
-University: **Friedrich-Alexander-Universität Erlangen-Nürnberg**
+* Master Thesis — **Enhanced SHAP for Sequential and Sparse Data in Predictive Process Monitoring**  
+* University: **Friedrich-Alexander-Universität Erlangen-Nürnberg**
 
 ## 📧 Contact
 
