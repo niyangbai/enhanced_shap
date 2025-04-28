@@ -1,8 +1,9 @@
 # SHAP-Enhanced: Advanced Explainability Toolkit
 
-[![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0) [![Python Version](https://img.shields.io/badge/python-3.8%2B-blue)](https://www.python.org/) [![C++ Code](https://img.shields.io/badge/Code-C%2B%2B-orange)](https://isocpp.org/)
-
-> **Note**: Portions of this project, particularly the **core simulation engine** and **performance-critical algorithms**, were developed in **C++** for enhanced computational efficiency and integration with Python via **Pybind11**.
+[![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL%20v3-blue.svg?logo=open-source-initiative)](https://www.gnu.org/licenses/agpl-3.0)
+[![Python Version](https://img.shields.io/badge/Python-3.8%2B-blue.svg?logo=python)](https://www.python.org/)
+[![C++ Code](https://img.shields.io/badge/Code-C%2B%2B-orange.svg?logo=c%2B%2B)](https://isocpp.org/)
+[![Git](https://img.shields.io/badge/Git-Repository-orange.svg?logo=git)](https://git-scm.com/)
 
 ## Project Overview
 
