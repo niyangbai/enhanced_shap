@@ -1,4 +1,4 @@
-# src/shap_enhanced/explainers/gradient_based/smoothgrad_explainer.py
+"""SmoothGrad Explainer for feature attribution."""
 
 from typing import Any, Optional
 import torch

@@ -1,3 +1,11 @@
+"""
+This module provides functions for applying binary and group-based masking to tensors.
+
+- `apply_binary_mask`: Applies a binary mask to a tensor, replacing values where the mask is 0 with a specified mask value.
+- `apply_group_masking`: Applies masking based on feature groups, allowing selective masking of grouped features in a tensor.
+"""
+
+
 import torch
 from typing import List
 

@@ -1,4 +1,4 @@
-# src/shap_enhanced/models/vision/simple_cnn.py
+"""Simple CNN model for image classification or regression."""
 
 import torch
 import torch.nn as nn

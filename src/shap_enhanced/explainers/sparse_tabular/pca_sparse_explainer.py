@@ -1,4 +1,4 @@
-# src/shap_enhanced/explainers/sparse_tabular/pca_sparse_explainer.py
+"""PCASparseExplainer: PCA-Sparse Feature Perturbation Explainer."""
 
 from typing import Any, Optional
 import torch

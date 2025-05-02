@@ -1,4 +1,4 @@
-# src/shap_enhanced/visualization/attention_visualization.py
+"""Attention Weights Visualization"""
 
 import matplotlib.pyplot as plt
 import seaborn as sns

@@ -1,4 +1,4 @@
-# src/shap_enhanced/explainers/sequential/recurrent_explainer.py
+"""Recurrent Explainer for sequential models."""
 
 from typing import Any, Optional
 import torch

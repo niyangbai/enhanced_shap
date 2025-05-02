@@ -1,4 +1,4 @@
-# src/shap_enhanced/models/vision/resnet_tiny.py
+"""ResNet Tiny model for image classification."""
 
 import torch
 import torch.nn as nn

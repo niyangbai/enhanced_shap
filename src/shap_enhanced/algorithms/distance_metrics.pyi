@@ -1,3 +1,9 @@
+"""
+This module provides implementations of various distance metrics for comparing tensors.
+It includes functions for computing Euclidean distance, cosine similarity, and Dynamic Time Warping (DTW) distance.
+These metrics are useful for tasks such as clustering, similarity measurement, and sequence alignment.
+"""
+
 import torch
 
 def euclidean_distance(x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:

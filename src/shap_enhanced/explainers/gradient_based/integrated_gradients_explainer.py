@@ -1,5 +1,6 @@
-# src/shap_enhanced/explainers/gradient_based/integrated_gradients_explainer.py
+"""Expected Gradients Explainer for feature attribution."""
 
+from __future__ import annotations
 from typing import Any, Optional
 import torch
 from shap_enhanced.explainers.base import BaseExplainer

@@ -1,4 +1,4 @@
-# src/shap_enhanced/explainers/tree/shap_interaction_explainer.py
+""" SHAP Interaction Explainer for tree-based models."""
 
 from typing import Any, Optional
 import torch

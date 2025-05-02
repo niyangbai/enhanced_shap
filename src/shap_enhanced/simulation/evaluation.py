@@ -1,4 +1,4 @@
-# src/shap_enhanced/simulation/evaluation.py
+"""Evaluation functions for SHAP values comparison."""
 
 from sklearn.metrics import mean_squared_error
 import numpy as np

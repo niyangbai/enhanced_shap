@@ -1,4 +1,5 @@
-# src/shap_enhanced/explainers/sparse_tabular/grouped_sparse_explainer.py
+"""Grouped Sparse Feature Perturbation Explainer."""
+
 
 from typing import Any, Optional, List
 import torch

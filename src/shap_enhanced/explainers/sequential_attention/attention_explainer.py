@@ -1,4 +1,4 @@
-# src/shap_enhanced/explainers/sequential/attention_explainer.py
+"""Attention Explainer for models with attention mechanisms."""
 
 from typing import Any, Optional
 import torch

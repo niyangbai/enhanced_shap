@@ -1,4 +1,4 @@
-# src/shap_enhanced/explainers/sequential/sp_shap_explainer.py
+"""Sequential Perturbation SHAP (SP-SHAP) Explainer."""
 
 from typing import Any, Optional
 import torch

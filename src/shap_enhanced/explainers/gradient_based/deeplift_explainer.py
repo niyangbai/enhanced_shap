@@ -1,4 +1,4 @@
-# src/shap_enhanced/explainers/gradient_based/deeplift_explainer.py
+"""DeepLIFT Explainer for feature attribution."""
 
 from typing import Any, Optional
 import torch

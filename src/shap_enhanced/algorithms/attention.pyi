@@ -1,3 +1,10 @@
+"""
+This module provides utilities for working with attention mechanisms in neural networks.
+It includes functions for normalizing attention weights, computing attention flow across
+layers, and applying guided attention masking. Additionally, it provides a backward hook
+for Guided Backpropagation to enhance interpretability of attention-based models.
+"""
+
 import torch
 
 def guided_relu_backward_hook():

@@ -1,4 +1,4 @@
-# src/shap_enhanced/explainers/tree/path_based_shap_explainer.py
+"""Path-based SHAP Explainer for Tree Models."""
 
 from typing import Any, Optional
 import torch

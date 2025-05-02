@@ -1,3 +1,9 @@
+"""
+This module provides functionality to generate synthetic sparse datasets for testing and experimentation.
+It includes a function to create feature matrices with a specified level of sparsity and optional noise,
+along with corresponding target values generated using a customizable target function.
+"""
+
 import numpy as np
 import torch
 from typing import Callable, Optional, Tuple

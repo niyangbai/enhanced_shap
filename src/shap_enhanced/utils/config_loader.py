@@ -1,4 +1,4 @@
-# src/shap_enhanced/utils/config_loader.py
+"""Load configuration from YAML or JSON file."""
 
 import yaml
 import json

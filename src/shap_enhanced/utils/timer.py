@@ -1,4 +1,4 @@
-# src/shap_enhanced/utils/timer.py
+"""Timer utility for measuring elapsed time."""
 
 import time
 

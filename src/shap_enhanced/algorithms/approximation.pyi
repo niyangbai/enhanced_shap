@@ -1,3 +1,14 @@
+"""
+This module provides functions for estimating expectations of functions using Monte Carlo methods.
+It includes utilities for computing marginal and conditional expectations, which are useful in
+explaining machine learning models and understanding feature importance.
+
+Functions:
+- monte_carlo_expectation: Computes the Monte Carlo estimate of the expectation of a function.
+- joint_marginal_expectation: Estimates the expectation of a model conditioned on a subset of features.
+- conditional_marginal_expectation: Alias for joint marginal expectation, with a focus on fixing multiple features.
+"""
+
 import torch
 from typing import Callable, List, Optional
 

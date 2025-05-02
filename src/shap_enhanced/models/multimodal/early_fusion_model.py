@@ -1,6 +1,4 @@
-# Auto-generated file
-
-# src/shap_enhanced/models/multimodal/early_fusion_model.py
+"""Early Fusion Model for multimodal data."""
 
 import torch
 import torch.nn as nn

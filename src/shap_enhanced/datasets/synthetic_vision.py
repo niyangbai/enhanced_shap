@@ -1,4 +1,9 @@
-# TODO: Move to CPP
+"""
+This module provides functionality to generate synthetic vision datasets for machine learning tasks.
+It includes utilities to draw basic geometric shapes (circle, square, triangle) on images and create
+labeled datasets with these shapes. The generated datasets can be used for tasks such as image
+classification or object detection.
+"""
 
 import torch
 import numpy as np

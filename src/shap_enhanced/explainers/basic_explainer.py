@@ -1,3 +1,5 @@
+"""Basic explainer that assigns random or constant feature attributions."""
+
 from typing import Any
 import numpy as np
 from shap_enhanced.explainers.base import BaseExplainer

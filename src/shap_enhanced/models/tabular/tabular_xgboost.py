@@ -1,4 +1,6 @@
-# src/shap_enhanced/models/tabular/tabular_xgboost.py
+"""TabularXGBoost model for tabular data."""
+
+
 from typing import Optional
 import torch
 import xgboost as xgb

@@ -1,4 +1,4 @@
-# src/shap_enhanced/explainers/kernel_sampling/kernel_explainer.py
+"""KernelSHAP-style Explainer for model-agnostic feature attribution."""
 
 from typing import Any, Optional
 import torch

@@ -1,4 +1,5 @@
-# src/shap_enhanced/explainers/gradient_based/noisegrad_explainer.py
+"""Gradient Explainer for feature attribution using gradients."""
+
 
 from typing import Any, Optional
 import torch

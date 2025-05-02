@@ -1,4 +1,4 @@
-# src/shap_enhanced/models/tabular/tabular_mlp.py
+"""Tabular MLP model for regression/classification tasks."""
 
 import torch
 import torch.nn as nn

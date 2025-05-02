@@ -1,4 +1,4 @@
-# src/shap_enhanced/explainers/kernel_sampling/lime_style_explainer.py
+"""LIME++ Style Explainer using local surrogate models with weighted fitting."""
 
 from typing import Any, Optional
 import torch

@@ -1,3 +1,19 @@
+"""
+This module provides various perturbation functions for manipulating tensors, particularly for use in machine learning
+and deep learning tasks. These functions allow masking of features, timesteps, or groups of features, as well as adding
+noise to sequences. The perturbations can be used for data augmentation, interpretability, or robustness testing.
+
+Functions:
+- mask_features: Masks specific features in a tensor.
+- mask_timesteps: Masks specific timesteps in a tensor.
+- random_mask: Randomly masks features in a tensor.
+- mask_time_window: Masks a continuous window of timesteps in a tensor.
+- perturb_sequence_with_noise: Adds structured noise to a sequence.
+- mask_random_features: Randomly masks a specified number of features per sample.
+- mask_feature_groups: Masks specific groups of features in a tensor.
+"""
+
+
 import torch
 import random
 from typing import List

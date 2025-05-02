@@ -1,4 +1,4 @@
-# src/shap_enhanced/explainers/tree/advanced_tree_explainer.py
+"""Advanced Tree Explainer for SHAP values with subtree contributions."""
 
 from typing import Any, List, Optional
 import torch

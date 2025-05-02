@@ -1,4 +1,4 @@
-# src/shap_enhanced/utils/seed.py
+"""Set random seed for reproducibility."""
 
 import random
 import numpy as np

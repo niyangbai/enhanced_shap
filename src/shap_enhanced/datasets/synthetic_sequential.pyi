@@ -1,3 +1,11 @@
+"""
+This module provides functionality for generating synthetic sequential datasets with customizable patterns and targets.
+
+The main function, `generate_sequential_data`, allows users to create sequential data with a specified number of samples, timesteps, and features. Users can define custom pattern generation and target computation functions to tailor the data to their needs. Gaussian noise can also be added to the generated data for realism.
+
+This is particularly useful for testing and benchmarking machine learning models, especially those designed for time-series or sequential data.
+"""
+
 import numpy as np
 import torch
 from typing import Callable, Optional, Tuple

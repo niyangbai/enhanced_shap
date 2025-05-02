@@ -1,4 +1,4 @@
-# src/shap_enhanced/models/sequential/time_series_mlp.py
+"""Time Series MLP model for time-series data."""
 
 import torch
 import torch.nn as nn

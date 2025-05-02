@@ -1,3 +1,15 @@
+"""
+This module provides utility functions for working with Principal Component Analysis (PCA) using PyTorch tensors.
+It includes functions to fit PCA models, transform data into PCA space, inverse transform data back to the original space,
+and select the number of principal components based on a variance threshold.
+
+Functions:
+- fit_pca: Fits a PCA or IncrementalPCA model to the input tensor.
+- transform_pca: Projects a tensor into the PCA space using a fitted PCA model.
+- inverse_pca: Reconstructs the original tensor from its PCA projection.
+- select_principal_components: Determines the minimum number of components required to cover a specified variance.
+"""
+
 import torch
 from typing import Any
 from sklearn.decomposition import PCA, IncrementalPCA

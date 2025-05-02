@@ -1,4 +1,4 @@
-# src/shap_enhanced/models/sequential/transformer_encoder.py
+"""Transformer Encoder model for sequential data."""
 
 import torch
 import torch.nn as nn

@@ -1,4 +1,4 @@
-# src/shap_enhanced/visualization/interaction_plot.py
+"""Plot interaction effects as a heatmap."""
 
 import matplotlib.pyplot as plt
 import seaborn as sns

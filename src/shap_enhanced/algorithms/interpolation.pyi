@@ -1,3 +1,8 @@
+"""
+This module provides functions for performing interpolation operations on tensors.
+It includes utilities for generating linearly interpolated tensors between two given tensors.
+"""
+
 import torch
 
 def linear_interpolation(start: torch.Tensor, end: torch.Tensor, steps: int) -> torch.Tensor:

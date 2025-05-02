@@ -230,3 +230,37 @@ docs/.doctrees/
 docs/.buildinfo
 docs/.coverage
 docs/.pytest_cache
+
+# LaTeX intermediate and output files
+*.aux
+*.bbl
+*.blg
+*.brf
+*.fls
+*.fdb_latexmk
+*.glo
+*.glg
+*.gls
+*.idx
+*.ilg
+*.ind
+*.lof
+*.log
+*.lot
+*.nav
+*.out
+*.snm
+*.synctex.gz
+*.toc
+*.vrb
+
+# PDF output
+*.pdf
+
+# Backup files
+*~
+*.bak
+*.sav
+
+# MacOS metadata
+.DS_Store

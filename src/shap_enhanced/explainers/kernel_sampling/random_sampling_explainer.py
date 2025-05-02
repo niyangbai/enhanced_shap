@@ -1,4 +1,4 @@
-# src/shap_enhanced/explainers/kernel_sampling/random_sampling_explainer.py
+"""Random Sampling Explainer for feature attribution."""
 
 from typing import Any, Optional
 import torch

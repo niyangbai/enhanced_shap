@@ -1,3 +1,5 @@
+"""Perturbation-based explainer for black-box models."""
+
 from typing import Any
 import torch
 from shap_enhanced.explainers.base import BaseExplainer

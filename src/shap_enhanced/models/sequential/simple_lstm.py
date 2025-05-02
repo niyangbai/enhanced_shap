@@ -1,4 +1,4 @@
-# src/shap_enhanced/models/sequential/simple_lstm.py
+"""Simple LSTM model for sequential data."""
 
 import torch
 import torch.nn as nn

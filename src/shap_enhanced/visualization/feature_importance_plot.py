@@ -1,4 +1,4 @@
-# src/shap_enhanced/visualization/feature_importance_plot.py
+"""Feature importance plot for SHAP values."""
 
 import matplotlib.pyplot as plt
 import torch

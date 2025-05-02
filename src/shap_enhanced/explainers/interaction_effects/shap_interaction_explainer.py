@@ -1,4 +1,4 @@
-# src/shap_enhanced/explainers/interaction_effects/shap_interaction_explainer.py
+""" SHAP Interaction Explainer"""
 
 from typing import Any, Optional
 import torch

@@ -1,4 +1,4 @@
-# src/shap_enhanced/models/multimodal/late_fusion_model.py
+"""Late Fusion Model for multimodal data."""
 
 import torch
 import torch.nn as nn

@@ -1,4 +1,4 @@
-# src/shap_enhanced/explainers/sequential/time_explainer.py
+"""Time Explainer for sequential models."""
 
 from typing import Any, Optional
 import torch

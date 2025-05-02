@@ -1,4 +1,4 @@
-# src/shap_enhanced/models/sequential/bidirectional_lstm.py
+"""Bidirectional LSTM model for sequential data."""
 
 import torch
 import torch.nn as nn

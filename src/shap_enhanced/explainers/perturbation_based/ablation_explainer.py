@@ -1,3 +1,5 @@
+"""Ablation Explainer for Grouped Feature Attribution."""
+
 from typing import Any, List
 import torch
 from shap_enhanced.explainers.base import BaseExplainer

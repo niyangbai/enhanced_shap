@@ -1,4 +1,6 @@
-# src/shap_enhanced/explainers/gradient_based/guidedbackprop_explainer.py
+"""Guided Backpropagation Explainer for feature attribution."""
+
+from __future__ import annotations
 
 from typing import Any, Optional
 import torch

@@ -1,4 +1,4 @@
-# src/shap_enhanced/utils/logging.py
+"""Logging utility for SHAP Enhanced."""
 
 import logging
 

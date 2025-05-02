@@ -1,4 +1,4 @@
-# src/shap_enhanced/explainers/interaction_effects/dependence_explainer.py
+"""Dependence Explainer for marginal feature attribution."""
 
 from typing import Any, Optional
 import torch

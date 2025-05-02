@@ -1,4 +1,4 @@
-# src/shap_enhanced/simulation/synthetic_data.py
+"""Synthetic data generation module for SHAP Enhanced."""
 
 from shap_enhanced.datasets.synthetic_sequential import generate_sequential_data
 from shap_enhanced.datasets.synthetic_sparse import generate_sparse_data

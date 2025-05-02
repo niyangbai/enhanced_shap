@@ -1,4 +1,4 @@
-# src/shap_enhanced/visualization/time_series_plot.py
+"""Plotting function for time-series model attributions."""
 
 import matplotlib.pyplot as plt
 import torch

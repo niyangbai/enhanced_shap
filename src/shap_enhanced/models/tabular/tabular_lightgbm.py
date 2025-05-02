@@ -1,4 +1,4 @@
-# src/shap_enhanced/models/tabular/tabular_lightgbm.py
+"""LightGBM model for Tabular Data."""
 
 import torch
 from typing import Optional

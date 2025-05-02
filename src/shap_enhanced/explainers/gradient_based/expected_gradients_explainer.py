@@ -1,4 +1,4 @@
-# src/shap_enhanced/explainers/gradient_based/expected_gradients_explainer.py
+"""Expected Gradients Explainer for feature attribution."""
 
 from typing import Any, Optional
 import torch

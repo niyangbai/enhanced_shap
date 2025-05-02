@@ -1,4 +1,4 @@
-# src/shap_enhanced/simulation/simulator.py
+"""Simulation and evaluation of SHAP values for various models and explainers."""
 
 import torch
 import numpy as np

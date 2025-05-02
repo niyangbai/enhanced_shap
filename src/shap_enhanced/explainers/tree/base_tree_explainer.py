@@ -1,4 +1,4 @@
-# src/shap_enhanced/explainers/tree/base_tree_explainer.py
+"""Base explainer for tree-based models (XGBoost, LightGBM, RandomForest)."""
 
 from typing import Any, List, Optional
 import torch

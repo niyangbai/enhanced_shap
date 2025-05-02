@@ -1,3 +1,5 @@
+"""Comparison of different SHAP explainers using simulation."""
+
 from shap_enhanced.simulation.simulator import ModelSimulation
 
 def compare_explainers(explainers, X, y, true_shap_function, metric='mse'):

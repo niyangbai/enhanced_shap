@@ -1,4 +1,9 @@
-# src/shap_enhanced/datasets/synthetic_tabular.py
+"""
+This module provides functionality to generate synthetic tabular datasets for testing and experimentation purposes.
+It allows customization of the number of samples, number of features, feature distributions, and the relationship
+between features and the target variable. The generated data is returned as PyTorch tensors, making it suitable
+for machine learning workflows.
+"""
 
 import numpy as np
 import torch

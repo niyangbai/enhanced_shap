@@ -1,4 +1,4 @@
-# src/shap_enhanced/explainers/gradient_based/gradient_explainer.py
+"""Gradient Explainer for feature attribution using gradients."""
 
 from typing import Any, Optional
 import torch

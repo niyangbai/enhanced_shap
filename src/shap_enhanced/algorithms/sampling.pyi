@@ -1,3 +1,16 @@
+"""
+This module provides various sampling methods for subsets, timesteps, and feature groups.
+It is designed to support tasks that require random or balanced sampling of indices or groups,
+such as feature perturbation or time series analysis.
+
+Functions:
+- sample_subsets: Samples random subsets of feature indices.
+- sample_balanced_subsets: Samples subsets with balanced sizes (small, medium, large).
+- sample_timesteps: Samples random timesteps from a sequence.
+- sample_feature_subsets: Samples random subsets for feature perturbations.
+- sample_feature_groups: Samples random groups of features based on predefined groups.
+"""
+
 from typing import List
 
 def sample_subsets(n_features: int, nsamples: int) -> list:

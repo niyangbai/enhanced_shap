@@ -1,3 +1,5 @@
+"""Base class for all explainers."""
+
 from abc import ABC, abstractmethod
 from typing import Any
 

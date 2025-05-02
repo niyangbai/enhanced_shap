@@ -1,3 +1,5 @@
+"""Base model class for all machine learning models."""
+
 from abc import ABC, abstractmethod
 from typing import Any
 

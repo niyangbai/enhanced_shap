@@ -1,5 +1,6 @@
-# src/shap_enhanced/visualization/evaluation_metrics_plot.py
+"""Plotting evaluation metrics for explainers."""
 
+""
 import matplotlib.pyplot as plt
 
 def plot_evaluation_scores(scores: dict, title: str = "Explainer Performance Comparison"):

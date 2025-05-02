@@ -1,5 +1,6 @@
-# src/shap_enhanced/explainers/sparse_tabular/sparse_explainer.py
+"""Sparse Feature Perturbation Explainer."""
 
+""
 from typing import Any, Optional
 import torch
 from shap_enhanced.explainers.base import BaseExplainer
