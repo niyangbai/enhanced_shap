@@ -253,12 +253,13 @@ docs/.pytest_cache
 *.synctex.gz
 *.toc
 *.vrb
+*.bcf 
+*.lol 
+*.xml
 
 # PDF output
-*.pdf
-
-# But do NOT ignore PDFs in the reference folder
-!references/*.pdf
+# *.pdf
+# !references/*.pdf
 
 # Backup files
 *~
