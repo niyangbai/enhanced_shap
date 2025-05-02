@@ -2,7 +2,6 @@
 
 from typing import Any, Optional
 import torch
-import numpy as np
 from shap_enhanced.explainers.tree.base_tree_explainer import BaseTreeExplainer
 
 class PathBasedShapExplainer(BaseTreeExplainer):

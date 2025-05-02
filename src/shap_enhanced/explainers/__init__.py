@@ -1,3 +1,4 @@
-# Auto-generated file
-
-# Package init
+"""
+This package contains various explainers, organized by technique, for interpreting
+model predictions across multiple data types.
+"""

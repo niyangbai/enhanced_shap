@@ -1,3 +1,3 @@
-# Auto-generated file
-
-# Package init
+"""
+Utility functions including logging, config loading, random seeding, and timing.
+"""

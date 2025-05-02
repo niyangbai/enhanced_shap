@@ -1,3 +1,3 @@
-# Auto-generated file
-
-# Package init
+"""
+Tabular models such as MLPs, XGBoost, and LightGBM.
+"""

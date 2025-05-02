@@ -220,3 +220,13 @@ pyrightconfig.json
 
 # Ignore local config
 .buildconfig
+
+# Sphinx build output
+docs/build/
+docs/source/generated/
+
+# Sphinx cache and temp files
+docs/.doctrees/
+docs/.buildinfo
+docs/.coverage
+docs/.pytest_cache

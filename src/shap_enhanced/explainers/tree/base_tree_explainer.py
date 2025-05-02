@@ -4,7 +4,6 @@ from typing import Any, List, Optional
 import torch
 import numpy as np
 from shap_enhanced.explainers.base import BaseExplainer
-from shap_enhanced.algorithms.sampling import sample_subsets
 
 class BaseTreeExplainer(BaseExplainer):
     """Base explainer for tree-based models (XGBoost, LightGBM, RandomForest).

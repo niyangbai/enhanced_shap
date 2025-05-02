@@ -1,3 +1,4 @@
-# Auto-generated file
-
-# Package init
+"""
+Visualization tools for feature importance, time series plots, attention maps,
+and evaluation metrics.
+"""

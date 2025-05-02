@@ -1,3 +1,3 @@
-# Auto-generated file
-
-# Package init
+"""
+Synthetic dataset generators for sequential, tabular, sparse, and vision modalities.
+"""

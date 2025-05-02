@@ -5,7 +5,7 @@ import torch
 from shap_enhanced.explainers.tree.base_tree_explainer import BaseTreeExplainer
 from shap_enhanced.algorithms.sampling import sample_subsets
 from shap_enhanced.algorithms.shapley_kernel import shapley_kernel_weights
-from shap_enhanced.algorithms.masking import mask_features
+from shap_enhanced.algorithms.perturbation import mask_features
 
 class ShapInteractionExplainer(BaseTreeExplainer):
     """SHAP Interaction Explainer for tree-based models.
