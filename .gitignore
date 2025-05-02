@@ -257,6 +257,9 @@ docs/.pytest_cache
 # PDF output
 *.pdf
 
+# But do NOT ignore PDFs in the reference folder
+!references/*.pdf
+
 # Backup files
 *~
 *.bak
