@@ -3,9 +3,14 @@ Welcome to SHAP Enhanced's documentation!
 
 SHAP Enhanced is a modular framework for model explainability.
 
+.. include:: ../../README.md
+   :parser: myst_parser.sphinx_
+
+API Reference
+=============
+
 .. toctree::
    :maxdepth: 2
-   :caption: API Reference
 
    shap_enhanced_api
 
