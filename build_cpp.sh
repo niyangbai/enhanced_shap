@@ -1,64 +1,65 @@
 #!/bin/bash
 
-set -e  # Exit immediately if a command fails
+set -e
 set -o pipefail
 
-# --- Configuration ---
 PROJECT_ROOT=$(dirname "$(readlink -f "$0")")
 SRC_DIR="$PROJECT_ROOT/src"
 BUILD_DIR="$SRC_DIR/build"
+VENV_DIR="$PROJECT_ROOT/.venv"
 
-# --- Utility Functions ---
+# --- Clean build ---
 clean_build() {
-  echo "Cleaning previous build..."
+  echo "[Clean] Removing previous builds..."
   rm -rf "$BUILD_DIR"
-  find "$SRC_DIR" -name "*.so" -type f -delete
-  echo "Cleaned build directory and old .so files."
+  find "$SRC_DIR" -name "*.so" -delete
+  echo "[Clean] Done."
 }
 
+# --- Configure and build ---
 configure_and_build() {
-  echo "Configuring and building project..."
+  echo "[Build] Configuring and building..."
+
+  if [ ! -d "$VENV_DIR" ]; then
+    echo "Error: Python virtual environment not found at $VENV_DIR"
+    exit 1
+  fi
+
+  source "$VENV_DIR/bin/activate"
+
+  # Get CMake config paths from installed pip packages
+  TORCH_DIR=$(python -c "import torch, os; print(os.path.join(os.path.dirname(torch.__file__), 'share', 'cmake', 'Torch'))")
+  PYBIND11_CMAKE_DIR=$(python -m pybind11 --cmakedir)
+
+  if [ ! -d "$TORCH_DIR" ]; then
+    echo "Error: Torch CMake config not found at $TORCH_DIR"
+    exit 1
+  fi
+
+  if [ ! -f "$PYBIND11_CMAKE_DIR/pybind11Config.cmake" ]; then
+    echo "Error: pybind11Config.cmake not found at $PYBIND11_CMAKE_DIR"
+    exit 1
+  fi
+
+  export TORCH_DIR
 
   mkdir -p "$BUILD_DIR"
   cd "$BUILD_DIR"
 
-  if [ -z "$CONDA_PREFIX" ]; then
-    echo "Error: No active Conda environment detected."
-    exit 1
-  fi
-
-  # Detect Python version
-  PYTHON_VERSION=$(python -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')")
-
-  # Set CMake path to Conda's PyTorch
-  TORCH_CMAKE_PATH="$CONDA_PREFIX/lib/python${PYTHON_VERSION}/site-packages/torch/share/cmake/Torch"
-
-  if [ ! -d "$TORCH_CMAKE_PATH" ]; then
-    echo "Error: Could not find Torch CMake config at $TORCH_CMAKE_PATH"
-    exit 1
-  fi
-
-  echo "Using Torch CMake config from: $TORCH_CMAKE_PATH"
-
-  # Run CMake
   cmake ../ \
-    -DCMAKE_PREFIX_PATH="$TORCH_CMAKE_PATH" \
-    -DCMAKE_FIND_ROOT_PATH_MODE_PACKAGE=ONLY \
+    -DCMAKE_PREFIX_PATH="$TORCH_DIR;$PYBIND11_CMAKE_DIR" \
     -DCMAKE_BUILD_TYPE=Release
 
-  # Build
   cmake --build . --config Release --parallel
-  echo "Build finished."
+  echo "[Build] Done."
 }
 
+# --- Help ---
 show_usage() {
   echo "Usage: $0 {clean|build|rebuild}"
-  echo "  clean   - Clean previous builds and .so files"
-  echo "  build   - Configure and build the project"
-  echo "  rebuild - Clean and build freshly"
 }
 
-# --- Main ---
+# --- CLI dispatcher ---
 case "$1" in
   clean)
     clean_build

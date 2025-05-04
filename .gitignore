@@ -218,9 +218,6 @@ pyrightconfig.json
 .history
 .ionide
 
-# Ignore local config
-.buildconfig
-
 # Sphinx build output
 docs/build/
 docs/source/generated/
@@ -230,6 +227,7 @@ docs/.doctrees/
 docs/.buildinfo
 docs/.coverage
 docs/.pytest_cache
+!docs/Makefile
 
 # LaTeX intermediate and output files
 *.aux
