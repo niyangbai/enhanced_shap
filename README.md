@@ -7,8 +7,7 @@
 
 ## Project Overview
 
-**SHAP-Enhanced** is a **next-generation explainability framework** developed for **research-grade model interpretation**.
-It is built to **extend** traditional methods like **SHAP**, **LIME**, and **Integrated Gradients**, offering **new algorithms**, **more complex simulation engines**, and **multimodal support** across:
+**SHAP-Enhanced** is a framework designed to support research in model interpretation. It builds upon methods like **SHAP**, **LIME**, and **Integrated Gradients**, introducing additional algorithms, simulation tools, and support for multimodal data across:
 
 - Tabular
 - Sequential (Time-Series)
@@ -109,8 +108,6 @@ print(f"Mean Squared Error: {mse:.4f}")
 ```
 
 Use `simulation/comparison.py` to benchmark multiple explainers side-by-side!
-
-
 
 ## 🎨 Visualization
 
