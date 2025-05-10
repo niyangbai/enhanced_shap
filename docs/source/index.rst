@@ -1,8 +1,3 @@
-Welcome to SHAP Enhanced's documentation!
-=========================================
-
-SHAP Enhanced is a modular framework for model explainability.
-
 .. include:: ../../README.md
    :parser: myst_parser.sphinx_
 

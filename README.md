@@ -18,23 +18,23 @@ This framework is created following **PEP8 standards**, **Sphinx documentation f
 
 Developed as part of a **Master Thesis**.
 
-## ✨ Key Features
+## Key Features
 
-- ✅ Unified **Explainability Interface** (`BaseExplainer`)
-- ✅ Extensive **Gradient-Based** and **Perturbation-Based** explainers
-- ✅ **Sequential/Attention Explainability** (LSTM, Transformer)
-- ✅ **Sparse Tabular** and **PCA Sparse** models
-- ✅ **Tree-Based Explainers** (Advanced SHAP for Decision Trees)
-- ✅ **Simulation Engine** with ground-truth SHAP validation
-- ✅ **Evaluation Metrics**: MSE, Correlation, Advanced Metrics
-- ✅ **Visualization Toolkit**: Feature Importance, Time Series, Attention, Interactions
-- ✅ **Multimodal Models** (Tabular + Image + Text Fusion)
-- ✅ 100% **Modular Design** for future methods
-- ✅ **No external SHAP package dependency** — **pure internal kernels**
+- Unified **Explainability Interface** (`BaseExplainer`)
+- Extensive **Gradient-Based** and **Perturbation-Based** explainers
+- **Sequential/Attention Explainability** (LSTM, Transformer)
+- **Sparse Tabular** and **PCA Sparse** models
+- **Tree-Based Explainers** (Advanced SHAP for Decision Trees)
+- **Simulation Engine** with ground-truth SHAP validation
+- **Evaluation Metrics**: MSE, Correlation, Advanced Metrics
+- **Visualization Toolkit**: Feature Importance, Time Series, Attention, Interactions
+- **Multimodal Models** (Tabular + Image + Text Fusion)
+- 100% **Modular Design** for future methods
+- **No external SHAP package dependency** — **pure internal kernels**
 
 
 
-## 📦 Project Structure
+## Project Structure
 
 ```
 src/shap_enhanced/
@@ -52,7 +52,7 @@ LICENSE                 # GNU Affero General Public License
 requirements.txt        # Dependencies
 ```
 
-## ⚙️ Installation
+## Installation
 
 You can install the package locally:
 
@@ -75,7 +75,7 @@ pip install -r requirements.txt
 
 
 
-## 🚀 Quick Example
+## Quick Example
 ```python
 from shap_enhanced.models.tabular.tabular_mlp import TabularMLP
 from shap_enhanced.explainers.gradient_based.integrated_gradients_explainer import IntegratedGradientsExplainer
@@ -95,7 +95,7 @@ print(attributions)
 ```
 
 
-## 🧪 Simulation and Benchmarking
+## Simulation and Benchmarking
 
 Evaluate your explainers against **true SHAP values**:
 
@@ -109,7 +109,7 @@ print(f"Mean Squared Error: {mse:.4f}")
 
 Use `simulation/comparison.py` to benchmark multiple explainers side-by-side!
 
-## 🎨 Visualization
+## Visualization
 
 ```python
 from shap_enhanced.visualization.feature_importance_plot import plot_feature_importance
@@ -124,7 +124,7 @@ Available visualization modules:
 - `SHAP Interaction Effects`
 - `Evaluation Metrics Comparison`
 
-## 🤝 Contribution
+## Contribution
 
 We welcome contributions to **SHAP-Enhanced**! To contribute, please follow these steps:
 
@@ -155,27 +155,26 @@ We welcome contributions to **SHAP-Enhanced**! To contribute, please follow thes
     ```
 9. **Submit a Pull Request**: Open a pull request to the main repository, describing your changes in detail.
 
-### Contribution Guidelines
+General Guidelines:
 - Follow the **PEP8 coding style**.
 - Document all public methods, classes, and modules using **Sphinx-style docstrings**.
 - Ensure your code is **properly typed** and includes type hints.
 - Write clear and concise commit messages.
 - Be respectful and collaborative in code reviews.
 
-Thank you for helping improve **SHAP-Enhanced**!
 
-## 📜 License
+## License
 
 This project is licensed under the **GNU Affero General Public License v3.0** (AGPL-3.0).
 See the LICENSE file for details.
 
 > **Note**: Any modified versions must also be made publicly available under the same license if deployed.
 
-## ✍️ About
+## About
 
 * Master Thesis — **Enhanced SHAP for Sequential and Sparse Data in Predictive Process Monitoring**  
 * University: **Friedrich-Alexander-Universität Erlangen-Nürnberg**
 
-## 📧 Contact
+## Contact
 
 For inquiries, please reach out via GitHub Issues.
