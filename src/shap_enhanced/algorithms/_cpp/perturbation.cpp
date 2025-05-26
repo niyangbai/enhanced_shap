@@ -1,5 +1,6 @@
 #include <torch/torch.h>
 #include <pybind11/pybind11.h>
+#include <pybind11/stl.h>
 #include <random>
 
 namespace py = pybind11;
@@ -14,7 +15,7 @@ torch::Tensor mask_features(torch::Tensor X, std::vector<int> features, float ma
 }
 
 // Mask specified timesteps
-torch::Tensor mask_timesteps(torch::Tensor X, std::vector<int> timesteps, float mask_value = 0.0) {
+torch::Tensor mask_timesteps(const torch::Tensor& X, const std::vector<int>& timesteps, float mask_value = 0.0) {
     torch::Tensor X_masked = X.clone();
     for (int t : timesteps) {
         X_masked.index({torch::indexing::Slice(), t, torch::indexing::Slice()}) = mask_value;
@@ -91,7 +92,7 @@ torch::Tensor mask_feature_groups(torch::Tensor X, std::vector<std::vector<int>>
 // Pybind11 bindings
 PYBIND11_MODULE(perturbation, m) {
     m.def("mask_features", &mask_features, "Mask specified features");
-    m.def("mask_timesteps", &mask_timesteps, "Mask specified timesteps");
+    m.def("mask_timesteps", &mask_timesteps, "Mask specific timesteps in a tensor");
     m.def("random_mask", &random_mask, "Randomly mask features");
     m.def("mask_time_window", &mask_time_window, "Mask a continuous window of timesteps");
     m.def("perturb_sequence_with_noise", &perturb_sequence_with_noise, "Add structured noise to a sequence");

@@ -1,15 +1,8 @@
 [build-system]
-requires = ["setuptools>=64", "wheel", "pybind11"]
+requires = [
+    "setuptools>=42",
+    "wheel",
+    "pybind11>=2.10",
+    "torch>=2.0+cpu"
+]
 build-backend = "setuptools.build_meta"
-
-[project]
-name = "shap-enhanced"
-version = "0.0.1"
-description = "Enhanced SHAP with C++ extensions"
-authors = [{name = "Niyang Bai"}]
-readme = "README.md"
-requires-python = ">=3.8"
-
-[tool.setuptools]
-packages = ["shap_enhanced"]
-package-dir = {"" = "src"}
