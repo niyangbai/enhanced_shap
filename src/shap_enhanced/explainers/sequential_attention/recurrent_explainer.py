@@ -1,3 +1,29 @@
+"""This module implements a robust SHAP-style attribution explainer for sequential models (e.g., LSTM).
+
+It approximates timestep-level importance by:
+
+    - Sampling coalitions of timesteps and masking/complementing each timestep.
+    - Training multiple surrogate models (KernelRidge) to estimate marginal contributions.
+    - Smoothing and normalizing the aggregated attributions for interpretability.
+
+Key Features
+------------
+- SHAP-style coalition sampling.
+- Context-aware mean imputation.
+- Noise injection (optional) or ensemble of both.
+- Multiple surrogate fits (bootstrapped) with optional weighting.
+- Savitzky–Golay smoothing for temporal consistency.
+- Spearman-consistent and robust across seeds.
+
+Typical Usage
+-------------
+
+.. code-block:: python
+
+    explainer = RecurrentExplainer(model=my_lstm)
+    attr = explainer.explain(input_batch)
+"""
+
 import torch
 import torch.nn.functional as F
 import random
@@ -7,16 +33,27 @@ from sklearn.kernel_ridge import KernelRidge
 from scipy.signal import savgol_filter
 from shap_enhanced.explainers.base import BaseExplainer
 from shap_enhanced.algorithms.perturbation import perturb_sequence_with_noise
-from scipy.stats import spearmanr
-import itertools
 import torch
 
 def sample_coalition(T: int, exclude: List[int] = [], p: float = 0.5) -> List[int]:
+    """_summary_
+
+    :param int T: _description_
+    :param List[int] exclude: _description_, defaults to []
+    :param float p: _description_, defaults to 0.5
+    :return List[int]: _description_
+    """
     candidates = list(set(range(T)) - set(exclude))
     k = max(1, int(p * len(candidates)))
     return random.sample(candidates, k)
 
 def impute_with_context(X: torch.Tensor, timesteps: List[int]) -> torch.Tensor:
+    """_summary_
+
+    :param torch.Tensor X: _description_
+    :param List[int] timesteps: _description_
+    :return torch.Tensor: _description_
+    """
     X_copy = X.clone()
     B, T, F = X.shape
     for t in timesteps:
@@ -27,6 +64,13 @@ def impute_with_context(X: torch.Tensor, timesteps: List[int]) -> torch.Tensor:
     return X_copy
 
 def perturb_sequence_with_noise(X: torch.Tensor, timesteps: List[int], noise_level: float = 0.05) -> torch.Tensor:
+    """_summary_
+
+    :param torch.Tensor X: _description_
+    :param List[int] timesteps: _description_
+    :param float noise_level: _description_, defaults to 0.05
+    :return torch.Tensor: _description_
+    """
     X_perturbed = X.clone()
     if not timesteps:
         return X_perturbed
@@ -37,6 +81,13 @@ def perturb_sequence_with_noise(X: torch.Tensor, timesteps: List[int], noise_lev
     return X_perturbed
 
 def smooth_savgol(attr: torch.Tensor, window: int = 7, poly: int = 3) -> torch.Tensor:
+    """_summary_
+
+    :param torch.Tensor attr: _description_
+    :param int window: _description_, defaults to 7
+    :param int poly: _description_, defaults to 3
+    :return torch.Tensor: _description_
+    """
     attr_np = attr.cpu().numpy()
     smoothed = []
     for row in attr_np:
