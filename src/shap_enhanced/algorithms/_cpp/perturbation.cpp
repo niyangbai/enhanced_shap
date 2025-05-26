@@ -30,19 +30,18 @@ torch::Tensor random_mask(torch::Tensor X, float prob = 0.5, float mask_value = 
 }
 
 // Mask a continuous window of timesteps
-torch::Tensor mask_time_window(torch::Tensor X, int window_size, float mask_value = 0.0) {
-    int64_t batch_size = X.size(0);
-    int64_t time_steps = X.size(1);
+torch::Tensor mask_time_window(const torch::Tensor& X, int center, int window_size, float mask_value) {
+    // Clone input tensor
     torch::Tensor X_masked = X.clone();
 
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::uniform_int_distribution<> dis(0, time_steps - window_size);
+    // Calculate window bounds
+    int time_dim = X.size(1);
+    int half_window = window_size / 2;
+    int start = std::max(center - half_window, 0);
+    int end = std::min(center + half_window + 1, time_dim); // exclusive
 
-    for (int64_t i = 0; i < batch_size; ++i) {
-        int start = dis(gen);
-        X_masked.index({i, torch::indexing::Slice(start, start + window_size), torch::indexing::Slice()}) = mask_value;
-    }
+    // Fill in the mask
+    X_masked.index({torch::indexing::Slice(), torch::indexing::Slice(start, end), torch::indexing::Slice()}) = mask_value;
 
     return X_masked;
 }

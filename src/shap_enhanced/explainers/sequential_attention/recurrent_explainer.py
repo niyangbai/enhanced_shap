@@ -1,34 +1,35 @@
-"""Recurrent Explainer for sequential models."""
-
 from typing import Any, Optional
 import torch
+import torch.nn.functional as F
 from shap_enhanced.explainers.base import BaseExplainer
-from shap_enhanced.algorithms.perturbation import mask_timesteps, mask_time_window, perturb_sequence_with_noise
-from shap_enhanced.algorithms.sampling import sample_timesteps
+from shap_enhanced.algorithms.perturbation import (
+    mask_timesteps,
+    perturb_sequence_with_noise
+)
+
 
 class RecurrentExplainer(BaseExplainer):
-    """Recurrent Explainer for sequential models.
+    """Recurrent Explainer for sequential models using perturbation.
 
-    Estimates feature importance by perturbing timesteps:
+    Estimates feature importance by masking or injecting noise at each timestep.
 
     .. math::
 
         \\text{Attribution}_t = f(x) - f(x_{\\setminus t})
     """
 
-    def __init__(self, model: Any, mode: str = "mask", mask_value: float = 0.0,
-                 noise_level: float = 0.1, window_size: int = 1, nsamples: int = 1,
-                 target_index: Optional[int] = 0) -> None:
-        """Initialize the Recurrent Explainer.
-
-        :param Any model: A sequential model.
-        :param str mode: 'mask' or 'noise'.
-        :param float mask_value: Value used for masking timesteps.
-        :param float noise_level: Noise level when perturbing.
-        :param int window_size: Size of masked time window (if mode 'mask').
-        :param int nsamples: Number of random samples per input.
-        :param Optional[int] target_index: Output index to explain.
-        """
+    def __init__(self,
+                 model: Any,
+                 mode: str = "mask",              # 'mask' or 'noise'
+                 mask_value: float = 0.0,
+                 noise_level: float = 0.05,
+                 window_size: int = 1,
+                 nsamples: int = 10,
+                 target_index: Optional[int] = 0,
+                 use_absolute: bool = False,
+                 smooth_kernel: int = 3,
+                 clip_negative: bool = False
+                 ) -> None:
         super().__init__(model)
         self.mode = mode
         self.mask_value = mask_value
@@ -36,48 +37,68 @@ class RecurrentExplainer(BaseExplainer):
         self.window_size = window_size
         self.nsamples = nsamples
         self.target_index = target_index
+        self.use_absolute = use_absolute
+        self.smooth_kernel = smooth_kernel
+        self.clip_negative = clip_negative
 
-    def explain(self, X: Any) -> Any:
-        """Generate timestep attributions by perturbation.
+    def _get_output(self, X: torch.Tensor) -> torch.Tensor:
+        """Extracts scalar output for each sample in batch."""
+        with torch.no_grad():
+            out = self.model(X)
+            if out.ndim == 2:
+                return out[:, self.target_index or 0]
+            return out.view(-1)
 
-        :param Any X: Input data (torch.Tensor) [batch, time, features].
-        :return Any: Timestep importance (torch.Tensor).
+    def _smooth_attributions(self, attr: torch.Tensor) -> torch.Tensor:
+        """Apply moving average smoothing along time axis."""
+        if self.smooth_kernel <= 1:
+            return attr
+        kernel = torch.ones(1, 1, self.smooth_kernel, device=attr.device) / self.smooth_kernel
+        attr_unsq = attr.unsqueeze(1)  # [B, 1, T]
+        padded = F.pad(attr_unsq, (self.smooth_kernel // 2, self.smooth_kernel // 2), mode='reflect')
+        smoothed = F.conv1d(padded, kernel).squeeze(1)  # [B, T]
+        return smoothed
+
+    def explain(self, X: torch.Tensor) -> torch.Tensor:
+        """Compute per-timestep importance via perturbation.
+
+        :param X: Input tensor of shape [batch, time, features]
+        :return: Attributions tensor [batch, time]
         """
         if not isinstance(X, torch.Tensor):
-            raise ValueError("Input X must be a torch.Tensor for RecurrentExplainer.")
+            raise ValueError("Input must be a torch.Tensor")
 
         batch_size, time_steps, _ = X.shape
         attributions = torch.zeros((batch_size, time_steps), device=X.device)
-
-        base_outputs = self.model(X)
-
-        if base_outputs.ndim > 1 and base_outputs.shape[1] > 1 and self.target_index is not None:
-            base_outputs = base_outputs[:, self.target_index]
-        elif base_outputs.ndim > 1 and base_outputs.shape[1] > 1:
-            base_outputs = base_outputs[:, 0]
+        base_outputs = self._get_output(X)
 
         for _ in range(self.nsamples):
             for t in range(time_steps):
                 if self.mode == "mask":
-                    if self.window_size > 1:
-                        perturbed_X = mask_time_window(X, window_size=self.window_size, mask_value=self.mask_value)
-                    else:
-                        perturbed_X = mask_timesteps(X, [t], mask_value=self.mask_value)
+                    # Centered window around t
+                    start = max(0, t - self.window_size // 2)
+                    end = min(time_steps, start + self.window_size)
+                    mask_indices = list(range(start, end))
+                    perturbed_X = mask_timesteps(X, mask_indices, self.mask_value)
+
                 elif self.mode == "noise":
-                    perturbed_X = perturb_sequence_with_noise(X, noise_level=self.noise_level)
+                    perturbed_X = perturb_sequence_with_noise(X, timesteps=[t], noise_level=self.noise_level)
+
                 else:
-                    raise ValueError(f"Unsupported perturbation mode: {self.mode}")
+                    raise ValueError(f"Unsupported mode: {self.mode}")
 
-                perturbed_outputs = self.model(perturbed_X)
+                perturbed_outputs = self._get_output(perturbed_X)
 
-                if perturbed_outputs.ndim > 1 and perturbed_outputs.shape[1] > 1 and self.target_index is not None:
-                    perturbed_outputs = perturbed_outputs[:, self.target_index]
-                elif perturbed_outputs.ndim > 1 and perturbed_outputs.shape[1] > 1:
-                    perturbed_outputs = perturbed_outputs[:, 0]
+                delta = base_outputs - perturbed_outputs
+                if self.use_absolute:
+                    delta = delta.abs()
 
-                delta = (base_outputs - perturbed_outputs)
                 attributions[:, t] += delta
 
         attributions /= self.nsamples
 
+        if self.clip_negative:
+            attributions = torch.clamp(attributions, min=0.0)
+
+        attributions = self._smooth_attributions(attributions)
         return self._format_output(attributions)
