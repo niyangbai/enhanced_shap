@@ -1,7 +1,6 @@
 <!-- SHAP-Enhanced: Advanced Explainability Toolkit -->
 
 <h1 align="center">
-    <img src="https://raw.githubusercontent.com/niyangbai/enhanced_shap/main/docs/_static/logo.png" alt="SHAP-Enhanced Logo" width="120"/><br>
     SHAP-Enhanced: Advanced Explainability Toolkit
 </h1>
 
