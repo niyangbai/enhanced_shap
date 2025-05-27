@@ -1,56 +1,115 @@
-# SHAP-Enhanced: Advanced Explainability Toolkit
+<!-- SHAP-Enhanced: Advanced Explainability Toolkit -->
 
-[![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL%20v3-blue.svg?logo=open-source-initiative)](https://www.gnu.org/licenses/agpl-3.0)
-[![Python Version](https://img.shields.io/badge/Python-3.8%2B-blue.svg?logo=python)](https://www.python.org/)
-[![C++ Code](https://img.shields.io/badge/Code-C%2B%2B-orange.svg?logo=c%2B%2B)](https://isocpp.org/)
-[![Git](https://img.shields.io/badge/Git-Repository-orange.svg?logo=git)](https://git-scm.com/)
+<h1 align="center">
+    <img src="https://raw.githubusercontent.com/niyangbai/enhanced_shap/main/docs/_static/logo.png" alt="SHAP-Enhanced Logo" width="120"/><br>
+    SHAP-Enhanced: Advanced Explainability Toolkit
+</h1>
+
+<p align="center">
+    <a href="https://www.gnu.org/licenses/agpl-3.0">
+        <img src="https://img.shields.io/badge/License-AGPL%20v3-blue.svg?logo=open-source-initiative" alt="License: AGPL-3.0"/>
+    </a>
+    <a href="https://www.python.org/">
+        <img src="https://img.shields.io/badge/Python-3.8%2B-blue.svg?logo=python" alt="Python Version"/>
+    </a>
+    <a href="https://isocpp.org/">
+        <img src="https://img.shields.io/badge/Code-C%2B%2B-orange.svg?logo=c%2B%2B" alt="C++ Code"/>
+    </a>
+    <a href="https://git-scm.com/">
+        <img src="https://img.shields.io/badge/Git-Repository-orange.svg?logo=git" alt="Git"/>
+    </a>
+</p>
+
+<br>
+
+<details>
+    <summary><strong>Table of Contents</strong></summary>
+    <ul>
+        <li><a href="#project-overview">Project Overview</a></li>
+        <li><a href="#key-features">Key Features</a></li>
+        <li><a href="#project-structure">Project Structure</a></li>
+        <li><a href="#installation">Installation</a></li>
+        <li><a href="#quick-example">Quick Example</a></li>
+        <li><a href="#simulation-and-benchmarking">Simulation and Benchmarking</a></li>
+        <li><a href="#visualization">Visualization</a></li>
+        <li><a href="#contribution">Contribution</a></li>
+        <li><a href="#license">License</a></li>
+        <li><a href="#about">About</a></li>
+        <li><a href="#contact">Contact</a></li>
+    </ul>
+</details>
+
+---
 
 ## Project Overview
 
-**SHAP-Enhanced** is a framework designed to support research in model interpretation. It builds upon methods like **SHAP**, **LIME**, and **Integrated Gradients**, introducing additional algorithms, simulation tools, and support for multimodal data across:
+<blockquote>
+    <b>SHAP-Enhanced</b> is a framework designed to support research in model interpretation. It builds upon methods like <b>SHAP</b>, <b>LIME</b>, and <b>Integrated Gradients</b>, introducing additional algorithms, simulation tools, and support for multimodal data across:
+</blockquote>
 
-- Tabular
-- Sequential (Time-Series)
-- Vision
-- Sparse and Multimodal datasets
+<div align="center">
 
-This framework is created following **PEP8 standards**, **Sphinx documentation format**, and is released under the **GNU Affero General Public License v3.0**.
+<table>
+    <tr>
+        <td align="center"><b>Tabular</b></td>
+        <td align="center"><b>Sequential (Time-Series)</b></td>
+        <td align="center"><b>Vision</b></td>
+        <td align="center"><b>Sparse & Multimodal</b></td>
+    </tr>
+</table>
 
-Developed as part of a **Master Thesis**.
+</div>
+
+<p align="center">
+    <img src="https://img.icons8.com/color/48/000000/brain.png" width="32" alt="Tabular"/>
+    <img src="https://img.icons8.com/color/48/000000/line-chart.png" width="32" alt="Time-Series"/>
+    <img src="https://img.icons8.com/color/48/000000/image.png" width="32" alt="Vision"/>
+    <img src="https://img.icons8.com/color/48/000000/combo-chart.png" width="32" alt="Multimodal"/>
+</p>
+
+This framework is created following <b>PEP8 standards</b>, <b>Sphinx documentation format</b>, and is released under the <b>GNU Affero General Public License v3.0</b>.
+
+<sub>Developed as part of a <b>Master Thesis</b>.</sub>
+
+---
 
 ## Key Features
 
-- Unified **Explainability Interface** (`BaseExplainer`)
-- Extensive **Gradient-Based** and **Perturbation-Based** explainers
-- **Sequential/Attention Explainability** (LSTM, Transformer)
-- **Sparse Tabular** and **PCA Sparse** models
-- **Tree-Based Explainers** (Advanced SHAP for Decision Trees)
-- **Simulation Engine** with ground-truth SHAP validation
-- **Evaluation Metrics**: MSE, Correlation, Advanced Metrics
-- **Visualization Toolkit**: Feature Importance, Time Series, Attention, Interactions
-- **Multimodal Models** (Tabular + Image + Text Fusion)
-- 100% **Modular Design** for future methods
-- **No external SHAP package dependency** — **pure internal kernels**
+<ul>
+    <li>Unified <b>Explainability Interface</b> (<code>BaseExplainer</code>)</li>
+    <li>Extensive <b>Gradient-Based</b> and <b>Perturbation-Based</b> explainers</li>
+    <li><b>Sequential/Attention Explainability</b> (LSTM, Transformer)</li>
+    <li><b>Sparse Tabular</b> and <b>PCA Sparse</b> models</li>
+    <li><b>Tree-Based Explainers</b> (Advanced SHAP for Decision Trees)</li>
+    <li><b>Simulation Engine</b> with ground-truth SHAP validation</li>
+    <li><b>Evaluation Metrics</b>: MSE, Correlation, Advanced Metrics</li>
+    <li><b>Visualization Toolkit</b>: Feature Importance, Time Series, Attention, Interactions</li>
+    <li><b>Multimodal Models</b> (Tabular + Image + Text Fusion)</li>
+    <li>100% <b>Modular Design</b> for future methods</li>
+    <li><b>No external SHAP package dependency</b> — <b>pure internal kernels</b></li>
+</ul>
 
-
+---
 
 ## Project Structure
 
-```
+```text
 src/shap_enhanced/
-    explainers/         # All explanation modules
-    algorithms/         # Core mathematical tools (kernels, integration, perturbation)
-    models/             # Tabular, Sequential, Vision, Multimodal models
-    simulation/         # Synthetic data, Evaluation, Explainer Comparison
-    visualization/      # Plotting and Visualization utilities
-    datasets/           # Synthetic Dataset Generators
-    utils/              # Logger, Config Loader, Timer, Random Seed
+        explainers/         # All explanation modules
+        algorithms/         # Core mathematical tools (kernels, integration, perturbation)
+        models/             # Tabular, Sequential, Vision, Multimodal models
+        simulation/         # Synthetic data, Evaluation, Explainer Comparison
+        visualization/      # Plotting and Visualization utilities
+        datasets/           # Synthetic Dataset Generators
+        utils/              # Logger, Config Loader, Timer, Random Seed
 examples/               # How-to Scripts
 tests/                  # Organized Unit Tests
 README.md               # This file
 LICENSE                 # GNU Affero General Public License
 requirements.txt        # Dependencies
 ```
+
+---
 
 ## Installation
 
@@ -64,18 +123,27 @@ pip install -r requirements.txt
 
 **Requirements** include:
 
-- `torch`
-- `numpy`
-- `scikit-learn`
-- `matplotlib`
-- `seaborn`
-- `pyyaml`
+<div align="center">
 
-(See `requirements.txt` for full list.)
+<table>
+    <tr>
+        <td><code>torch</code></td>
+        <td><code>numpy</code></td>
+        <td><code>scikit-learn</code></td>
+        <td><code>matplotlib</code></td>
+        <td><code>seaborn</code></td>
+        <td><code>pyyaml</code></td>
+    </tr>
+</table>
 
+</div>
 
+<sub>(See <code>requirements.txt</code> for full list.)</sub>
+
+---
 
 ## Quick Example
+
 ```python
 from shap_enhanced.models.tabular.tabular_mlp import TabularMLP
 from shap_enhanced.explainers.gradient_based.integrated_gradients_explainer import IntegratedGradientsExplainer
@@ -94,10 +162,11 @@ attributions = explainer.explain(sample)
 print(attributions)
 ```
 
+---
 
 ## Simulation and Benchmarking
 
-Evaluate your explainers against **true SHAP values**:
+Evaluate your explainers against <b>true SHAP values</b>:
 
 ```python
 from shap_enhanced.simulation.simulator import ModelSimulation
@@ -107,7 +176,9 @@ mse = simulation.run_simulation()
 print(f"Mean Squared Error: {mse:.4f}")
 ```
 
-Use `simulation/comparison.py` to benchmark multiple explainers side-by-side!
+Use <code>simulation/comparison.py</code> to benchmark multiple explainers side-by-side!
+
+---
 
 ## Visualization
 
@@ -118,63 +189,81 @@ plot_feature_importance(importances=attributions, feature_names=[f"Feature {i}" 
 ```
 
 Available visualization modules:
-- `Feature Importance`
-- `Time Series Attribution`
-- `Attention Weights`
-- `SHAP Interaction Effects`
-- `Evaluation Metrics Comparison`
+<ul>
+    <li>Feature Importance</li>
+    <li>Time Series Attribution</li>
+    <li>Attention Weights</li>
+    <li>SHAP Interaction Effects</li>
+    <li>Evaluation Metrics Comparison</li>
+</ul>
+
+---
 
 ## Contribution
 
-We welcome contributions to **SHAP-Enhanced**! To contribute, please follow these steps:
+We welcome contributions to <b>SHAP-Enhanced</b>! To contribute, please follow these steps:
 
-1. **Fork the Repository**: Click the "Fork" button on the GitHub repository page.
-2. **Clone Your Fork**: Clone your forked repository to your local machine:
-    ```sh
-    git clone https://github.com/niyangbai/enhanced_shap.git
-    cd enhanced_shap
-    ```
-3. **Create a Branch**: Create a new branch for your feature or bug fix:
-    ```sh
-    git checkout -b feature-or-bugfix-name
-    ```
-4. **Make Changes**: Implement your changes, ensuring they follow **PEP8 standards** and include proper **Sphinx-style docstrings**.
-5. **Write Tests**: Add or update unit tests in the `tests/` directory to cover your changes.
-6. **Run Tests**: Ensure all tests pass before submitting your changes:
-    ```sh
-    pytest
-    ```
-7. **Commit Changes**: Commit your changes with a descriptive message:
-    ```sh
-    git add .
-    git commit -m "Description of your changes"
-    ```
-8. **Push Changes**: Push your branch to your forked repository:
-    ```sh
-    git push origin feature-or-bugfix-name
-    ```
-9. **Submit a Pull Request**: Open a pull request to the main repository, describing your changes in detail.
+<ol>
+    <li><b>Fork the Repository</b>: Click the "Fork" button on the GitHub repository page.</li>
+    <li><b>Clone Your Fork</b>: Clone your forked repository to your local machine:
+        <pre><code>git clone https://github.com/niyangbai/enhanced_shap.git
+cd enhanced_shap
+</code></pre>
+    </li>
+    <li><b>Create a Branch</b>: Create a new branch for your feature or bug fix:
+        <pre><code>git checkout -b feature-or-bugfix-name
+</code></pre>
+    </li>
+    <li><b>Make Changes</b>: Implement your changes, ensuring they follow <b>PEP8 standards</b> and include proper <b>Sphinx-style docstrings</b>.</li>
+    <li><b>Write Tests</b>: Add or update unit tests in the <code>tests/</code> directory to cover your changes.</li>
+    <li><b>Run Tests</b>: Ensure all tests pass before submitting your changes:
+        <pre><code>pytest
+</code></pre>
+    </li>
+    <li><b>Commit Changes</b>: Commit your changes with a descriptive message:
+        <pre><code>git add .
+git commit -m "Description of your changes"
+</code></pre>
+    </li>
+    <li><b>Push Changes</b>: Push your branch to your forked repository:
+        <pre><code>git push origin feature-or-bugfix-name
+</code></pre>
+    </li>
+    <li><b>Submit a Pull Request</b>: Open a pull request to the main repository, describing your changes in detail.</li>
+</ol>
 
-General Guidelines:
-- Follow the **PEP8 coding style**.
-- Document all public methods, classes, and modules using **Sphinx-style docstrings**.
-- Ensure your code is **properly typed** and includes type hints.
-- Write clear and concise commit messages.
-- Be respectful and collaborative in code reviews.
+<b>General Guidelines:</b>
+<ul>
+    <li>Follow the <b>PEP8 coding style</b>.</li>
+    <li>Document all public methods, classes, and modules using <b>Sphinx-style docstrings</b>.</li>
+    <li>Ensure your code is <b>properly typed</b> and includes type hints.</li>
+    <li>Write clear and concise commit messages.</li>
+    <li>Be respectful and collaborative in code reviews.</li>
+</ul>
 
+---
 
 ## License
 
-This project is licensed under the **GNU Affero General Public License v3.0** (AGPL-3.0).
+This project is licensed under the <b>GNU Affero General Public License v3.0</b> (AGPL-3.0).  
 See the LICENSE file for details.
 
-> **Note**: Any modified versions must also be made publicly available under the same license if deployed.
+<blockquote>
+    <b>Note</b>: Any modified versions must also be made publicly available under the same license if deployed.
+</blockquote>
+
+---
 
 ## About
 
-* Master Thesis — **Enhanced SHAP for Sequential and Sparse Data in Predictive Process Monitoring**  
-* University: **Friedrich-Alexander-Universität Erlangen-Nürnberg**
+<ul>
+    <li>Master Thesis — <b>Enhanced SHAP for Sequential and Sparse Data in Predictive Process Monitoring</b></li>
+    <li>University: <b>Friedrich-Alexander-Universität Erlangen-Nürnberg</b></li>
+</ul>
+
+---
 
 ## Contact
 
-For inquiries, please reach out via GitHub Issues.
+For inquiries, please reach out via <a href="https://github.com/niyangbai/enhanced_shap/issues">GitHub Issues</a>.
+
