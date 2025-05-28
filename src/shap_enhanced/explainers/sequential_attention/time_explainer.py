@@ -18,9 +18,6 @@ import random
 import numpy as np
 from typing import Any, Optional, List
 
-# -------------------------------
-# Perturbation Utilities
-# -------------------------------
 
 def sample_coalition(T: int, exclude: List[int] = [], p: float = 0.3) -> List[int]:
     """
@@ -76,10 +73,6 @@ def perturb_sequence_with_noise(X: torch.Tensor, noise_level: float = 0.1) -> to
     :return: Noisy tensor
     """
     return X + torch.randn_like(X) * noise_level
-
-# -------------------------------
-# TimeExplainer
-# -------------------------------
 
 class TimeExplainer:
     """
