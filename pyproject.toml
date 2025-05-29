@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "shap-enhanced"
+version = "0.1.0"
+description = "SHAP-style explainability with enhanced methods for sequential and tabular models"
+authors = [
+    { name="Your Name", email="your.email@example.com" }
+]
+requires-python = ">=3.8"
+dependencies = [
+    "numpy",
+    "torch",   # or remove if not always needed
+]
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
