@@ -14,7 +14,7 @@ import numpy as np
 from sklearn.kernel_ridge import KernelRidge
 from typing import Any, Optional, Union
 
-from shap_enhanced.explainers.base_explainer import BaseExplainer
+from shap_enhanced.base_explainer import BaseExplainer
 
 class SurrogateSHAPExplainer(BaseExplainer):
     """

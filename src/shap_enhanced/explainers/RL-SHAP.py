@@ -13,7 +13,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import numpy as np
-from shap_enhanced.explainers.base_explainer import BaseExplainer
+from shap_enhanced.base_explainer import BaseExplainer
 
 class MaskingPolicy(nn.Module):
     """

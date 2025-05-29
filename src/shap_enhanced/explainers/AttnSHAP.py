@@ -6,7 +6,7 @@ This explainer samples feature (time-step, feature) coalitions for perturbation,
 
 import numpy as np
 import torch
-from .base_explainer import BaseExplainer
+from ..base_explainer import BaseExplainer
 
 class AttnSHAPExplainer(BaseExplainer):
     """

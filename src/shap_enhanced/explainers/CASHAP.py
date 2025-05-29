@@ -25,7 +25,7 @@ from collections.abc import Callable
 import numpy as np
 import torch
 
-from shap_enhanced.explainers.base_explainer import BaseExplainer
+from shap_enhanced.base_explainer import BaseExplainer
 
 class CoalitionAwareSHAPExplainer(BaseExplainer):
     """
