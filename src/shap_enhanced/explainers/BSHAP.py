@@ -1,151 +1,121 @@
 """
-BShap: Distribution-Free SHAP Explainer
+BShapExplainer (Distribution-Free SHAP, LSTM/sequence edition)
 
-Estimates feature (timestep, feature) contributions by perturbing with uniform or marginal (per-feature) sampling, without relying on the empirical distribution or any background dataset.
+Estimates feature attributions by masking with uninformative, *random* values (uniform or noise),
+never using the empirical data distribution. Suited for sequence models such as LSTM.
 
 Reference:
-  - https://www.tandfonline.com/doi/full/10.1080/02331888.2025.2487853
+    - https://www.tandfonline.com/doi/full/10.1080/02331888.2025.2487853
 """
 
 import numpy as np
 import torch
-from ..base_explainer import BaseExplainer
+from shap_enhanced.base_explainer import BaseExplainer
 
 class BShapExplainer(BaseExplainer):
     """
-    BShap: Distribution-Free SHAP Explainer
+    BShap: Distribution-Free SHAP Explainer (LSTM/sequence)
 
     Parameters
     ----------
     model : Any
-        Model to be explained.
-    X_domain : np.ndarray
-        (Optional) Array or tuple describing the domain of possible input values for uniform/marginal sampling,
-        e.g., (T, F, 2) for per-feature min/max, or shape (N, T, F) for marginal sampling.
+        Sequence model to be explained.
+    input_range : tuple or None
+        (min, max) or per-feature min/max, to sample uninformative values for each feature.
+        If None, uses (-1, 1) for continuous, (0, 1) for binary.
     n_samples : int
-        Number of random perturbation samples per SHAP value.
-    sampling : str
-        'uniform' (default, draws from feature min/max) or 'marginal' (draws from empirical marginal per feature).
+        Number of random coalitions per feature to average.
+    mask_strategy : str
+        'random' (default): sample uniformly at random for each mask.
+        'noise': add Gaussian noise to masked features (for continuous).
+        'zero': set masked features to zero (not fully background-free).
     device : str
         'cpu' or 'cuda'.
     """
     def __init__(
         self,
         model,
-        X_domain=None,
+        input_range=None,
         n_samples=100,
-        sampling="uniform",
+        mask_strategy="random",
         device=None
     ):
         super().__init__(model, background=None)
-        self.X_domain = X_domain
+        self.input_range = input_range
         self.n_samples = n_samples
-        self.sampling = sampling
+        self.mask_strategy = mask_strategy
         self.device = device or ("cuda" if torch.cuda.is_available() else "cpu")
-        # Precompute feature domains if available
-        self.feature_min, self.feature_max, self.marginals = self._extract_domains(X_domain)
 
-    def _extract_domains(self, X_domain):
-        if X_domain is None:
-            return 0.0, 1.0, None
-        if self.sampling == "uniform":
-            # X_domain is expected as (T, F, 2) with min/max or (N, T, F)
-            if isinstance(X_domain, tuple) or isinstance(X_domain, list):
-                feature_min, feature_max = X_domain
-            elif isinstance(X_domain, np.ndarray) and X_domain.ndim == 4:
-                # e.g. shape (T, F, 2)
-                feature_min = X_domain[..., 0]
-                feature_max = X_domain[..., 1]
-            elif isinstance(X_domain, np.ndarray) and X_domain.ndim == 3:
-                feature_min = X_domain.min(axis=0)
-                feature_max = X_domain.max(axis=0)
+    def _mask(self, x, mask_idxs):
+        x_masked = x.copy()
+        T, F = x.shape
+        for (t, f) in mask_idxs:
+            if self.mask_strategy == "random":
+                # Sample independently for each mask (distribution-free)
+                if self.input_range is not None:
+                    mn, mx = self.input_range
+                    # Per-feature or global
+                    if isinstance(mn, np.ndarray):
+                        x_masked[t, f] = np.random.uniform(mn[f], mx[f])
+                    else:
+                        x_masked[t, f] = np.random.uniform(mn, mx)
+                else:
+                    # Default: (-1, 1) for continuous, (0, 1) for binary
+                    x_masked[t, f] = np.random.uniform(0, 1)
+            elif self.mask_strategy == "noise":
+                x_masked[t, f] = x[t, f] + np.random.normal(0, 0.5)
+            elif self.mask_strategy == "zero":
+                x_masked[t, f] = 0.0
             else:
-                raise ValueError("Provide X_domain as (T, F, 2) or (N, T, F)")
-            return feature_min, feature_max, None
-        elif self.sampling == "marginal":
-            # Store all samples as marginal empirical distribution for each (t, f)
-            return None, None, X_domain  # X_domain: (N, T, F)
-        else:
-            raise ValueError(f"Unknown sampling method: {self.sampling}")
-
-    def _sample_value(self, t, f):
-        if self.sampling == "uniform":
-            return np.random.uniform(self.feature_min[t, f], self.feature_max[t, f])
-        elif self.sampling == "marginal":
-            N = self.marginals.shape[0]
-            idx = np.random.randint(0, N)
-            return self.marginals[idx, t, f]
-        else:
-            raise ValueError(f"Unknown sampling method: {self.sampling}")
-
-    def _perturb(self, x, mask):
-        # For each (t, f) in mask, replace with random value
-        x_perturbed = x.copy()
-        for (t, f) in mask:
-            x_perturbed[t, f] = self._sample_value(t, f)
-        return x_perturbed
+                raise ValueError("Unknown mask_strategy")
+        return x_masked
 
     def shap_values(
         self,
         X,
+        nsamples=100,
         check_additivity=True,
         random_seed=42,
         **kwargs
     ):
         """
-        Estimate SHAP values with distribution-free perturbations.
-
-        Parameters
-        ----------
-        X : np.ndarray or torch.Tensor
-            (T, F) or (B, T, F)
-        Returns
-        -------
-        shap_vals : np.ndarray
-            (T, F) or (B, T, F)
+        BShap for (B, T, F) or (T, F).
+        Returns: (T, F) or (B, T, F)
         """
         np.random.seed(random_seed)
         is_torch = hasattr(X, 'detach')
         X_in = X.detach().cpu().numpy() if is_torch else np.asarray(X)
-        shape = X_in.shape
-        if len(shape) == 2:
+        single = len(X_in.shape) == 2
+        if single:
             X_in = X_in[None, ...]
-            single = True
-        else:
-            single = False
         B, T, F = X_in.shape
         shap_vals = np.zeros((B, T, F), dtype=float)
-
+        all_pos = [(t, f) for t in range(T) for f in range(F)]
         for b in range(B):
             x = X_in[b]
-            all_pos = [(t, f) for t in range(T) for f in range(F)]
             for t in range(T):
                 for f in range(F):
                     mc = []
                     available = [idx for idx in all_pos if idx != (t, f)]
-                    for _ in range(self.n_samples):
-                        # Sample random coalition (subset of available)
+                    for _ in range(nsamples):
+                        # Sample random coalition of available features
                         k = np.random.randint(1, len(available)+1)
-                        mask = np.random.choice(len(available), size=k, replace=False)
-                        mask_idxs = [available[i] for i in mask]
-                        x_masked = self._perturb(x, mask_idxs)
-                        x_masked_tf = self._perturb(x_masked, [(t, f)])
-                        # Evaluate marginal contribution
-                        out_masked = self.model(torch.tensor(x_masked[None], dtype=torch.float32, device=self.device)).cpu().numpy().squeeze()
-                        out_masked_tf = self.model(torch.tensor(x_masked_tf[None], dtype=torch.float32, device=self.device)).cpu().numpy().squeeze()
+                        mask_idxs = [available[i] for i in np.random.choice(len(available), k, replace=False)]
+                        x_masked = self._mask(x, mask_idxs)
+                        x_masked_tf = self._mask(x_masked, [(t, f)])
+                        out_masked = self.model(torch.tensor(x_masked[None], dtype=torch.float32, device=self.device)).detach().cpu().numpy().squeeze()
+                        out_masked_tf = self.model(torch.tensor(x_masked_tf[None], dtype=torch.float32, device=self.device)).detach().cpu().numpy().squeeze()
                         mc.append(out_masked_tf - out_masked)
                     shap_vals[b, t, f] = np.mean(mc)
-
-            # Additivity normalization per sample
-            orig_pred = self.model(torch.tensor(x[None], dtype=torch.float32, device=self.device)).cpu().numpy().squeeze()
-            x_all_perturbed = self._perturb(x, all_pos)
-            perturbed_pred = self.model(torch.tensor(x_all_perturbed[None], dtype=torch.float32, device=self.device)).cpu().numpy().squeeze()
+            # Additivity normalization
+            orig_pred = self.model(torch.tensor(x[None], dtype=torch.float32, device=self.device)).detach().cpu().numpy().squeeze()
+            x_all_masked = self._mask(x, [(t, f) for t in range(T) for f in range(F)])
+            masked_pred = self.model(torch.tensor(x_all_masked[None], dtype=torch.float32, device=self.device)).detach().cpu().numpy().squeeze()
             shap_sum = shap_vals[b].sum()
-            model_diff = orig_pred - perturbed_pred
+            model_diff = orig_pred - masked_pred
             if shap_sum != 0:
                 shap_vals[b] *= model_diff / shap_sum
-
         shap_vals = shap_vals[0] if single else shap_vals
         if check_additivity:
-            print(f"[BShap Additivity] sum(SHAP)={shap_vals.sum():.4f} | Model diff={float(orig_pred - perturbed_pred):.4f}")
+            print(f"[BShap] sum(SHAP)={shap_vals.sum():.4f}")
         return shap_vals
