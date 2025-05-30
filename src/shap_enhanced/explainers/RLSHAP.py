@@ -106,9 +106,8 @@ class RLShapExplainer(BaseExplainer):
             X = torch.tensor(X, dtype=torch.float32, device=self.device)
         elif isinstance(X, torch.Tensor):
             X = X.to(self.device)
-        with torch.no_grad():
-            out = self.model(X)
-            return out.flatten() if out.ndim > 1 else out
+        out = self.model(X)
+        return out.flatten() if out.ndim > 1 else out
 
     def shap_values(self, X, nsamples=50, mask_frac=0.3, tau=0.5, **kwargs):
         """
@@ -138,7 +137,7 @@ class RLShapExplainer(BaseExplainer):
                         # Mask (t, f) set to 0, others sampled by policy
                         mask_tf = mask.clone()
                         mask_tf[t, f] = 0.0
-                        mean_val = torch.tensor(self.background.mean(axis=0), device=self.device)
+                        mean_val = torch.tensor(self.background.mean(axis=0), dtype=torch.float32, device=self.device)
                         x_masked = mask_tf * x[0] + (1 - mask_tf) * mean_val
                         # Attribution: output difference for unmasking (t, f)
                         out_C = self._get_model_output(x_masked[None])[0]

@@ -10,7 +10,7 @@ Reference:
 
 import numpy as np
 import torch
-from ..base_explainer import BaseExplainer
+from shap_enhanced.base_explainer import BaseExplainer
 
 class ERSHAPExplainer(BaseExplainer):
     """
@@ -129,16 +129,16 @@ class ERSHAPExplainer(BaseExplainer):
                         C_idxs = self._sample_coalition(available, k, weights)
                         x_C = self._impute(x_orig, C_idxs)
                         x_C_tf = self._impute(x_C, [(t, f)])
-                        out_C = self.model(torch.tensor(x_C[None], dtype=torch.float32, device=self.device)).cpu().numpy().squeeze()
-                        out_C_tf = self.model(torch.tensor(x_C_tf[None], dtype=torch.float32, device=self.device)).cpu().numpy().squeeze()
+                        out_C = self.model(torch.tensor(x_C[None], dtype=torch.float32, device=self.device)).detach().cpu().numpy().squeeze()
+                        out_C_tf = self.model(torch.tensor(x_C_tf[None], dtype=torch.float32, device=self.device)).detach().cpu().numpy().squeeze()
                         mc.append(out_C_tf - out_C)
                     shap_matrix[t, f] = np.mean(mc)
             shap_vals[b] = shap_matrix
 
             # Additivity normalization per sample
-            orig_pred = self.model(torch.tensor(x_orig[None], dtype=torch.float32, device=self.device)).cpu().numpy().squeeze()
+            orig_pred = self.model(torch.tensor(x_orig[None], dtype=torch.float32, device=self.device)).detach().cpu().numpy().squeeze()
             x_all_masked = self._impute(x_orig, all_pos)
-            masked_pred = self.model(torch.tensor(x_all_masked[None], dtype=torch.float32, device=self.device)).cpu().numpy().squeeze()
+            masked_pred = self.model(torch.tensor(x_all_masked[None], dtype=torch.float32, device=self.device)).detach().cpu().numpy().squeeze()
             shap_sum = shap_vals[b].sum()
             model_diff = orig_pred - masked_pred
             if shap_sum != 0:

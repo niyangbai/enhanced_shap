@@ -12,7 +12,7 @@ Reference:
 
 import numpy as np
 import torch
-from ..base_explainer import BaseExplainer
+from shap_enhanced.base_explainer import BaseExplainer
 
 class TimeSHAPExplainer(BaseExplainer):
     """
@@ -141,8 +141,8 @@ class TimeSHAPExplainer(BaseExplainer):
                     elif level == "feature":
                         mask_idxs_union = mask_idxs + [(t, idx) for t in range(T)]
                     x_S_union = self._impute(x_orig, mask_idxs_union)
-                    out_S = self.model(torch.tensor(x_S[None], dtype=torch.float32, device=self.device)).cpu().numpy().squeeze()
-                    out_S_union = self.model(torch.tensor(x_S_union[None], dtype=torch.float32, device=self.device)).cpu().numpy().squeeze()
+                    out_S = self.model(torch.tensor(x_S[None], dtype=torch.float32, device=self.device)).detach().cpu().numpy().squeeze()
+                    out_S_union = self.model(torch.tensor(x_S_union[None], dtype=torch.float32, device=self.device)).detach().cpu().numpy().squeeze()
                     contribs.append(out_S - out_S_union)
                 approx_contribs.append(np.mean(contribs))
 
@@ -176,8 +176,8 @@ class TimeSHAPExplainer(BaseExplainer):
                     elif level == "feature":
                         mask_idxs_union = mask_idxs + [(t, idx) for t in range(T)]
                     x_S_union = self._impute(x_orig, mask_idxs_union)
-                    out_S = self.model(torch.tensor(x_S[None], dtype=torch.float32, device=self.device)).cpu().numpy().squeeze()
-                    out_S_union = self.model(torch.tensor(x_S_union[None], dtype=torch.float32, device=self.device)).cpu().numpy().squeeze()
+                    out_S = self.model(torch.tensor(x_S[None], dtype=torch.float32, device=self.device)).detach().cpu().numpy().squeeze()
+                    out_S_union = self.model(torch.tensor(x_S_union[None], dtype=torch.float32, device=self.device)).detach().cpu().numpy().squeeze()
                     contribs.append(out_S - out_S_union)
 
                 # Assign to correct output slots
@@ -192,9 +192,9 @@ class TimeSHAPExplainer(BaseExplainer):
                         shap_vals[b, t, idx] = np.mean(contribs)
 
             # Optionally: normalize for additivity
-            orig_pred = self.model(torch.tensor(x_orig[None], dtype=torch.float32, device=self.device)).cpu().numpy().squeeze()
+            orig_pred = self.model(torch.tensor(x_orig[None], dtype=torch.float32, device=self.device)).detach().cpu().numpy().squeeze()
             x_all_masked = self._impute(x_orig, all_pos)
-            masked_pred = self.model(torch.tensor(x_all_masked[None], dtype=torch.float32, device=self.device)).cpu().numpy().squeeze()
+            masked_pred = self.model(torch.tensor(x_all_masked[None], dtype=torch.float32, device=self.device)).detach().cpu().numpy().squeeze()
             shap_sum = shap_vals[b].sum()
             model_diff = orig_pred - masked_pred
             if shap_sum != 0:
