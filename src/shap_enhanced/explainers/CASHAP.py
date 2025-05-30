@@ -1,23 +1,31 @@
 """
-Coalition-Aware SHAP (CASHAP) Explainer for Sequential Models.
+Coalition-Aware SHAP (CASHAP) Explainer
 
-Implements the CASHAP method: Shapley value estimation by sampling coalitions (groups of time-feature pairs) and measuring their marginal contributions to model output.
-Supports LSTM/sequence models and generalizes to tabular data with masking or imputation for context-aware explanations.
+## Theoretical Explanation
 
-Algorithm:
-----------
-For each input position (t, f):
-    - Sample random coalitions C ⊆ (T × F) \ {(t, f)}
-    - Compute marginal contribution:
-        φ_{t, f} ≈ (1/N) Σ_i [f(x_{C ∪ (t, f)}) - f(x_C)]
-    - Aggregate over N samples per (t, f)
+CASHAP (Coalition-Aware SHAP) is a feature attribution method that estimates Shapley values by explicitly sampling coalitions (subsets) of feature-time pairs and measuring their marginal contributions to the model output. This approach is particularly suited for sequential models (such as LSTMs) and can be generalized to tabular data. CASHAP supports various masking or imputation strategies to ensure context-aware and valid perturbations.
 
-Supports masking (zero or mean-imputation) and both numpy and PyTorch input.
+### Key Concepts
 
-Warnings:
----------
-- For LSTM models, context-aware imputation is recommended for best results.
-- This method can be computationally intensive for long sequences or high nsamples.
+- **Coalition Sampling:** For each feature-time position (t, f), random coalitions (subsets of all other positions) are sampled. The marginal contribution of (t, f) is estimated by measuring the change in model output when (t, f) is added to the coalition.
+- **Masking/Imputation:** Masked positions can be set to zero, mean-imputed from background data, or imputed using a custom function. This allows for context-aware explanations and avoids unrealistic perturbations.
+- **Sequential and Tabular Support:** While designed for sequential models, CASHAP can be applied to any data where masking or imputation is meaningful.
+- **Additivity Normalization:** Attributions are normalized so their sum matches the model output difference between the original and fully-masked input.
+
+## Algorithm
+
+1. **Initialization:**
+    - Accepts a model, background data (for mean imputation), masking strategy, optional custom imputer, and device.
+2. **Coalition Sampling:**
+    - For each feature-time position (t, f):
+        - Sample random coalitions \( C \subseteq (T \times F) \setminus \{(t, f)\} \).
+        - For each coalition:
+            - Mask (impute) the coalition \( C \) in the input.
+            - Mask (impute) the coalition \( C \cup \{(t, f)\} \).
+            - Compute the model output difference.
+        - Average these differences to estimate the marginal contribution of (t, f).
+3. **Normalization:**
+    - Scale attributions so their sum matches the difference between the original and fully-masked model output.
 """
 
 from typing import Any, Optional, Union

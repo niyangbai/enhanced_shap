@@ -1,22 +1,35 @@
 """
 AttnSHAPExplainer: Attention-Guided SHAP with General Proxy Attention
 
-- Uses model's attention if available (model.get_attention_weights)
-- Otherwise, computes a proxy attention: gradient, input, or perturbation-based
-- Used for biasing coalition sampling in SHAP for sequential models
+## Theoretical Explanation
 
-Parameters
-----------
-model : Any
-    Model to be explained (should support batch input).
-background : np.ndarray or torch.Tensor
-    Background data (N, T, F).
-use_attention : bool
-    If True, use attention or proxy; if False, use uniform sampling.
-proxy_attention : str
-    If no real attention, use 'gradient' (default), 'input', or 'perturb'.
-device : str
-    'cpu' or 'cuda'.
+AttnSHAP is a feature attribution method that extends the SHAP framework by incorporating attention mechanisms to guide the coalition sampling process. This is especially useful for sequential or structured data where certain positions or features are more relevant, as indicated by model attention or proxy attention scores.
+
+### Key Concepts
+
+- **Attention-Guided Sampling:** If the model provides attention weights (via `get_attention_weights`), these are used to bias the selection of feature coalitions for masking, focusing on more relevant positions.
+- **Proxy Attention:** If no attention is available, AttnSHAP can compute proxy attention using:
+    - **Gradient-based:** Magnitude of input gradients.
+    - **Input-based:** Magnitude of input values.
+    - **Perturbation-based:** Sensitivity of the model output to masking each position.
+- **Uniform Sampling:** If attention is not used, coalitions are sampled uniformly at random (classic SHAP approach).
+- **Additivity Normalization:** Attributions are normalized so their sum matches the model output difference between the original and fully-masked input.
+
+## Algorithm
+
+1. **Initialization:**
+    - Accepts a model, background data, attention usage flag, proxy attention type, and device.
+2. **Attention/Proxy Computation:**
+    - For each input, obtain attention weights from the model or compute proxy attention.
+3. **Coalition Sampling:**
+    - For each feature position, repeatedly:
+        - Sample a coalition (subset of other positions) to mask, with probability proportional to attention (if used).
+        - Mask the coalition and compute the model output.
+        - Mask the coalition plus the feature of interest and compute the model output.
+        - Record the difference.
+    - Average these differences to estimate the marginal contribution of the feature.
+4. **Normalization:**
+    - Scale attributions so their sum matches the difference between the original and fully-masked model output.
 """
 
 import numpy as np

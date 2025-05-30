@@ -1,21 +1,31 @@
 """
-Empirical Conditional SHAP for Discrete Data
+Empirical Conditional SHAP (EC-SHAP) for Discrete Data
 
-For every coalition, imputes masked features by sampling from the empirical conditional distribution given the observed values of the unmasked features.
-All imputations are valid, observed binary/one-hot patterns.
+## Theoretical Explanation
 
-Parameters
-----------
-model : Any
-    Model to be explained.
-background : np.ndarray or torch.Tensor
-    Full dataset (N, T, F) to estimate empirical conditionals.
-skip_unmatched : bool
-    If True, skip coalitions for which no match is found (default: True).
-use_closest : bool
-    If True and skip_unmatched is False, uses the most similar pattern (by Hamming distance).
-device : str
-    'cpu' or 'cuda'.
+Empirical Conditional SHAP (EC-SHAP) is a feature attribution method for discrete (binary, categorical, or one-hot) data. For each coalition (subset of masked features), EC-SHAP imputes the masked features by sampling from the empirical conditional distribution given the observed (unmasked) features, using the background dataset. This ensures that all imputations correspond to valid, observed patterns in the data, avoiding unrealistic or out-of-distribution perturbations.
+
+### Key Concepts
+
+- **Empirical Conditional Imputation:** For each coalition, masked features are filled in by finding background samples that match the unmasked features. If no exact match is found, the method can skip the coalition or use the closest match (by Hamming distance).
+- **Valid Discrete Patterns:** All imputations are guaranteed to be valid, observed binary/one-hot patterns, preserving the data distribution.
+- **Fallback for Continuous Data:** If the data is detected as continuous (many unique values per feature), EC-SHAP falls back to mean imputation.
+- **Additivity Normalization:** Attributions are normalized so their sum matches the model output difference between the original and fully-masked input.
+
+## Algorithm
+
+1. **Initialization:**
+    - Accepts a model, background data, skip/closest matching flags, and device.
+2. **Conditional Imputation:**
+    - For each coalition (subset of features to mask), find a background sample that matches the unmasked features. If none is found, optionally use the closest match or mean imputation.
+3. **SHAP Value Estimation:**
+    - For each feature position, repeatedly:
+        - Sample a random coalition of other positions.
+        - Impute the coalition using empirical conditional matching.
+        - Impute the coalition plus the feature of interest.
+        - Compute the model output difference.
+        - Average these differences to estimate the marginal contribution of the feature.
+    - Normalize attributions so their sum matches the difference between the original and fully-masked model output.
 """
 import numpy as np
 import torch

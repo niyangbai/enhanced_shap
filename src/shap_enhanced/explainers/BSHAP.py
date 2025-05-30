@@ -1,11 +1,39 @@
 """
 BShapExplainer (Distribution-Free SHAP, LSTM/sequence edition)
 
-Estimates feature attributions by masking with uninformative, *random* values (uniform or noise),
-never using the empirical data distribution. Suited for sequence models such as LSTM.
+## Theoretical Explanation
 
-Reference:
-    - https://www.tandfonline.com/doi/full/10.1080/02331888.2025.2487853
+BShap is a distribution-free variant of SHAP for feature attribution, particularly suited for sequence models (e.g., LSTM). Unlike classic SHAP, which uses empirical data or mean values as baselines, BShap masks features by replacing them with uninformative, random values (e.g., uniform noise, Gaussian noise, or zeros), never relying on the data distribution. This approach is useful when the data distribution is unknown, unreliable, or when a truly "uninformative" baseline is desired.
+
+### Key Concepts
+
+- **Distribution-Free Masking:** Masked features are replaced with random values sampled independently from a specified range or noise distribution, not from the empirical data.
+- **Masking Strategies:** 
+    - `'random'`: Uniformly sample values for each mask (default).
+    - `'noise'`: Add Gaussian noise to masked features.
+    - `'zero'`: Set masked features to zero.
+- **No Data Distribution Assumptions:** The method does not use the empirical distribution of the data for masking.
+- **Additivity Normalization:** Attributions are normalized so their sum matches the model output difference between the original and fully-masked input.
+
+## Algorithm
+
+1. **Initialization:**
+    - Accepts a model, input value range, number of samples, masking strategy, and device.
+2. **Masking:**
+    - For each coalition (subset of features to mask), masked features are replaced by random values, noise, or zeros, depending on the chosen strategy.
+3. **SHAP Value Estimation:**
+    - For each feature position, repeatedly:
+        - Randomly select a subset of other positions to mask.
+        - Mask the selected positions in the input.
+        - Mask the selected positions plus the feature of interest.
+        - Compute the model output difference.
+        - Average these differences to estimate the marginal contribution of the feature.
+    - Normalize attributions so their sum matches the difference between the original and fully-masked model output.
+
+## References
+
+- Lundberg, S. M., & Lee, S.-I. (2017). A Unified Approach to Interpreting Model Predictions. *Advances in Neural Information Processing Systems*.
+- [Distribution-Free SHAP Reference](https://www.tandfonline.com/doi/full/10.1080/02331888.2025.2487853)
 """
 
 import numpy as np

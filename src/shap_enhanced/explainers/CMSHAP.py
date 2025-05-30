@@ -1,8 +1,30 @@
 """
-Contextual Masking SHAP (CM-SHAP) Explainer for Sequential Models.
+Contextual Masking SHAP (CM-SHAP) Explainer for Sequential Models
 
-Implements a SHAP-style method for time series, using context-aware imputation:
-Masked values are replaced by interpolating between neighboring time steps (forward/backward average), rather than zero or baseline mean.
+## Theoretical Explanation
+
+CM-SHAP is a SHAP-style feature attribution method designed for sequential (time series) models. Instead of masking features with zeros or mean values, CM-SHAP uses context-aware imputation: masked values are replaced by interpolating between their immediate temporal neighbors (forward/backward average). This preserves the temporal structure and context, leading to more realistic and faithful perturbations for sequential data.
+
+### Key Concepts
+
+- **Contextual Masking:** When masking a feature at time t, its value is replaced by the average of its neighboring time steps (t-1 and t+1). For boundary cases (first or last time step), only the available neighbor is used.
+- **Coalition Sampling:** For each feature-time position (t, f), random coalitions (subsets of all other positions) are sampled. The marginal contribution of (t, f) is estimated by measuring the change in model output when (t, f) is added to the coalition.
+- **Additivity Normalization:** Attributions are normalized so their sum matches the model output difference between the original and fully-masked input.
+
+## Algorithm
+
+1. **Initialization:**
+    - Accepts a model and device.
+2. **Contextual Masking:**
+    - For each coalition (subset of features to mask), masked positions are replaced by the average of their immediate temporal neighbors.
+3. **SHAP Value Estimation:**
+    - For each feature-time position (t, f), repeatedly:
+        - Sample a random coalition of other positions.
+        - Mask the coalition using contextual interpolation.
+        - Mask the coalition plus (t, f) using contextual interpolation.
+        - Compute the model output difference.
+        - Average these differences to estimate the marginal contribution of (t, f).
+    - Normalize attributions so their sum matches the difference between the original and fully-masked model output.
 """
 
 from typing import Any, Optional, Union

@@ -1,7 +1,37 @@
 """
 Adaptive Baseline SHAP (Sparse)
 
-Estimates feature attributions using SHAP, but with baselines always drawn from real observed samples (never mean or zero). Baseline selection is either by support similarity or random from the data. All perturbations are guaranteed to be valid binary/one-hot patterns.
+## Theoretical Explanation
+
+Adaptive Baseline SHAP (ABSHAP) is a feature attribution method based on the SHAP framework, designed to provide valid and meaningful explanations for both dense (continuous/tabular) and sparse (categorical/one-hot) data. Unlike classic SHAP, which often uses mean or zero baselines for masking features, ABSHAP always draws baselines for masked features from real observed samples. This ensures that all perturbed samples are valid and avoids out-of-distribution artifacts, especially important for categorical or sparse data.
+
+### Key Concepts
+
+- **Adaptive Masking:** For each feature, ABSHAP chooses the masking strategy:
+    - If a feature is dense/continuous, it uses the mean value from the background data as the baseline (classic SHAP).
+    - If a feature is sparse/one-hot/categorical (i.e., >90% zeros in the background), it uses values sampled from real background samples.
+- **Automatic or Manual Strategy:** The masking strategy can be set automatically per feature or specified by the user.
+- **Valid Perturbations:** All masked samples are guaranteed to be valid, preserving the data distribution.
+
+## Algorithm
+
+1. **Initialization:**
+    - Accepts a model, background data, number of baselines, masking strategy, and device.
+    - Determines the masking strategy for each feature (auto or user-specified).
+    - Computes the mean baseline for mean-masked features.
+
+2. **Masking:**
+    - For each coalition (subset of features to mask), masked features are replaced by either the mean (for dense features) or by values from a randomly selected background sample (for sparse features).
+
+3. **SHAP Value Estimation:**
+    - For each feature position, repeatedly:
+        - Randomly select a subset of other positions to mask.
+        - For each baseline sample:
+            - Mask the selected positions in the input.
+            - Mask the selected positions plus the feature of interest.
+            - Compute the model output difference.
+        - Average these differences to estimate the marginal contribution of the feature.
+    - Normalize attributions so their sum matches the difference between the original and fully-masked model output.
 """
 
 
