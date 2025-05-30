@@ -1,3 +1,4 @@
+import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D  # noqa: F401
 
@@ -26,7 +27,7 @@ def plot_mse_pearson(
         plt.subplot(1, 2, 1)
         plt.bar(list(results.keys()), list(results.values()))
         plt.ylabel("MSE")
-        plt.title(f"MSE(Explainer vs Ground Truth)")
+        plt.title(f"MSE (Explainer vs Ground Truth)")
         plt.subplot(1, 2, 2)
         plt.bar(list(pearson_results.keys()), list(pearson_results.values()))
         plt.ylabel("Pearson Correlation")
@@ -96,6 +97,49 @@ def plot_3d_bars(
         ax_ex.set_xlabel('Feature')
         ax_ex.set_ylabel('Time Step')
         ax_ex.set_zlabel('SHAP Value')
+
+    plt.tight_layout()
+    if save:
+        plt.savefig(save, bbox_inches="tight")
+        print(f"Figure saved to {save}")
+    plt.show()
+
+
+def plot_feature_comparison(
+    shap_gt,
+    shap_models,
+    feature_names=None,
+    save=None
+):
+    """
+    Bar plot for feature attributions of all explainers vs ground truth (tabular/1D).
+
+    Args:
+        shap_gt (np.ndarray): Ground truth SHAP values, shape (n_features,)
+        shap_models (dict): {name: shap values ndarray of shape (n_features,)}
+        feature_names (list or None): Names for x-axis, optional.
+        save (str or None): If not None, file path to save figure.
+    """
+    n_explainers = len(shap_models)
+    n_features = len(shap_gt)
+    features = np.arange(n_features)
+    width = 0.35
+
+    fig, axes = plt.subplots(n_explainers, 1, figsize=(8, 3 * n_explainers), sharex=True)
+    if n_explainers == 1:
+        axes = [axes]
+    if feature_names is None:
+        feature_names = [str(i) for i in range(n_features)]
+
+    for ax, (name, vals) in zip(axes, shap_models.items()):
+        ax.bar(features - width/2, shap_gt, width, label='Monte Carlo GT')
+        ax.bar(features + width/2, vals, width, label=f'{name} SHAP')
+        ax.set_title(f'{name} Explainer')
+        ax.set_ylabel('Shapley value')
+        ax.set_xticks(features)
+        ax.set_xticklabels(feature_names)
+        ax.legend()
+    axes[-1].set_xlabel('Feature index')
 
     plt.tight_layout()
     if save:
