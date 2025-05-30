@@ -48,15 +48,13 @@ class BShapExplainer(BaseExplainer):
     ----------
     model : Any
         Sequence model to be explained.
-    input_range : tuple or None
-        (min, max) or per-feature min/max, to sample uninformative values for each feature.
-        If None, uses (-1, 1) for continuous, (0, 1) for binary.
+    input_range : tuple or (min, max) arrays
+        (min, max) or per-feature min/max to sample for each feature.
+        If None, uses (-1, 1) or actual data min/max.
     n_samples : int
         Number of random coalitions per feature to average.
     mask_strategy : str
-        'random' (default): sample uniformly at random for each mask.
-        'noise': add Gaussian noise to masked features (for continuous).
-        'zero': set masked features to zero (not fully background-free).
+        'random', 'noise', or 'zero'
     device : str
         'cpu' or 'cuda'.
     """
@@ -64,7 +62,7 @@ class BShapExplainer(BaseExplainer):
         self,
         model,
         input_range=None,
-        n_samples=100,
+        n_samples=50,
         mask_strategy="random",
         device=None
     ):
@@ -79,17 +77,15 @@ class BShapExplainer(BaseExplainer):
         T, F = x.shape
         for (t, f) in mask_idxs:
             if self.mask_strategy == "random":
-                # Sample independently for each mask (distribution-free)
+                # Per-feature min/max or fallback
                 if self.input_range is not None:
                     mn, mx = self.input_range
-                    # Per-feature or global
                     if isinstance(mn, np.ndarray):
                         x_masked[t, f] = np.random.uniform(mn[f], mx[f])
                     else:
                         x_masked[t, f] = np.random.uniform(mn, mx)
                 else:
-                    # Default: (-1, 1) for continuous, (0, 1) for binary
-                    x_masked[t, f] = np.random.uniform(0, 1)
+                    x_masked[t, f] = np.random.uniform(-1, 1)
             elif self.mask_strategy == "noise":
                 x_masked[t, f] = x[t, f] + np.random.normal(0, 0.5)
             elif self.mask_strategy == "zero":
@@ -101,7 +97,7 @@ class BShapExplainer(BaseExplainer):
     def shap_values(
         self,
         X,
-        nsamples=100,
+        nsamples=None,
         check_additivity=True,
         random_seed=42,
         **kwargs
@@ -111,6 +107,8 @@ class BShapExplainer(BaseExplainer):
         Returns: (T, F) or (B, T, F)
         """
         np.random.seed(random_seed)
+        if nsamples is None:
+            nsamples = self.n_samples
         is_torch = hasattr(X, 'detach')
         X_in = X.detach().cpu().numpy() if is_torch else np.asarray(X)
         single = len(X_in.shape) == 2
@@ -126,24 +124,25 @@ class BShapExplainer(BaseExplainer):
                     mc = []
                     available = [idx for idx in all_pos if idx != (t, f)]
                     for _ in range(nsamples):
-                        # Sample random coalition of available features
                         k = np.random.randint(1, len(available)+1)
                         mask_idxs = [available[i] for i in np.random.choice(len(available), k, replace=False)]
                         x_masked = self._mask(x, mask_idxs)
                         x_masked_tf = self._mask(x_masked, [(t, f)])
                         out_masked = self.model(torch.tensor(x_masked[None], dtype=torch.float32, device=self.device)).detach().cpu().numpy().squeeze()
                         out_masked_tf = self.model(torch.tensor(x_masked_tf[None], dtype=torch.float32, device=self.device)).detach().cpu().numpy().squeeze()
+                        out_masked = float(np.ravel(out_masked)[0]) # ensure scalar
+                        out_masked_tf = float(np.ravel(out_masked_tf)[0])
                         mc.append(out_masked_tf - out_masked)
                     shap_vals[b, t, f] = np.mean(mc)
             # Additivity normalization
-            orig_pred = self.model(torch.tensor(x[None], dtype=torch.float32, device=self.device)).detach().cpu().numpy().squeeze()
-            x_all_masked = self._mask(x, [(t, f) for t in range(T) for f in range(F)])
-            masked_pred = self.model(torch.tensor(x_all_masked[None], dtype=torch.float32, device=self.device)).detach().cpu().numpy().squeeze()
+            orig_pred = float(np.ravel(self.model(torch.tensor(x[None], dtype=torch.float32, device=self.device)).detach().cpu().numpy())[0])
+            x_all_masked = self._mask(x, all_pos)
+            masked_pred = float(np.ravel(self.model(torch.tensor(x_all_masked[None], dtype=torch.float32, device=self.device)).detach().cpu().numpy())[0])
             shap_sum = shap_vals[b].sum()
             model_diff = orig_pred - masked_pred
-            if shap_sum != 0:
+            if np.abs(shap_sum) > 1e-8:
                 shap_vals[b] *= model_diff / shap_sum
         shap_vals = shap_vals[0] if single else shap_vals
         if check_additivity:
-            print(f"[BShap] sum(SHAP)={shap_vals.sum():.4f}")
+            print(f"[BShap] sum(SHAP)={shap_vals.sum():.4f} (should match model diff)")
         return shap_vals

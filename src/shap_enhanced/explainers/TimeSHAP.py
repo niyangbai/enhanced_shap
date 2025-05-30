@@ -29,11 +29,12 @@ TimeSHAP is a SHAP-style feature attribution method for sequential or event-base
 
 import numpy as np
 import torch
+import random
 from shap_enhanced.base_explainer import BaseExplainer
 
 class TimeSHAPExplainer(BaseExplainer):
     """
-    TimeSHAP: SHAP with pruning for sequential/event models.
+    TimeSHAP: SHAP with pruning for sequential/event models, supporting true per-(t, f) attributions.
 
     Parameters
     ----------
@@ -44,9 +45,9 @@ class TimeSHAPExplainer(BaseExplainer):
     mask_strategy : str
         'zero' or 'mean' (default).
     event_window : int or None
-        If set, computes SHAP over windows of this size instead of single time steps.
+        If set, computes SHAP over windows of this size instead of single (t, f) units.
     prune_topk : int or None
-        If set, after initial run, prune to top-k most important events/windows, then resample only these.
+        If set, after initial run, prune to top-k most important units, then resample only these.
     device : str
         'cpu' or 'cuda'.
     """
@@ -80,11 +81,11 @@ class TimeSHAPExplainer(BaseExplainer):
 
     def _get_mask_idxs(self, T, F, idx, window=None):
         if window is None:
-            return [(idx, f) for f in range(F)]
-        # Return all (t,f) in window centered at idx
-        half = window // 2
-        t0 = max(0, idx - half)
-        t1 = min(T, idx + half + 1)
+            # idx = (t, f)
+            return [idx]
+        # For event/window-level, mask all (t, f) within the window centered at t
+        t0 = max(0, idx - window // 2)
+        t1 = min(T, idx + window // 2 + 1)
         return [(t, f) for t in range(t0, t1) for f in range(F)]
 
     def shap_values(
@@ -96,9 +97,10 @@ class TimeSHAPExplainer(BaseExplainer):
         **kwargs
     ):
         """
-        Computes SHAP attributions at timestep, feature, or event level using pruned coalition sampling.
+        Computes SHAP attributions at timestep-feature, event, or feature level using pruned coalition sampling.
         """
         np.random.seed(random_seed)
+        random.seed(random_seed)
         is_torch = hasattr(X, 'detach')
         X_in = X.detach().cpu().numpy() if is_torch else np.asarray(X)
         if len(X_in.shape) == 2:
@@ -108,107 +110,90 @@ class TimeSHAPExplainer(BaseExplainer):
             single = False
         B, T, F = X_in.shape
 
-        # For event/window-level, build set of windows
+        # Build units for masking
         if self.event_window is not None and level == "event":
-            num_events = T - self.event_window + 1
+            # Each unit is a window of timesteps
+            units = list(range(T - self.event_window + 1))
+            mask_unit = lambda u: self._get_mask_idxs(T, F, u, window=self.event_window)
+        elif level == "timestep":
+            # Each unit is a (t, f) pair
+            units = [(t, f) for t in range(T) for f in range(F)]
+            mask_unit = lambda u: [u]
+        elif level == "feature":
+            # Each unit is a feature index
+            units = list(range(F))
+            mask_unit = lambda u: [(t, u) for t in range(T)]
         else:
-            num_events = T
+            raise ValueError(f"Unknown level {level}")
 
         shap_vals = np.zeros((B, T, F), dtype=float)
 
         for b in range(B):
             x_orig = X_in[b]
-            all_pos = [(t, f) for t in range(T) for f in range(F)]
 
-            # Determine units: single step, window/event, or feature
-            if level == "event" and self.event_window is not None:
-                units = list(range(num_events))  # event/window indices
-            elif level == "timestep":
-                units = list(range(T))
-            elif level == "feature":
-                units = list(range(F))
-            else:
-                raise ValueError(f"Unknown level {level}")
-
-            # First pass: get rough importance for all units
+            # === First pass: rough importance for all units ===
             approx_contribs = []
             for idx in units:
                 contribs = []
                 for _ in range(nsamples):
-                    # Sample a coalition S ⊆ units \ {idx}
-                    k = np.random.randint(1, len(units))
-                    C = np.random.choice([u for u in units if u != idx], size=k, replace=False)
+                    unit_candidates = [u for u in units if u != idx]
+                    if len(unit_candidates) == 0:
+                        C = []
+                    else:
+                        k = np.random.randint(1, len(unit_candidates)+1)
+                        C = random.sample(unit_candidates, k) if len(unit_candidates) >= k else unit_candidates
+                    # Build mask indices from coalition
                     mask_idxs = []
-                    if level == "event" and self.event_window is not None:
-                        for u in C:
-                            mask_idxs.extend(self._get_mask_idxs(T, F, u, window=self.event_window))
-                    elif level == "timestep":
-                        for u in C:
-                            mask_idxs.extend(self._get_mask_idxs(T, F, u, window=None))
-                    elif level == "feature":
-                        mask_idxs.extend([(t, idx) for t in range(T)])
-                        mask_idxs.extend([(t, f) for t in range(T) for f in range(F) if f != idx])
-                    # x_S: mask coalition only
+                    for u in C:
+                        mask_idxs.extend(mask_unit(u))
                     x_S = self._impute(x_orig, mask_idxs)
-                    # x_S_union: mask coalition plus current unit
-                    if level == "event" and self.event_window is not None:
-                        mask_idxs_union = mask_idxs + self._get_mask_idxs(T, F, idx, window=self.event_window)
-                    elif level == "timestep":
-                        mask_idxs_union = mask_idxs + self._get_mask_idxs(T, F, idx, window=None)
-                    elif level == "feature":
-                        mask_idxs_union = mask_idxs + [(t, idx) for t in range(T)]
+                    # Mask union: coalition + current idx
+                    mask_idxs_union = mask_idxs + mask_unit(idx)
                     x_S_union = self._impute(x_orig, mask_idxs_union)
                     out_S = self.model(torch.tensor(x_S[None], dtype=torch.float32, device=self.device)).detach().cpu().numpy().squeeze()
                     out_S_union = self.model(torch.tensor(x_S_union[None], dtype=torch.float32, device=self.device)).detach().cpu().numpy().squeeze()
                     contribs.append(out_S - out_S_union)
                 approx_contribs.append(np.mean(contribs))
 
-            # Prune to top-k units if needed
+            # === Prune to top-k units if enabled ===
+            active_units = units
             if self.prune_topk is not None and self.prune_topk < len(units):
-                topk_units = np.argsort(np.abs(approx_contribs))[-self.prune_topk:]
-                units = [units[i] for i in topk_units]
+                topk_units_idx = np.argsort(np.abs(approx_contribs))[-self.prune_topk:]
+                active_units = [units[i] for i in topk_units_idx]
 
-            # Second pass: refined estimation on pruned set
-            for idx in units:
+            # === Second pass: refined estimation on pruned set ===
+            for idx in active_units:
                 contribs = []
+                unit_candidates = [u for u in active_units if u != idx]
                 for _ in range(nsamples):
-                    # Sample coalition (exclude idx)
-                    k = np.random.randint(1, len(units))
-                    C = np.random.choice([u for u in units if u != idx], size=k, replace=False)
+                    if len(unit_candidates) == 0:
+                        C = []
+                    else:
+                        k = np.random.randint(1, len(unit_candidates)+1)
+                        C = random.sample(unit_candidates, k) if len(unit_candidates) >= k else unit_candidates
                     mask_idxs = []
-                    if level == "event" and self.event_window is not None:
-                        for u in C:
-                            mask_idxs.extend(self._get_mask_idxs(T, F, u, window=self.event_window))
-                    elif level == "timestep":
-                        for u in C:
-                            mask_idxs.extend(self._get_mask_idxs(T, F, u, window=None))
-                    elif level == "feature":
-                        mask_idxs.extend([(t, idx) for t in range(T)])
-                        mask_idxs.extend([(t, f) for t in range(T) for f in range(F) if f != idx])
+                    for u in C:
+                        mask_idxs.extend(mask_unit(u))
                     x_S = self._impute(x_orig, mask_idxs)
-                    if level == "event" and self.event_window is not None:
-                        mask_idxs_union = mask_idxs + self._get_mask_idxs(T, F, idx, window=self.event_window)
-                    elif level == "timestep":
-                        mask_idxs_union = mask_idxs + self._get_mask_idxs(T, F, idx, window=None)
-                    elif level == "feature":
-                        mask_idxs_union = mask_idxs + [(t, idx) for t in range(T)]
+                    mask_idxs_union = mask_idxs + mask_unit(idx)
                     x_S_union = self._impute(x_orig, mask_idxs_union)
                     out_S = self.model(torch.tensor(x_S[None], dtype=torch.float32, device=self.device)).detach().cpu().numpy().squeeze()
                     out_S_union = self.model(torch.tensor(x_S_union[None], dtype=torch.float32, device=self.device)).detach().cpu().numpy().squeeze()
                     contribs.append(out_S - out_S_union)
 
-                # Assign to correct output slots
-                if level == "event" and self.event_window is not None:
-                    for t, f in self._get_mask_idxs(T, F, idx, window=self.event_window):
+                # Assign to output
+                if self.event_window is not None and level == "event":
+                    for t, f in mask_unit(idx):
                         shap_vals[b, t, f] += np.mean(contribs) / self.event_window  # distribute over window
                 elif level == "timestep":
-                    for f in range(F):
-                        shap_vals[b, idx, f] = np.mean(contribs)
+                    t, f = idx
+                    shap_vals[b, t, f] = np.mean(contribs)
                 elif level == "feature":
                     for t in range(T):
                         shap_vals[b, t, idx] = np.mean(contribs)
 
-            # Optionally: normalize for additivity
+            # === Normalization for additivity ===
+            all_pos = [(t, f) for t in range(T) for f in range(F)]
             orig_pred = self.model(torch.tensor(x_orig[None], dtype=torch.float32, device=self.device)).detach().cpu().numpy().squeeze()
             x_all_masked = self._impute(x_orig, all_pos)
             masked_pred = self.model(torch.tensor(x_all_masked[None], dtype=torch.float32, device=self.device)).detach().cpu().numpy().squeeze()
