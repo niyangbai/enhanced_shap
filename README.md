@@ -1,23 +1,25 @@
 <!-- SHAP-Enhanced: Advanced Explainability Toolkit -->
 
-<h1 align="center">
-    SHAP-Enhanced: Advanced Explainability Toolkit
-</h1>
+<div align="center">
 
-<p align="center">
-    <a href="https://www.gnu.org/licenses/agpl-3.0">
-        <img src="https://img.shields.io/badge/License-AGPL%20v3-blue.svg?logo=open-source-initiative" alt="License: AGPL-3.0"/>
-    </a>
-    <a href="https://www.python.org/">
-        <img src="https://img.shields.io/badge/Python-3.8%2B-blue.svg?logo=python" alt="Python Version"/>
-    </a>
-    <a href="https://isocpp.org/">
-        <img src="https://img.shields.io/badge/Code-C%2B%2B-orange.svg?logo=c%2B%2B" alt="C++ Code"/>
-    </a>
-    <a href="https://git-scm.com/">
-        <img src="https://img.shields.io/badge/Git-Repository-orange.svg?logo=git" alt="Git"/>
-    </a>
-</p>
+<img src="logo.png" alt="SHAP-Enhanced Logo" height="100"/>
+
+# SHAP-Enhanced: Advanced Explainability Toolkit
+
+<a href="https://www.gnu.org/licenses/agpl-3.0">
+    <img src="https://img.shields.io/badge/License-AGPL%20v3-blue.svg?logo=open-source-initiative" alt="License: AGPL-3.0"/>
+</a>
+<a href="https://www.python.org/">
+    <img src="https://img.shields.io/badge/Python-3.8%2B-blue.svg?logo=python" alt="Python Version"/>
+</a>
+<a href="https://isocpp.org/">
+    <img src="https://img.shields.io/badge/Code-C%2B%2B-orange.svg?logo=c%2B%2B" alt="C++ Code"/>
+</a>
+<a href="https://git-scm.com/">
+    <img src="https://img.shields.io/badge/Git-Repository-orange.svg?logo=git" alt="Git"/>
+</a>
+
+</div>
 
 
 ## Overview
