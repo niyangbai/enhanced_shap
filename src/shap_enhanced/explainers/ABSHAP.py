@@ -4,11 +4,12 @@ Adaptive Baseline SHAP (Sparse)
 Estimates feature attributions using SHAP, but with baselines always drawn from real observed samples (never mean or zero). Baseline selection is either by support similarity or random from the data. All perturbations are guaranteed to be valid binary/one-hot patterns.
 """
 
-from shap_enhanced.base_explainer import BaseExplainer
 
 import numpy as np
 import torch
 from typing import Any, Union, Sequence
+
+from shap_enhanced.base_explainer import BaseExplainer
 
 class AdaptiveBaselineSHAPExplainer(BaseExplainer):
     """
