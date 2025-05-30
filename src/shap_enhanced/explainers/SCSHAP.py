@@ -1,22 +1,34 @@
 """
 Sparse Coalition SHAP Explainer
 
-Only forms coalitions (feature subsets to mask) that produce valid sparse patterns, such as one-hot encodings or binary support. For one-hot sets, masking means setting the entire group to zero (no class selected), never producing invalid or fractional vectors.
+## Theoretical Explanation
 
-Parameters
-----------
-model : Any
-    Model to be explained.
-background : np.ndarray or torch.Tensor
-    Background for optional mean/mode imputation (not used for masking).
-onehot_groups : list of lists
-    For one-hot data, each sublist contains feature indices of a one-hot set, e.g. [[0,1,2],[3,4,5],...].
-mask_strategy : str
-    'zero' (default): mask sets features to zero (no class).
-    'observed': use only observed masked patterns from the dataset (optional, not implemented here for brevity).
-device : str
-    'cpu' or 'cuda'.
+Sparse Coalition SHAP is a feature attribution method tailored for sparse or structured discrete data, such as one-hot encodings or binary features. It only forms coalitions (feature subsets to mask) that produce valid sparse patterns. For one-hot sets, masking means setting the entire group to zero (no class selected), never producing invalid or fractional vectors. This ensures that all perturbed samples remain within the valid data manifold, avoiding unrealistic or out-of-distribution patterns.
+
+### Key Concepts
+
+- **Valid Sparse Coalitions:** Only masks feature groups in ways that preserve valid one-hot or binary patterns.
+- **One-Hot Group Support:** For one-hot encoded features, masking a group sets all features in the group to zero, representing "no class."
+- **General Binary Support:** For general binary features, masking is performed per (t, f) position.
+- **Flexible Masking Strategy:** Supports zero-masking (default) and can be extended to observed-pattern masking.
+- **Additivity Normalization:** Attributions are normalized so their sum matches the model output difference between the original and fully-masked input.
+
+## Algorithm
+
+1. **Initialization:**
+    - Accepts a model, background data, one-hot group definitions, masking strategy, and device.
+2. **Coalition Sampling:**
+    - For each group (one-hot) or feature (binary), repeatedly:
+        - Sample random subsets of other groups/features to mask.
+        - Mask the coalition and compute the model output.
+        - Mask the coalition plus the group/feature of interest and compute the model output.
+        - Record the difference.
+    - Average these differences to estimate the marginal contribution of each group/feature.
+3. **Normalization:**
+    - Scale attributions so their sum matches the difference between the original and fully-masked model output.
 """
+
+
 import numpy as np
 import torch
 from shap_enhanced.base_explainer import BaseExplainer

@@ -1,11 +1,32 @@
 """
 LatentSHAP: SHAP in Latent Space Explainer
 
-Runs SHAP attribution in the latent space (from an encoder), then maps the latent attributions
-back to the original input space using a decoder. Includes a general-purpose autoencoder.
+## Theoretical Explanation
 
-References:
-- https://arxiv.org/abs/2006.06015 (Latent Attribution for Deep Models)
+LatentSHAP is a feature attribution method that applies SHAP in the latent space of an autoencoder (or other encoder-decoder model). Instead of perturbing the original input features, LatentSHAP perturbs the latent representation, computes SHAP values in this space, and then projects the attributions back to the input space using the decoder's Jacobian. This approach is especially useful for high-dimensional, structured, or correlated data, where latent representations capture the essential structure of the data.
+
+### Key Concepts
+
+- **Latent Space Attribution:** SHAP values are computed in the latent space, where features are often more independent and lower-dimensional.
+- **Encoder/Decoder Mapping:** An encoder maps input data to latent space; a decoder reconstructs input from latent vectors.
+- **Attribution Projection:** Latent SHAP values are mapped back to the input space using the Jacobian of the decoder, providing input-level attributions.
+- **SHAP Explainer Flexibility:** Any SHAP-compatible explainer can be used in the latent space (e.g., KernelExplainer, DeepExplainer).
+
+## Algorithm
+
+1. **Initialization:**
+    - Accepts a model, encoder, decoder, SHAP explainer class, background data, and device.
+    - Encodes the background data to latent space for SHAP baseline.
+2. **Latent Model Wrapper:**
+    - Defines a function that maps latent vectors through the decoder and then the model, returning outputs as numpy arrays for SHAP compatibility.
+3. **SHAP Value Computation:**
+    - Encodes the input data to latent space.
+    - Runs the SHAP explainer in latent space to obtain latent attributions.
+4. **Attribution Projection:**
+    - For each input, computes the decoder Jacobian (or average Jacobian along a path in latent space).
+    - Projects latent attributions to input space using the Jacobian.
+5. **Output:**
+    - Returns input-level attributions matching the original input shape.
 """
 
 import numpy as np

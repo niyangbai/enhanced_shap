@@ -1,9 +1,34 @@
 """
-Surrogate Model SHAP (SurroSHAP) Explainer.
+Surrogate Model SHAP (SurroSHAP) Explainer
 
-Trains a regression surrogate to predict SHAP attributions, using
-pseudo-ground-truth from a base SHAP-style explainer.
+## Theoretical Explanation
+
+SurroSHAP is a surrogate-based SHAP explainer that trains a regression model to predict SHAP attributions, using pseudo-ground-truth from a base SHAP-style explainer. This approach enables fast, approximate SHAP value computation for new samples after the surrogate is trained, making it practical for large datasets or expensive models.
+
+### Key Concepts
+
+- **Surrogate Regression:** A regression model (e.g., Random Forest, Kernel Ridge) is trained to map input features to SHAP attributions, using attributions computed by a base explainer as targets.
+- **Base Explainer:** Any SHAP-style explainer (e.g., DeepExplainer, KernelExplainer) can be used to generate the pseudo-ground-truth attributions for training.
+- **Input/Output Scaling:** Optionally standardizes inputs and/or attributions to improve surrogate learning.
+- **Fast Inference:** Once trained, the surrogate regressor can rapidly predict SHAP values for new samples without running the base explainer.
+
+## Algorithm
+
+1. **Initialization:**
+    - Accepts a model, background data, base explainer, regressor class, regressor kwargs, number of samples for base explainer, scaling options, and device.
+2. **Surrogate Training:**
+    - For each background sample:
+        - Compute SHAP attributions using the base explainer.
+        - Flatten and collect attributions as regression targets.
+    - Optionally scale inputs and/or outputs.
+    - Train the surrogate regressor on (input, attribution) pairs.
+3. **SHAP Value Prediction:**
+    - For new samples:
+        - Flatten and scale inputs as needed.
+        - Predict attributions using the surrogate regressor.
+        - Optionally inverse-transform outputs and reshape to original dimensions.
 """
+
 
 import numpy as np
 import torch

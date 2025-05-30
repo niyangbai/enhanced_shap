@@ -1,11 +1,31 @@
 """
 ER-SHAP: Ensemble of Random SHAP Explainer
 
-Approximates SHAP values by sampling random feature–timestep coalitions,
-computing marginal contributions, and averaging. Supports weighted sampling.
+## Theoretical Explanation
 
-Reference:
-  - https://arxiv.org/abs/2103.03302
+ER-SHAP is a fast, ensemble-based approximation of SHAP values for sequential or tabular models. It estimates feature attributions by repeatedly sampling random coalitions (subsets) of feature–timestep pairs, computing their marginal contributions to the model output, and averaging the results. ER-SHAP supports uniform or weighted coalition sampling, allowing prior knowledge (e.g., feature importance) to guide the process.
+
+### Key Concepts
+
+- **Random Coalition Sampling:** For each feature–timestep position (t, f), random coalitions (subsets of all other positions) are sampled. The marginal contribution of (t, f) is estimated by measuring the change in model output when (t, f) is added to the coalition.
+- **Weighted Sampling:** Coalitions can be sampled uniformly or with weights based on prior feature importance or frequency.
+- **Flexible Masking:** Masked features can be imputed with zeros or mean values from the background data.
+- **Additivity Normalization:** Attributions are normalized so their sum matches the model output difference between the original and fully-masked input.
+
+## Algorithm
+
+1. **Initialization:**
+    - Accepts a model, background data (for mean imputation), number of coalitions, masking strategy, weighting scheme, optional feature importance, and device.
+2. **Coalition Sampling:**
+    - For each feature–timestep position (t, f):
+        - Sample random coalitions \( C \subseteq (T \times F) \setminus \{(t, f)\} \), with optional weighting.
+        - For each coalition:
+            - Mask (impute) the coalition \( C \) in the input.
+            - Mask (impute) the coalition \( C \cup \{(t, f)\} \).
+            - Compute the model output difference.
+        - Average these differences to estimate the marginal contribution of (t, f).
+3. **Normalization:**
+    - Scale attributions so their sum matches the difference between the original and fully-masked model output.
 """
 
 import numpy as np

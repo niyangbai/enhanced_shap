@@ -1,13 +1,30 @@
 """
 TimeSHAP Explainer (pruning-enhanced SHAP for sequential models).
 
-Implements KernelSHAP-style estimation over time-event windows,
-with pruning to avoid combinatorial explosion of subsets.
-Supports timestep, feature, and event-level importance.
+## Theoretical Explanation
 
-Reference:
-  - https://arxiv.org/abs/2012.00073
-  - https://github.com/suinleelab/timeshap
+TimeSHAP is a SHAP-style feature attribution method for sequential or event-based models that uses pruning to efficiently estimate attributions over time-event windows. It implements KernelSHAP-style estimation, but avoids the combinatorial explosion of possible feature/time subsets by pruning to the most important events or windows. TimeSHAP supports attribution at the timestep, feature, or event (window) level.
+
+### Key Concepts
+
+- **Pruned Coalition Sampling:** Instead of exhaustively sampling all possible coalitions, TimeSHAP first estimates rough importances for all units (timesteps, features, or events), then prunes to the top-k most important units for refined estimation.
+- **Event/Window Support:** Attributions can be computed for individual timesteps, features, or over sliding windows of events.
+- **Flexible Masking:** Masked features can be imputed with zeros or mean values from the background data.
+- **Additivity Normalization:** Attributions are normalized so their sum matches the model output difference between the original and fully-masked input.
+
+## Algorithm
+
+1. **Initialization:**
+    - Accepts a model, background data, masking strategy, event window size, pruning parameter, and device.
+2. **Rough Importance Estimation:**
+    - For each unit (timestep, feature, or event window), estimate its marginal contribution by sampling random coalitions and measuring the change in model output.
+3. **Pruning:**
+    - If pruning is enabled, select the top-k most important units for further analysis.
+4. **Refined Attribution:**
+    - For each selected unit, sample random coalitions and compute the marginal contribution more accurately.
+    - Assign attributions to the appropriate timesteps, features, or events.
+5. **Normalization:**
+    - Scale attributions so their sum matches the difference between the original and fully-masked model output.
 """
 
 import numpy as np

@@ -1,24 +1,28 @@
 """
-Multi-Baseline SHAP (MB-SHAP) Explainer.
+Multi-Baseline SHAP (MB-SHAP) Explainer
 
-Computes SHAP values using multiple baseline references (e.g., random samples, mean, or k-means centroids), and averages results to reduce dependence on a single baseline.
+## Theoretical Explanation
 
-Parameters
-----------
-base_explainer_class : class
-    Any SHAP-style explainer (must implement .shap_values()).
-model : Any
-    Model to be explained.
-background : np.ndarray
-    Candidate baselines to select from (N, T, F).
-n_baselines : int
-    Number of baselines to use.
-baseline_strategy : str
-    'random', 'mean', 'kmeans', or 'user'.
-user_baselines : np.ndarray or None
-    Optional. If supplied, these baselines are used directly.
-base_explainer_kwargs : dict
-    Arguments for base_explainer_class.
+Multi-Baseline SHAP (MB-SHAP) computes SHAP values using multiple baseline references (e.g., random samples, mean, or k-means centroids) and averages the results to reduce dependence on a single baseline. This approach increases robustness and stability of feature attributions, especially for models or data where the choice of baseline can significantly affect SHAP values.
+
+### Key Concepts
+
+- **Multiple Baselines:** Instead of using a single background reference, MB-SHAP selects multiple baselines (e.g., nearest neighbors, random samples, or user-supplied) for each input sample.
+- **Explainer Flexibility:** Supports any SHAP-style explainer (e.g., DeepExplainer, KernelExplainer) by wrapping the base explainer and running it for each baseline.
+- **Averaging Attributions:** For each input, SHAP values are computed with respect to each baseline and then averaged to produce the final attribution.
+- **Nearest-Neighbor Option:** Optionally, for each input, the K nearest background samples are used as baselines, further improving local fidelity.
+
+## Algorithm
+
+1. **Initialization:**
+    - Accepts a model, background data, number of baselines, baseline selection strategy, base explainer class, and device.
+2. **Baseline Selection:**
+    - For each input sample, select multiple baselines (e.g., nearest neighbors, random, mean, k-means, or user-supplied).
+3. **SHAP Value Computation:**
+    - For each baseline, instantiate the base explainer and compute SHAP values for the input.
+    - Aggregate (average) the SHAP values across all baselines for each input.
+4. **Output:**
+    - Returns the averaged attributions for each input sample.
 """
 
 

@@ -1,12 +1,35 @@
 """
 RL-SHAP: Reinforcement Learning SHAP Explainer
 
-Learns a masking policy for selecting input feature–time subsets using a policy network trained with reinforcement learning (policy gradients).
-The reward is the change in model output due to the selected mask. Uses Gumbel-Softmax for differentiable subset selection.
+## Theoretical Explanation
 
-References:
-- https://arxiv.org/abs/1906.03715 (Learning to Explain: RL-based explanation)
-- https://arxiv.org/abs/1810.10146 (Gumbel-Softmax for discrete sampling)
+RL-SHAP is a feature attribution method that learns a masking policy for selecting input feature–time subsets using a policy network trained with reinforcement learning (policy gradients). The policy network generates masks over the input, and the reward is the change in model output due to the selected mask. This approach enables the explainer to learn which subsets of features are most important for the model's prediction, rather than relying on random or exhaustive coalition sampling. RL-SHAP uses the Gumbel-Softmax trick for differentiable subset selection, allowing efficient training of the masking policy.
+
+### Key Concepts
+
+- **Masking Policy Network:** A neural network learns to generate masks over the input features/timesteps, selecting which features to keep or mask.
+- **Reinforcement Learning:** The policy is trained using policy gradients, with the reward being the change in model output caused by masking.
+- **Gumbel-Softmax Sampling:** Enables differentiable sampling of binary masks, making the policy network trainable via gradient descent.
+- **Mean Imputation:** Masked features are replaced with the mean value from the background data.
+- **Attribution Estimation:** After training, the policy is used to estimate the marginal contribution of each feature by measuring the effect of masking/unmasking it.
+
+## Algorithm
+
+1. **Initialization:**
+    - Accepts a model, background data, device, and policy network parameters.
+2. **Policy Training:**
+    - For each batch of background samples:
+        - The policy network generates mask logits.
+        - Gumbel-Softmax is used to sample soft/hard masks.
+        - Masked inputs are created by replacing masked features with the background mean.
+        - The model is evaluated on both original and masked inputs.
+        - The reward is the absolute change in model output.
+        - The policy is updated via policy gradient to maximize the reward.
+3. **SHAP Value Estimation:**
+    - For each input and each feature:
+        - Sample masks using the trained policy.
+        - For each mask, compute the model output with and without the feature unmasked.
+        - The average difference estimates the SHAP value for that feature.
 """
 
 import torch

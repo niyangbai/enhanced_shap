@@ -1,11 +1,28 @@
 """
 Hierarchical SHAP (h-SHAP) Explainer
 
-Computes SHAP values hierarchically using structured feature grouping.
-Supports recursive estimation at group and subgroup levels.
+## Theoretical Explanation
 
-Reference:
-  - https://arxiv.org/abs/2104.06164
+h-SHAP is a hierarchical extension of SHAP that computes feature attributions using structured feature grouping. Instead of treating each feature independently, h-SHAP organizes features (and/or time steps) into groups or blocks, and recursively estimates SHAP values at both group and subgroup levels. This approach enables efficient and interpretable attributions for high-dimensional or structured data, such as time series or grouped features.
+
+### Key Concepts
+
+- **Hierarchical Grouping:** Features (and/or time steps) are grouped into blocks (e.g., by time, by feature, or both). The hierarchy can be nested, supporting multi-level groupings.
+- **Recursive SHAP Estimation:** SHAP values are estimated recursively: first for groups, then for subgroups or individual features within each group.
+- **Flexible Masking:** Masked features can be imputed with mean values from the background data or set to zero, depending on the chosen strategy.
+- **Additivity Normalization:** Attributions are normalized so their sum matches the model output difference between the original and fully-masked input.
+
+## Algorithm
+
+1. **Initialization:**
+    - Accepts a model, background data (for mean imputation), a hierarchy of feature groups, masking strategy, and device.
+2. **Recursive Attribution:**
+    - For each group in the hierarchy:
+        - Estimate the marginal contribution of the group by comparing model outputs with and without the group masked, averaging over random coalitions of the remaining features.
+        - If the group contains subgroups, recursively estimate attributions for each subgroup.
+        - Distribute the group SHAP value equally among its members.
+3. **Normalization:**
+    - Scale attributions so their sum matches the difference between the original and fully-masked model output.
 """
 
 import numpy as np

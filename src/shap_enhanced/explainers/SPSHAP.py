@@ -1,19 +1,36 @@
 """
 Support-Preserving SHAP Explainer
 
-For every coalition to mask, the perturbed instance is replaced by a real sample from the dataset that matches the resulting support pattern. If no such sample exists, the coalition is skipped or flagged.
+## Theoretical Explanation
 
-Parameters
-----------
-model : Any
-    Model to be explained.
-background : np.ndarray or torch.Tensor
-    The full dataset of valid samples (N, T, F) for replacement.
-skip_unmatched : bool
-    If True, skip coalitions where no matching replacement is found (default: True).
-device : str
-    'cpu' or 'cuda'.
+Support-Preserving SHAP is a feature attribution method designed for sparse or structured discrete data (e.g., one-hot or binary encodings). For each coalition (subset of features to mask), the perturbed instance is replaced by a real sample from the dataset that matches the resulting support pattern. This ensures that all perturbed samples are valid and observed in the data, avoiding unrealistic or out-of-distribution patterns. If no such sample exists, the coalition is skipped or flagged. For non-sparse data, the method falls back to classic mean-masking SHAP.
+
+### Key Concepts
+
+- **Support Pattern Matching:** For each masked coalition, find a real background sample with the same support (nonzero pattern) as the masked instance.
+- **One-Hot/Binary Support:** Especially suited for one-hot or binary sparse data, ensuring only valid patterns are used for model evaluation.
+- **Fallback to Mean Masking:** If the data is not truly one-hot or binary, falls back to mean-masking (classic SHAP).
+- **Additivity Normalization:** Attributions are normalized so their sum matches the model output difference between the original and fully-masked input.
+
+## Algorithm
+
+1. **Initialization:**
+    - Accepts a model, background data, skip-unmatched flag, and device.
+2. **Support-Preserving Masking:**
+    - For each coalition, mask the selected features and find a background sample with the same support pattern.
+    - If no match is found, skip the coalition or raise an error.
+    - For non-sparse data, use mean-masking for each feature.
+3. **SHAP Value Estimation:**
+    - For each feature, repeatedly:
+        - Sample random coalitions of other features.
+        - Mask the coalition and find a matching background sample.
+        - Mask the coalition plus the feature of interest and find a matching sample.
+        - Compute the model output difference.
+        - Average these differences to estimate the marginal contribution of the feature.
+    - Normalize attributions so their sum matches the difference between the original and fully-masked model output.
 """
+
+
 import numpy as np
 import torch
 from shap_enhanced.base_explainer import BaseExplainer

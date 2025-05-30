@@ -1,9 +1,30 @@
 """
 EnsembleSHAPWithNoise: Robust Ensemble Wrapper for SHAP/Custom Explainers
 
-- By default uses shap.DeepExplainer if no explainer_class given.
-- Works with all official SHAP explainers and your custom explainers.
-- Handles background/data args as required per class.
+## Theoretical Explanation
+
+EnsembleSHAPWithNoise is a robust ensemble wrapper for SHAP and custom explainers. It improves attribution stability and robustness by running the chosen explainer multiple times with added Gaussian noise to the input data and/or background samples, then aggregating the results. This approach helps mitigate sensitivity to small perturbations and provides more reliable feature attributions, especially for deep or unstable models.
+
+### Key Concepts
+
+- **Ensemble Averaging:** Runs the base explainer multiple times with different noise realizations and aggregates the resulting attributions (mean or median).
+- **Noise Injection:** Gaussian noise can be added to the input, background, or both, simulating data variability and improving robustness.
+- **Explainer Flexibility:** Supports all official SHAP explainers and custom explainers, automatically handling their input/background requirements.
+- **Automatic Type Handling:** Converts data to the required type (NumPy or PyTorch) for the selected explainer.
+
+## Algorithm
+
+1. **Initialization:**
+    - Accepts a model, background data, explainer class (default: `shap.DeepExplainer`), explainer kwargs, number of runs, noise level, noise target, aggregation method, and device.
+2. **Ensemble Loop:**
+    - For each run:
+        - Add Gaussian noise to the input and/or background as specified.
+        - Convert data to the required type for the explainer.
+        - Instantiate the explainer with the noisy background.
+        - Compute SHAP values for the noisy input.
+    - Collect all attribution results.
+3. **Aggregation:**
+    - Aggregate the attributions across runs using the specified method (mean or median).
 """
 
 import numpy as np
