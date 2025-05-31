@@ -1,7 +1,6 @@
 torch
 torchvision
 torchaudio
-pybind11
 numpy
 scipy
 matplotlib

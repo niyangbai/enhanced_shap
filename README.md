@@ -2,8 +2,6 @@
 
 <div align="center">
 
-<img src="logo.png" alt="SHAP-Enhanced Logo" height="100"/>
-
 # SHAP-Enhanced: Advanced Explainability Toolkit
 
 <a href="https://www.gnu.org/licenses/agpl-3.0">
