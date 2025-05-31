@@ -269,7 +269,7 @@ def plot_feature_comparison(
     if feature_names is None:
         feature_names = [str(i) for i in range(n_features)]
 
-    fig, axes = plt.subplots(n_explainers, 1, figsize=(10, 2.7 * n_explainers), sharex=True)
+    fig, axes = plt.subplots(n_explainers, 1, figsize=(10, 3.8 * n_explainers), sharex=True)
     if n_explainers == 1:
         axes = [axes]
 
