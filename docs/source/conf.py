@@ -27,5 +27,9 @@ templates_path = ['_templates']
 exclude_patterns = []
 
 html_theme = "furo"
-html_logo = '_static/logo.png'
 html_static_path = ['_static']
+
+html_theme_options = {
+    "light_logo": "fau_wiso_light.png",
+    "dark_logo": "fau_wiso_dark.png",
+}
