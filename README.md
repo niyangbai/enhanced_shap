@@ -16,6 +16,9 @@
 <a href="https://git-scm.com/">
     <img src="https://img.shields.io/badge/Git-Repository-orange.svg?logo=git" alt="Git"/>
 </a>
+<a href="https://pypi.org/project/shap-enhanced/">
+    <img src="https://img.shields.io/pypi/v/shap-enhanced.svg?logo=python&label=PyPI" alt="PyPI version"/>
+</a>
 
 </div>
 
