@@ -1,0 +1,15 @@
+shap\_enhanced.tools.visulization
+=================================
+
+.. automodule:: shap_enhanced.tools.visulization
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      plot_3d_bars
+      plot_3d_surface
+      plot_feature_comparison
+      plot_mse_pearson
+   

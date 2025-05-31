@@ -1,0 +1,13 @@
+shap\_enhanced.tools.datasets
+=============================
+
+.. automodule:: shap_enhanced.tools.datasets
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      generate_synthetic_seqregression
+      generate_synthetic_tabular
+   

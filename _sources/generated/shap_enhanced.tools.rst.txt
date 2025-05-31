@@ -1,0 +1,18 @@
+shap\_enhanced.tools
+====================
+
+.. automodule:: shap_enhanced.tools
+
+   
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :recursive:
+
+   comparison
+   datasets
+   evaluation
+   predefined_models
+   timer
+   visulization

@@ -1,0 +1,12 @@
+shap\_enhanced.explainers.ESSHAP
+================================
+
+.. automodule:: shap_enhanced.explainers.ESSHAP
+
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      EnsembleSHAPWithNoise
+   

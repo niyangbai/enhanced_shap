@@ -1,0 +1,19 @@
+shap\_enhanced.explainers.SurroSHAP
+===================================
+
+.. automodule:: shap_enhanced.explainers.SurroSHAP
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      ensure_shap_input
+      shap_values_with_nsamples
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      SurrogateSHAPExplainer
+   
