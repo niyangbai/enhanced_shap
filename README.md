@@ -8,7 +8,7 @@
     <img src="https://img.shields.io/badge/License-AGPL%20v3-blue.svg?logo=open-source-initiative" alt="License: AGPL-3.0"/>
 </a>
 <a href="https://www.python.org/">
-    <img src="https://img.shields.io/badge/Python-3.8%2B-blue.svg?logo=python" alt="Python Version"/>
+    <img src="https://img.shields.io/badge/Python-3.10%2B-blue.svg?logo=python" alt="Python Version"/>
 </a>
 <a href="https://isocpp.org/">
     <img src="https://img.shields.io/badge/Code-C%2B%2B-orange.svg?logo=c%2B%2B" alt="C++ Code"/>
@@ -19,6 +19,13 @@
 <a href="https://pypi.org/project/shap-enhanced/">
     <img src="https://img.shields.io/pypi/v/shap-enhanced.svg?logo=python&label=PyPI" alt="PyPI version"/>
 </a>
+<a href="https://niyangbai.github.io/enhanced_shap/">
+    <img src="https://img.shields.io/badge/docs-GitHub%20Pages-brightgreen?logo=github" alt="Docs: GitHub Pages"/>
+</a>
+<a href="https://www.sphinx-doc.org/">
+    <img src="https://img.shields.io/badge/built%20with-Sphinx-89e?logo=sphinx" alt="Built with Sphinx"/>
+</a>
+
 
 </div>
 
