@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../genindex.html" /><link rel="search" title="Search" href="../../../search.html" />
 
     <!-- Generated with Sphinx 8.2.3 and Furo 2024.08.06 -->
-        <title>shap_enhanced.explainers.CASHAP - shap_enhanced documentation</title>
+        <title>shap_enhanced.explainers.CASHAP - Enhanced SHAP documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=354aac6f" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?v=302659d7" />
@@ -165,7 +165,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../../index.html"><div class="brand">shap_enhanced  documentation</div></a>
+      <a href="../../../index.html"><div class="brand">Enhanced SHAP  documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -193,7 +193,7 @@
     <img class="sidebar-logo only-dark" src="../../../_static/fau_wiso_dark.png" alt="Dark Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">shap_enhanced  documentation</span>
+  <span class="sidebar-brand-text">Enhanced SHAP  documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -273,34 +273,54 @@
         <article role="main" id="furo-main-content">
           <h1>Source code for shap_enhanced.explainers.CASHAP</h1><div class="highlight"><pre>
 <span></span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">Coalition-Aware SHAP (CASHAP) Explainer</span>
+<span class="sd">CASHAP: Coalition-Aware SHAP Explainer</span>
+<span class="sd">======================================</span>
 
-<span class="sd">## Theoretical Explanation</span>
+<span class="sd">Theoretical Explanation</span>
+<span class="sd">-----------------------</span>
 
-<span class="sd">CASHAP (Coalition-Aware SHAP) is a feature attribution method that estimates Shapley values by explicitly sampling coalitions (subsets) of feature-time pairs and measuring their marginal contributions to the model output. This approach is particularly suited for sequential models (such as LSTMs) and can be generalized to tabular data. CASHAP supports various masking or imputation strategies to ensure context-aware and valid perturbations.</span>
+<span class="sd">CASHAP (Coalition-Aware SHAP) is a Shapley value estimation framework tailored for models that process sequential or structured inputs, such as LSTMs.  </span>
+<span class="sd">Unlike classical SHAP methods that treat features independently, CASHAP considers **feature-time pairs**—enabling attribution of both spatial and temporal components.  </span>
 
-<span class="sd">### Key Concepts</span>
+<span class="sd">By explicitly sampling coalitions (subsets) of feature-time pairs and measuring marginal contributions, CASHAP provides granular, context-aware explanations.  </span>
+<span class="sd">It also supports multiple imputation strategies to ensure the perturbed inputs remain valid and interpretable.</span>
 
-<span class="sd">- **Coalition Sampling:** For each feature-time position (t, f), random coalitions (subsets of all other positions) are sampled. The marginal contribution of (t, f) is estimated by measuring the change in model output when (t, f) is added to the coalition.</span>
-<span class="sd">- **Masking/Imputation:** Masked positions can be set to zero, mean-imputed from background data, or imputed using a custom function. This allows for context-aware explanations and avoids unrealistic perturbations.</span>
-<span class="sd">- **Sequential and Tabular Support:** While designed for sequential models, CASHAP can be applied to any data where masking or imputation is meaningful.</span>
-<span class="sd">- **Additivity Normalization:** Attributions are normalized so their sum matches the model output difference between the original and fully-masked input.</span>
+<span class="sd">Key Concepts</span>
+<span class="sd">^^^^^^^^^^^^</span>
 
-<span class="sd">## Algorithm</span>
+<span class="sd">- **Coalition Sampling**: For every feature-time pair \((t, f)\), random subsets of all other positions are sampled.  </span>
+<span class="sd">    The contribution of \((t, f)\) is assessed by adding it to each coalition and measuring the change in model output.</span>
+<span class="sd">- **Masking/Imputation Strategies**:</span>
+<span class="sd">    - **Zero masking**: Replace masked values with zero.</span>
+<span class="sd">    - **Mean imputation**: Use feature-wise means from background data.</span>
+<span class="sd">    - **Custom imputers**: Support for user-defined imputation functions.</span>
+<span class="sd">- **Model-Agnostic &amp; Domain-General**: While ideal for time-series and sequential models, CASHAP can also be applied to tabular data  </span>
+<span class="sd">    wherever structured coalition masking is appropriate.</span>
+<span class="sd">- **Additivity Normalization**: Attribution scores are scaled such that their total sum equals the difference in model output  </span>
+<span class="sd">    between the original input and a fully-masked version.</span>
 
-<span class="sd">1. **Initialization:**</span>
-<span class="sd">    - Accepts a model, background data (for mean imputation), masking strategy, optional custom imputer, and device.</span>
-<span class="sd">2. **Coalition Sampling:**</span>
-<span class="sd">    - For each feature-time position (t, f):</span>
-<span class="sd">        - Sample random coalitions \( C \subseteq (T \times F) \setminus \{(t, f)\} \).</span>
-<span class="sd">        - For each coalition:</span>
-<span class="sd">            - Mask (impute) the coalition \( C \) in the input.</span>
-<span class="sd">            - Mask (impute) the coalition \( C \cup \{(t, f)\} \).</span>
-<span class="sd">            - Compute the model output difference.</span>
-<span class="sd">        - Average these differences to estimate the marginal contribution of (t, f).</span>
-<span class="sd">3. **Normalization:**</span>
-<span class="sd">    - Scale attributions so their sum matches the difference between the original and fully-masked model output.</span>
+<span class="sd">Algorithm</span>
+<span class="sd">---------</span>
+
+<span class="sd">1. **Initialization**:</span>
+<span class="sd">    - Accepts a model, background data for imputation, masking strategy, optional custom imputer, and device context.</span>
+
+<span class="sd">2. **Coalition Sampling**:</span>
+<span class="sd">    - For each feature-time pair \((t, f)\):</span>
+<span class="sd">        - Sample coalitions \( C \subseteq (T \times F) \setminus \{(t, f)\} \).</span>
+<span class="sd">        - For each coalition \( C \):</span>
+<span class="sd">            - Impute features in \( C \) using the chosen strategy.</span>
+<span class="sd">            - Impute features in \( C \cup \{(t, f)\} \).</span>
+<span class="sd">            - Compute and record the model output difference.</span>
+
+<span class="sd">3. **Attribution Estimation**:</span>
+<span class="sd">    - Average the output differences across coalitions to estimate the marginal contribution of \((t, f)\).</span>
+
+<span class="sd">4. **Normalization**:</span>
+<span class="sd">    - Normalize attributions so that their total matches the difference between the model&#39;s prediction  </span>
+<span class="sd">        on the original and the fully-masked input.</span>
 <span class="sd">&quot;&quot;&quot;</span>
+
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Callable</span>
@@ -313,23 +333,22 @@
 <a class="viewcode-back" href="../../../generated/shap_enhanced.explainers.CASHAP.html#shap_enhanced.explainers.CASHAP.CoalitionAwareSHAPExplainer">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">CoalitionAwareSHAPExplainer</span><span class="p">(</span><span class="n">BaseExplainer</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Coalition-Aware SHAP (CASHAP) Explainer.</span>
+<span class="sd">    Coalition-Aware SHAP (CASHAP) Explainer</span>
 
-<span class="sd">    Estimates Shapley values for sequential models by sampling random coalitions of (t, f) pairs,</span>
-<span class="sd">    masking/imputing them, and measuring the marginal effect of each position on the model output.</span>
+<span class="sd">    Estimates Shapley values for models processing structured inputs (e.g., time-series, sequences)</span>
+<span class="sd">    by sampling coalitions of feature-time pairs and computing their marginal contributions</span>
+<span class="sd">    using various imputation strategies.</span>
 
-<span class="sd">    Parameters</span>
-<span class="sd">    ----------</span>
-<span class="sd">    model : Any</span>
-<span class="sd">        The model to be explained. Must support __call__ or .predict with batched input.</span>
-<span class="sd">    background : Optional[np.ndarray, torch.Tensor]</span>
-<span class="sd">        Background data for mean imputation.</span>
-<span class="sd">    mask_strategy : str</span>
-<span class="sd">        &#39;zero&#39; for zero masking, &#39;mean&#39; for mean imputation, or &#39;custom&#39; for a user-supplied imputer.</span>
-<span class="sd">    imputer : Optional[Callable]</span>
-<span class="sd">        A callable function to perform imputation. Used only if mask_strategy == &#39;custom&#39;.</span>
-<span class="sd">    device : Optional[str]</span>
-<span class="sd">        &#39;cpu&#39; or &#39;cuda&#39; (only relevant for PyTorch).</span>
+<span class="sd">    :param model: Model to be explained.</span>
+<span class="sd">    :type model: Any</span>
+<span class="sd">    :param background: Background data used for mean imputation strategy.</span>
+<span class="sd">    :type background: Optional[np.ndarray or torch.Tensor]</span>
+<span class="sd">    :param str mask_strategy: Strategy for imputing/masking feature-time pairs.</span>
+<span class="sd">                              Options: &#39;zero&#39;, &#39;mean&#39;, or &#39;custom&#39;.</span>
+<span class="sd">    :param imputer: Custom callable for imputation. Required if `mask_strategy` is &#39;custom&#39;.</span>
+<span class="sd">    :type imputer: Optional[Callable]</span>
+<span class="sd">    :param device: Device on which computation runs. Defaults to &#39;cuda&#39; if available.</span>
+<span class="sd">    :type device: Optional[str]</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
@@ -358,9 +377,15 @@
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_mask</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">idxs</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Mask (or impute) positions in X at indices given by idxs.</span>
-<span class="sd">        idxs: list of (t, f) pairs (or (batch, t, f) if batched)</span>
-<span class="sd">        value: value to use for masking/imputation</span>
+<span class="sd">        Mask specified feature-time positions in the input.</span>
+
+<span class="sd">        :param X: Input array (T, F) or tensor.</span>
+<span class="sd">        :type X: np.ndarray or torch.Tensor</span>
+<span class="sd">        :param idxs: List of (t, f) index pairs to mask.</span>
+<span class="sd">        :type idxs: list[tuple[int, int]]</span>
+<span class="sd">        :param value: Value to replace at masked positions. Defaults to 0.0.</span>
+<span class="sd">        :return: Masked version of the input.</span>
+<span class="sd">        :rtype: Same as input type</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">X_masked</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="k">else</span> <span class="n">X</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span>
         <span class="k">for</span> <span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span> <span class="ow">in</span> <span class="n">idxs</span><span class="p">:</span>
@@ -372,7 +397,19 @@
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_impute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">idxs</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Impute positions in X at indices given by idxs using the selected strategy.</span>
+<span class="sd">        Apply imputation strategy to specified positions.</span>
+
+<span class="sd">        Imputation method depends on the selected `mask_strategy`:</span>
+<span class="sd">        - &#39;zero&#39;: Set masked values to 0.</span>
+<span class="sd">        - &#39;mean&#39;: Use mean values computed from background data.</span>
+<span class="sd">        - &#39;custom&#39;: Use user-defined callable function.</span>
+
+<span class="sd">        :param X: Input data (T, F).</span>
+<span class="sd">        :type X: np.ndarray or torch.Tensor</span>
+<span class="sd">        :param idxs: Positions to impute, as (t, f) tuples.</span>
+<span class="sd">        :type idxs: list[tuple[int, int]]</span>
+<span class="sd">        :return: Imputed input.</span>
+<span class="sd">        :rtype: Same as input type</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mask_strategy</span> <span class="o">==</span> <span class="s2">&quot;zero&quot;</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mask</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">idxs</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span>
@@ -424,7 +461,36 @@
         <span class="o">**</span><span class="n">kwargs</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Improved CASHAP Shapley estimation.</span>
+<span class="sd">        Compute CASHAP Shapley values for structured inputs via coalition-aware sampling.</span>
+
+<span class="sd">        For each feature-time pair \((t, f)\), randomly sample coalitions excluding \((t, f)\),</span>
+<span class="sd">        compute model outputs with and without the pair added, and average the marginal contributions.</span>
+<span class="sd">        Attribution values are normalized so their total matches the model output difference</span>
+<span class="sd">        between the original and fully-masked input.</span>
+
+<span class="sd">        .. math::</span>
+<span class="sd">            \phi_{t,f} \approx \mathbb{E}_{C \subseteq (T \times F) \setminus \{(t,f)\}} \left[</span>
+<span class="sd">                f(C \cup \{(t,f)\}) - f(C)</span>
+<span class="sd">            \right]</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            Normalization ensures:</span>
+<span class="sd">            \sum_{t=1}^T \sum_{f=1}^F \phi_{t,f} \approx f(x) - f(x_{\text{masked}})</span>
+
+<span class="sd">        :param X: Input sample of shape (T, F) or batch (B, T, F).</span>
+<span class="sd">        :type X: np.ndarray or torch.Tensor</span>
+<span class="sd">        :param nsamples: Number of coalitions sampled per (t, f).</span>
+<span class="sd">        :type nsamples: int</span>
+<span class="sd">        :param coalition_size: Fixed size of sampled coalitions. If None, varies randomly.</span>
+<span class="sd">        :type coalition_size: Optional[int]</span>
+<span class="sd">        :param mask_strategy: Override default masking strategy.</span>
+<span class="sd">        :type mask_strategy: Optional[str]</span>
+<span class="sd">        :param check_additivity: Print diagnostic SHAP sum vs. model delta.</span>
+<span class="sd">        :type check_additivity: bool</span>
+<span class="sd">        :param random_seed: Seed for reproducibility.</span>
+<span class="sd">        :type random_seed: int</span>
+<span class="sd">        :return: SHAP values of shape (T, F) or (B, T, F).</span>
+<span class="sd">        :rtype: np.ndarray</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="n">random_seed</span><span class="p">)</span>
         <span class="n">mask_strategy</span> <span class="o">=</span> <span class="n">mask_strategy</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">mask_strategy</span>

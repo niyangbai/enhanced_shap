@@ -6,7 +6,7 @@
 <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="shap_enhanced.base_explainer" href="shap_enhanced.base_explainer.html" /><link rel="prev" title="SHAP Enhanced API" href="../shap_enhanced_api.html" />
 
     <!-- Generated with Sphinx 8.2.3 and Furo 2024.08.06 -->
-        <title>shap_enhanced - shap_enhanced documentation</title>
+        <title>shap_enhanced - Enhanced SHAP documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=354aac6f" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=302659d7" />
@@ -166,7 +166,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../index.html"><div class="brand">shap_enhanced  documentation</div></a>
+      <a href="../index.html"><div class="brand">Enhanced SHAP  documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -178,7 +178,7 @@
           <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
         </button>
       </div>
-      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
         <div class="visually-hidden">Toggle table of contents sidebar</div>
         <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
       </label>
@@ -194,7 +194,7 @@
     <img class="sidebar-logo only-dark" src="../_static/fau_wiso_dark.png" alt="Dark Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">shap_enhanced  documentation</span>
+  <span class="sidebar-brand-text">Enhanced SHAP  documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -272,7 +272,7 @@
               <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
             </button>
           </div>
-          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
             <div class="visually-hidden">Toggle table of contents sidebar</div>
             <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
           </label>
@@ -280,20 +280,147 @@
         <article role="main" id="furo-main-content">
           <section id="module-shap_enhanced">
 <span id="shap-enhanced"></span><h1>shap_enhanced<a class="headerlink" href="#module-shap_enhanced" title="Link to this heading">¶</a></h1>
-<p>SHAP Enhanced is a modular framework for explainable AI, combining gradient-based,
-perturbation-based, attention-based, and other explainers under a unified interface.</p>
+<section id="enhanced-shap-explainers">
+<h2>Enhanced SHAP Explainers<a class="headerlink" href="#enhanced-shap-explainers" title="Link to this heading">¶</a></h2>
+<p>This package provides a collection of advanced SHAP-style explainers and supporting tools
+designed for structured, sequential, and tabular data. It extends traditional SHAP
+methodology with interpretable, efficient, and domain-aware enhancements.</p>
+<section id="core-modules">
+<h3>Core Modules<a class="headerlink" href="#core-modules" title="Link to this heading">¶</a></h3>
+<ul>
+<li><p><strong>explainers</strong>:</p>
+<dl class="simple">
+<dt>A suite of explainers including:</dt><dd><ul class="simple">
+<li><p>Latent SHAP</p></li>
+<li><p>RL-SHAP (Reinforcement Learning)</p></li>
+<li><p>Multi-Baseline SHAP (MB-SHAP)</p></li>
+<li><p>Sparse Coalition SHAP (SC-SHAP)</p></li>
+<li><p>Surrogate SHAP (SurroSHAP)</p></li>
+<li><p>TimeSHAP and others</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><p><strong>tools</strong>:</p>
+<dl class="simple">
+<dt>Utility functions and helper modules for:</dt><dd><ul class="simple">
+<li><p>Synthetic data generation</p></li>
+<li><p>Ground-truth SHAP value estimation</p></li>
+<li><p>Model evaluation and visualizations</p></li>
+<li><p>Benchmark comparisons and profiling</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><p><strong>base_explainer</strong>:
+Abstract base class (<cite>BaseExplainer</cite>) that defines the core interface
+for all SHAP-style explainers in this package.</p></li>
+</ul>
+</section>
+<section id="usage">
+<h3>Usage<a class="headerlink" href="#usage" title="Link to this heading">¶</a></h3>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">shap_enhanced.explainers</span><span class="w"> </span><span class="kn">import</span> <span class="n">LatentSHAPExplainer</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">shap_enhanced.tools.datasets</span><span class="w"> </span><span class="kn">import</span> <span class="n">generate_synthetic_seqregression</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">shap_enhanced.tools.predefined_models</span><span class="w"> </span><span class="kn">import</span> <span class="n">RealisticLSTM</span>
+
+<span class="n">X</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">generate_synthetic_seqregression</span><span class="p">()</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">RealisticLSTM</span><span class="p">(</span><span class="n">input_dim</span><span class="o">=</span><span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+<span class="n">explainer</span> <span class="o">=</span> <span class="n">LatentSHAPExplainer</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">,</span> <span class="o">...</span><span class="p">)</span>
+<span class="n">shap_values</span> <span class="o">=</span> <span class="n">explainer</span><span class="o">.</span><span class="n">shap_values</span><span class="p">(</span><span class="n">X</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+</pre></div>
+</div>
+</section>
+</section>
+<dl class="py class">
+<dt class="sig sig-object py" id="shap_enhanced.BaseExplainer">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">shap_enhanced.</span></span><span class="sig-name descname"><span class="pre">BaseExplainer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">background</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/shap_enhanced/base_explainer.html#BaseExplainer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#shap_enhanced.BaseExplainer" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ABC</span></code></p>
+<p>BaseExplainer: Abstract Interface for SHAP-style Explainers</p>
+<p>This abstract class defines the required interface for all SHAP-style explainers in the enhanced SHAP framework.
+Subclasses must implement the <cite>shap_values</cite> method, and optionally support <cite>expected_value</cite> computation.</p>
+<p>Ensures compatibility with SHAP-style usage patterns such as callable explainers (<cite>explainer(X)</cite>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model</strong> (<em>Any</em>) – The model to explain (e.g., PyTorch or scikit-learn model).</p></li>
+<li><p><strong>background</strong> (<em>Optional</em><em>[</em><em>Any</em><em>]</em>) – Background data for imputation or marginalization (used in SHAP computation).</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py property">
+<dt class="sig sig-object py" id="shap_enhanced.BaseExplainer.expected_value">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">expected_value</span></span><a class="headerlink" href="#shap_enhanced.BaseExplainer.expected_value" title="Link to this definition">¶</a></dt>
+<dd><p>Optional property returning the expected model output on the background dataset.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Expected value if defined by the subclass, else None.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>float or None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="shap_enhanced.BaseExplainer.explain">
+<span class="sig-name descname"><span class="pre">explain</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/shap_enhanced/base_explainer.html#BaseExplainer.explain"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#shap_enhanced.BaseExplainer.explain" title="Link to this definition">¶</a></dt>
+<dd><p>Alias to <cite>shap_values</cite> for flexibility and API compatibility.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>X</strong> (<em>Union</em><em>[</em><em>np.ndarray</em><em>, </em><em>torch.Tensor</em><em>, </em><em>list</em><em>]</em>) – Input samples to explain.</p></li>
+<li><p><strong>kwargs</strong> – Additional arguments.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>SHAP values.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Union[np.ndarray, list]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="shap_enhanced.BaseExplainer.shap_values">
+<em class="property"><span class="k"><span class="pre">abstractmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">shap_values</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">check_additivity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/shap_enhanced/base_explainer.html#BaseExplainer.shap_values"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#shap_enhanced.BaseExplainer.shap_values" title="Link to this definition">¶</a></dt>
+<dd><p>Abstract method to compute SHAP values for input samples.</p>
+<div class="math-wrapper docutils container">
+<div class="math notranslate nohighlight">
+\[\phi_i = \mathbb{E}_{S \subseteq N \setminus \{i\}} \left[ f(x_{S \cup \{i\}}) - f(x_S) \right]\]</div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>X</strong> (<em>Union</em><em>[</em><em>np.ndarray</em><em>, </em><em>torch.Tensor</em><em>, </em><em>list</em><em>]</em>) – Input samples to explain (e.g., numpy array, torch tensor, or list).</p></li>
+<li><p><strong>check_additivity</strong> (<em>bool</em>) – If True, verifies SHAP values sum to model prediction difference.</p></li>
+<li><p><strong>kwargs</strong> – Additional arguments for explainer-specific control.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>SHAP values matching the shape and structure of <cite>X</cite>.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Union[np.ndarray, list]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
 <p class="rubric">Modules</p>
 <div class="table-wrapper autosummary longtable docutils container">
 <table class="autosummary longtable docutils align-default">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="shap_enhanced.base_explainer.html#module-shap_enhanced.base_explainer" title="shap_enhanced.base_explainer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">base_explainer</span></code></a></p></td>
-<td><p>Abstract base class for SHAP-style explainers.</p></td>
+<td><p>Enhanced SHAP Base Interface</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="shap_enhanced.explainers.html#module-shap_enhanced.explainers" title="shap_enhanced.explainers"><code class="xref py py-obj docutils literal notranslate"><span class="pre">explainers</span></code></a></p></td>
-<td><p>This module initializes the explainers package and exposes the main explainer classes.</p></td>
+<td><p>SHAP Explainers Collection</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="shap_enhanced.tools.html#module-shap_enhanced.tools" title="shap_enhanced.tools"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tools</span></code></a></p></td>
-<td><p>The tools module provides utilities for model evaluation and visualization.</p></td>
+<td><p>Tools Module</p></td>
 </tr>
 </tbody>
 </table>
@@ -343,8 +470,37 @@ perturbation-based, attention-based, and other explainers under a unified interf
         
       </footer>
     </div>
-    <aside class="toc-drawer no-toc">
+    <aside class="toc-drawer">
       
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">shap_enhanced</a><ul>
+<li><a class="reference internal" href="#enhanced-shap-explainers">Enhanced SHAP Explainers</a><ul>
+<li><a class="reference internal" href="#core-modules">Core Modules</a></li>
+<li><a class="reference internal" href="#usage">Usage</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#shap_enhanced.BaseExplainer"><code class="docutils literal notranslate"><span class="pre">BaseExplainer</span></code></a><ul>
+<li><a class="reference internal" href="#shap_enhanced.BaseExplainer.expected_value"><code class="docutils literal notranslate"><span class="pre">BaseExplainer.expected_value</span></code></a></li>
+<li><a class="reference internal" href="#shap_enhanced.BaseExplainer.explain"><code class="docutils literal notranslate"><span class="pre">BaseExplainer.explain()</span></code></a></li>
+<li><a class="reference internal" href="#shap_enhanced.BaseExplainer.shap_values"><code class="docutils literal notranslate"><span class="pre">BaseExplainer.shap_values()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
       
       
     </aside>
@@ -353,5 +509,6 @@ perturbation-based, attention-based, and other explainers under a unified interf
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/scripts/furo.js?v=5fa4622c"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     </body>
 </html>

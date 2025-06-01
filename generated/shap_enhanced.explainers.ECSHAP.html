@@ -6,7 +6,7 @@
 <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="shap_enhanced.explainers.ERSHAP" href="shap_enhanced.explainers.ERSHAP.html" /><link rel="prev" title="shap_enhanced.explainers.CMSHAP" href="shap_enhanced.explainers.CMSHAP.html" />
 
     <!-- Generated with Sphinx 8.2.3 and Furo 2024.08.06 -->
-        <title>shap_enhanced.explainers.ECSHAP - shap_enhanced documentation</title>
+        <title>shap_enhanced.explainers.ECSHAP - Enhanced SHAP documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=354aac6f" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=302659d7" />
@@ -166,7 +166,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../index.html"><div class="brand">shap_enhanced  documentation</div></a>
+      <a href="../index.html"><div class="brand">Enhanced SHAP  documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -194,7 +194,7 @@
     <img class="sidebar-logo only-dark" src="../_static/fau_wiso_dark.png" alt="Dark Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">shap_enhanced  documentation</span>
+  <span class="sidebar-brand-text">Enhanced SHAP  documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -280,57 +280,112 @@
         <article role="main" id="furo-main-content">
           <section id="module-shap_enhanced.explainers.ECSHAP">
 <span id="shap-enhanced-explainers-ecshap"></span><h1>shap_enhanced.explainers.ECSHAP<a class="headerlink" href="#module-shap_enhanced.explainers.ECSHAP" title="Link to this heading">¶</a></h1>
-<p>Empirical Conditional SHAP (EC-SHAP) for Discrete Data</p>
-<p>## Theoretical Explanation</p>
-<p>Empirical Conditional SHAP (EC-SHAP) is a feature attribution method for discrete (binary, categorical, or one-hot) data. For each coalition (subset of masked features), EC-SHAP imputes the masked features by sampling from the empirical conditional distribution given the observed (unmasked) features, using the background dataset. This ensures that all imputations correspond to valid, observed patterns in the data, avoiding unrealistic or out-of-distribution perturbations.</p>
-<p>### Key Concepts</p>
+<section id="ec-shap-empirical-conditional-shap-for-discrete-data">
+<h2>EC-SHAP: Empirical Conditional SHAP for Discrete Data<a class="headerlink" href="#ec-shap-empirical-conditional-shap-for-discrete-data" title="Link to this heading">¶</a></h2>
+<section id="theoretical-explanation">
+<h3>Theoretical Explanation<a class="headerlink" href="#theoretical-explanation" title="Link to this heading">¶</a></h3>
+<p>Empirical Conditional SHAP (EC-SHAP) is a feature attribution method tailored for discrete data types,
+including binary, categorical, and one-hot encoded features. Unlike classical SHAP methods that often rely
+on unconditional sampling or simplistic imputations, EC-SHAP imputes masked features based on the
+<strong>empirical conditional distribution</strong> derived from a background dataset.</p>
+<p>For each coalition (a subset of masked features), EC-SHAP seeks background samples that match the unmasked features,
+ensuring that imputed instances remain within the data manifold and reflect realistic, observed patterns.</p>
+<section id="key-concepts">
+<h4>Key Concepts<a class="headerlink" href="#key-concepts" title="Link to this heading">¶</a></h4>
 <ul class="simple">
-<li><p><strong>Empirical Conditional Imputation:</strong> For each coalition, masked features are filled in by finding background samples that match the unmasked features. If no exact match is found, the method can skip the coalition or use the closest match (by Hamming distance).</p></li>
-<li><p><strong>Valid Discrete Patterns:</strong> All imputations are guaranteed to be valid, observed binary/one-hot patterns, preserving the data distribution.</p></li>
-<li><p><strong>Fallback for Continuous Data:</strong> If the data is detected as continuous (many unique values per feature), EC-SHAP falls back to mean imputation.</p></li>
-<li><p><strong>Additivity Normalization:</strong> Attributions are normalized so their sum matches the model output difference between the original and fully-masked input.</p></li>
+<li><dl class="simple">
+<dt><strong>Empirical Conditional Imputation</strong>:</dt><dd><p>Masked features are filled by matching the unmasked portion of an input to background data. If no exact match exists,
+the algorithm can either skip the coalition or use the closest match (by Hamming distance).</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><strong>Valid Discrete Patterns</strong>:</dt><dd><p>All imputations correspond to real, observed combinations in the background dataset—preserving the statistical validity
+and interpretability of the perturbed inputs.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><strong>Fallback for Continuous Features</strong>:</dt><dd><p>If features appear continuous (e.g., many unique values), EC-SHAP automatically falls back to mean imputation.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><strong>Additivity Normalization</strong>:</dt><dd><p>Attributions are scaled such that their sum equals the difference in model outputs between the original
+and fully-masked inputs.</p>
+</dd>
+</dl>
+</li>
 </ul>
-<p>## Algorithm</p>
+</section>
+</section>
+<section id="algorithm">
+<h3>Algorithm<a class="headerlink" href="#algorithm" title="Link to this heading">¶</a></h3>
 <ol class="arabic simple">
 <li><dl class="simple">
-<dt><strong>Initialization:</strong></dt><dd><ul class="simple">
-<li><p>Accepts a model, background data, skip/closest matching flags, and device.</p></li>
+<dt><strong>Initialization</strong>:</dt><dd><ul class="simple">
+<li><p>Accepts a model, background dataset, device context, and configuration for skipping or relaxing matches (e.g., using closest match).</p></li>
 </ul>
 </dd>
 </dl>
 </li>
 <li><dl class="simple">
-<dt><strong>Conditional Imputation:</strong></dt><dd><ul class="simple">
-<li><p>For each coalition (subset of features to mask), find a background sample that matches the unmasked features. If none is found, optionally use the closest match or mean imputation.</p></li>
+<dt><strong>Conditional Imputation</strong>:</dt><dd><ul class="simple">
+<li><dl class="simple">
+<dt>For each coalition (subset of features to mask):</dt><dd><ul>
+<li><p>Identify background samples where the unmasked features match.</p></li>
+<li><p>If a match exists, use it to fill in masked features.</p></li>
+<li><dl class="simple">
+<dt>If no match:</dt><dd><ul>
+<li><p>Optionally use the nearest match (by Hamming distance), or</p></li>
+<li><p>Fallback to mean imputation (for continuous features), or</p></li>
+<li><p>Skip the coalition.</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+</li>
 </ul>
 </dd>
 </dl>
 </li>
 <li><dl class="simple">
-<dt><strong>SHAP Value Estimation:</strong></dt><dd><ul class="simple">
+<dt><strong>SHAP Value Estimation</strong>:</dt><dd><ul class="simple">
 <li><dl class="simple">
-<dt>For each feature position, repeatedly:</dt><dd><ul>
-<li><p>Sample a random coalition of other positions.</p></li>
-<li><p>Impute the coalition using empirical conditional matching.</p></li>
-<li><p>Impute the coalition plus the feature of interest.</p></li>
-<li><p>Compute the model output difference.</p></li>
-<li><p>Average these differences to estimate the marginal contribution of the feature.</p></li>
+<dt>For each feature:</dt><dd><ul>
+<li><p>Sample random coalitions of other features.</p></li>
+<li><dl class="simple">
+<dt>Impute both:</dt><dd><ul>
+<li><p>The coalition alone, and</p></li>
+<li><p>The coalition plus the target feature.</p></li>
 </ul>
 </dd>
 </dl>
 </li>
-<li><p>Normalize attributions so their sum matches the difference between the original and fully-masked model output.</p></li>
+<li><p>Compute the difference in model outputs.</p></li>
+<li><p>Average the differences to estimate marginal contribution.</p></li>
 </ul>
 </dd>
 </dl>
 </li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><p><strong>Normalization</strong>:
+- Ensure the sum of feature attributions equals the difference in model output between the original and fully-masked input.</p></li>
 </ol>
+</section>
+</section>
 <p class="rubric">Classes</p>
 <div class="table-wrapper autosummary longtable docutils container">
 <table class="autosummary longtable docutils align-default">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#shap_enhanced.explainers.ECSHAP.EmpiricalConditionalSHAPExplainer" title="shap_enhanced.explainers.ECSHAP.EmpiricalConditionalSHAPExplainer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">EmpiricalConditionalSHAPExplainer</span></code></a>(model, ...)</p></td>
-<td><p></p></td>
+<td><p>Empirical Conditional SHAP (EC-SHAP) Explainer for Discrete Data</p></td>
 </tr>
 </tbody>
 </table>
@@ -339,35 +394,89 @@
 <dt class="sig sig-object py" id="shap_enhanced.explainers.ECSHAP.EmpiricalConditionalSHAPExplainer">
 <em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">shap_enhanced.explainers.ECSHAP.</span></span><span class="sig-name descname"><span class="pre">EmpiricalConditionalSHAPExplainer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">background</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skip_unmatched</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_closest</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/shap_enhanced/explainers/ECSHAP.html#EmpiricalConditionalSHAPExplainer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#shap_enhanced.explainers.ECSHAP.EmpiricalConditionalSHAPExplainer" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="shap_enhanced.base_explainer.html#shap_enhanced.base_explainer.BaseExplainer" title="shap_enhanced.base_explainer.BaseExplainer"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseExplainer</span></code></a></p>
+<p>Empirical Conditional SHAP (EC-SHAP) Explainer for Discrete Data</p>
+<p>This explainer estimates Shapley values for discrete (e.g., categorical, binary, or one-hot)
+feature inputs by imputing masked features from a background dataset using conditional matching.
+It ensures perturbed samples remain within the data manifold, preserving interpretability.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model</strong> (<em>Any</em>) – Model to explain, must support PyTorch tensors as input.</p></li>
+<li><p><strong>background</strong> (<em>np.ndarray</em><em> or </em><em>torch.Tensor</em>) – Background dataset used for empirical conditional imputation.</p></li>
+<li><p><strong>skip_unmatched</strong> (<em>bool</em>) – If True, skip coalitions where no matching background sample exists.</p></li>
+<li><p><strong>use_closest</strong> (<em>bool</em>) – If True, use the closest (Hamming distance) background sample when no exact match is found.</p></li>
+<li><p><strong>device</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em>) – Device on which to run the model (‘cpu’ or ‘cuda’).</p></li>
+</ul>
+</dd>
+</dl>
 <dl class="py property">
 <dt class="sig sig-object py" id="shap_enhanced.explainers.ECSHAP.EmpiricalConditionalSHAPExplainer.expected_value">
 <em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">expected_value</span></span><a class="headerlink" href="#shap_enhanced.explainers.ECSHAP.EmpiricalConditionalSHAPExplainer.expected_value" title="Link to this definition">¶</a></dt>
-<dd><p>(Optional) Return the expected value of the model output on the background dataset.</p>
+<dd><p>Optional property returning the expected model output on the background dataset.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Expected value if defined by the subclass, else None.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>float or None</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="shap_enhanced.explainers.ECSHAP.EmpiricalConditionalSHAPExplainer.explain">
-<span class="sig-name descname"><span class="pre">explain</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">torch.Tensor</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span></span></span><a class="headerlink" href="#shap_enhanced.explainers.ECSHAP.EmpiricalConditionalSHAPExplainer.explain" title="Link to this definition">¶</a></dt>
-<dd><p>Alias for shap_values, for compatibility and future flexibility.</p>
+<span class="sig-name descname"><span class="pre">explain</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#shap_enhanced.explainers.ECSHAP.EmpiricalConditionalSHAPExplainer.explain" title="Link to this definition">¶</a></dt>
+<dd><p>Alias to <cite>shap_values</cite> for flexibility and API compatibility.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>X</strong> (<em>Union</em><em>[</em><em>np.ndarray</em><em>, </em><em>torch.Tensor</em><em>, </em><em>list</em><em>]</em>) – Input samples to explain.</p></li>
+<li><p><strong>kwargs</strong> – Additional arguments.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>SHAP values.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Union[np.ndarray, list]</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="shap_enhanced.explainers.ECSHAP.EmpiricalConditionalSHAPExplainer.shap_values">
 <span class="sig-name descname"><span class="pre">shap_values</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nsamples</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">check_additivity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">random_seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">42</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/shap_enhanced/explainers/ECSHAP.html#EmpiricalConditionalSHAPExplainer.shap_values"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#shap_enhanced.explainers.ECSHAP.EmpiricalConditionalSHAPExplainer.shap_values" title="Link to this definition">¶</a></dt>
-<dd><p>Compute SHAP values for the input data.</p>
+<dd><p>Estimate SHAP values using empirical conditional imputation.</p>
+<p>For each feature-time index (t, f), this method:
+- Samples coalitions of other features.
+- Finds background samples matching the unmasked portion of the input.
+- Imputes masked values with corresponding values from the matched sample.
+- Computes model output with and without the target feature masked.
+- Averages the differences over multiple coalitions.</p>
+<p>Normalization ensures:</p>
+<div class="math-wrapper docutils container">
+<div class="math notranslate nohighlight">
+\[\sum_{t=1}^T \sum_{f=1}^F \phi_{t,f} \approx f(x) - f(x_{\text{masked}})\]</div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If no exact match is found and <cite>use_closest</cite> is False, the coalition may be skipped.
+For continuous-looking data, the method will fallback to mean imputation.</p>
+</div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>X</strong> (<em>np.ndarray</em><em> or </em><em>torch.Tensor</em><em> or </em><em>list</em>) – Input samples for which to compute SHAP values.</p></li>
-<li><p><strong>check_additivity</strong> (<em>bool</em>) – Whether to verify that SHAP values sum to model output difference.</p></li>
-<li><p><strong>kwargs</strong> (<em>dict</em>) – Additional arguments for derived explainers.</p></li>
+<li><p><strong>X</strong> (<em>np.ndarray</em><em> or </em><em>torch.Tensor</em>) – Input data of shape (T, F) or (B, T, F)</p></li>
+<li><p><strong>nsamples</strong> (<em>int</em>) – Number of coalitions to sample per feature.</p></li>
+<li><p><strong>check_additivity</strong> (<em>bool</em>) – Whether to rescale SHAP values to match model output difference.</p></li>
+<li><p><strong>random_seed</strong> (<em>int</em>) – Seed for reproducibility.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>shap_values</strong> – The computed SHAP values, shape matches input X.</p>
+<dd class="field-even"><p>SHAP values of shape (T, F) or (B, T, F)</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>np.ndarray or list of np.ndarray</p>
+<dd class="field-odd"><p>np.ndarray</p>
 </dd>
 </dl>
 </dd></dl>
@@ -432,6 +541,14 @@
           <div class="toc-tree">
             <ul>
 <li><a class="reference internal" href="#">shap_enhanced.explainers.ECSHAP</a><ul>
+<li><a class="reference internal" href="#ec-shap-empirical-conditional-shap-for-discrete-data">EC-SHAP: Empirical Conditional SHAP for Discrete Data</a><ul>
+<li><a class="reference internal" href="#theoretical-explanation">Theoretical Explanation</a><ul>
+<li><a class="reference internal" href="#key-concepts">Key Concepts</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#algorithm">Algorithm</a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#shap_enhanced.explainers.ECSHAP.EmpiricalConditionalSHAPExplainer"><code class="docutils literal notranslate"><span class="pre">EmpiricalConditionalSHAPExplainer</span></code></a><ul>
 <li><a class="reference internal" href="#shap_enhanced.explainers.ECSHAP.EmpiricalConditionalSHAPExplainer.expected_value"><code class="docutils literal notranslate"><span class="pre">EmpiricalConditionalSHAPExplainer.expected_value</span></code></a></li>
 <li><a class="reference internal" href="#shap_enhanced.explainers.ECSHAP.EmpiricalConditionalSHAPExplainer.explain"><code class="docutils literal notranslate"><span class="pre">EmpiricalConditionalSHAPExplainer.explain()</span></code></a></li>
@@ -453,5 +570,6 @@
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/scripts/furo.js?v=5fa4622c"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     </body>
 </html>

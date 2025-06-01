@@ -6,7 +6,7 @@
 <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="shap_enhanced.explainers.ABSHAP" href="shap_enhanced.explainers.ABSHAP.html" /><link rel="prev" title="shap_enhanced.base_explainer" href="shap_enhanced.base_explainer.html" />
 
     <!-- Generated with Sphinx 8.2.3 and Furo 2024.08.06 -->
-        <title>shap_enhanced.explainers - shap_enhanced documentation</title>
+        <title>shap_enhanced.explainers - Enhanced SHAP documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=354aac6f" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=302659d7" />
@@ -166,7 +166,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../index.html"><div class="brand">shap_enhanced  documentation</div></a>
+      <a href="../index.html"><div class="brand">Enhanced SHAP  documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -178,7 +178,7 @@
           <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
         </button>
       </div>
-      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
         <div class="visually-hidden">Toggle table of contents sidebar</div>
         <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
       </label>
@@ -194,7 +194,7 @@
     <img class="sidebar-logo only-dark" src="../_static/fau_wiso_dark.png" alt="Dark Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">shap_enhanced  documentation</span>
+  <span class="sidebar-brand-text">Enhanced SHAP  documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -272,7 +272,7 @@
               <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
             </button>
           </div>
-          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
             <div class="visually-hidden">Toggle table of contents sidebar</div>
             <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
           </label>
@@ -280,7 +280,43 @@
         <article role="main" id="furo-main-content">
           <section id="module-shap_enhanced.explainers">
 <span id="shap-enhanced-explainers"></span><h1>shap_enhanced.explainers<a class="headerlink" href="#module-shap_enhanced.explainers" title="Link to this heading">¶</a></h1>
-<p>This module initializes the explainers package and exposes the main explainer classes.</p>
+<section id="shap-explainers-collection">
+<h2>SHAP Explainers Collection<a class="headerlink" href="#shap-explainers-collection" title="Link to this heading">¶</a></h2>
+<section id="overview">
+<h3>Overview<a class="headerlink" href="#overview" title="Link to this heading">¶</a></h3>
+<p>This subpackage contains a suite of SHAP-style explainers, each designed to handle different data structures,
+baseline strategies, and attribution mechanisms for interpretable machine learning. These explainers extend
+beyond standard SHAP to provide specialized techniques for:</p>
+<ul class="simple">
+<li><p>Temporal and sequential data (e.g., <cite>TimeSHAP</cite>, <cite>LatentSHAP</cite>)</p></li>
+<li><p>Sparse and discrete structures (e.g., <cite>SPSHAP</cite>, <cite>SCSHAP</cite>)</p></li>
+<li><p>Reinforcement learning–based strategies (e.g., <cite>RLSHAP</cite>)</p></li>
+<li><p>Surrogate model approximations (e.g., <cite>SurroSHAP</cite>)</p></li>
+<li><p>Multi-baseline and enhanced SHAP variants</p></li>
+</ul>
+<p>Each module implements the <cite>BaseExplainer</cite> interface to ensure interoperability and consistent SHAP output.</p>
+</section>
+<section id="modules">
+<h3>Modules<a class="headerlink" href="#modules" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p><strong>LatentSHAP</strong>: Attribution in the latent space of an autoencoder.</p></li>
+<li><p><strong>TimeSHAP</strong>: Pruned SHAP for long temporal sequences.</p></li>
+<li><p><strong>SurroSHAP</strong>: Fast SHAP via surrogate regression.</p></li>
+<li><p><strong>MBSHAP</strong>: Multi-baseline SHAP with per-sample reference sets.</p></li>
+<li><p><strong>RLSHAP</strong>: SHAP value estimation via policy gradient masking.</p></li>
+<li><p><strong>SPSHAP</strong>: Support-preserving masking for sparse inputs.</p></li>
+<li><p><strong>SCSHAP</strong>: Sparse coalition enumeration for binary or one-hot inputs.</p></li>
+<li><p><strong>… and more</strong>: Variants prefixed with a unique identifier (e.g., <cite>ESSHAP</cite>, <cite>ERSHAP</cite>) for experimentation.</p></li>
+</ul>
+</section>
+<section id="usage">
+<h3>Usage<a class="headerlink" href="#usage" title="Link to this heading">¶</a></h3>
+<p>Import individual explainers or use the package to programmatically register all variants:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">shap_enhanced.explainers</span><span class="w"> </span><span class="kn">import</span> <span class="n">LatentSHAP</span><span class="p">,</span> <span class="n">TimeSHAP</span><span class="p">,</span> <span class="n">SurroSHAP</span>
+</pre></div>
+</div>
+</section>
+</section>
 <p class="rubric">Modules</p>
 <div class="table-wrapper autosummary longtable docutils container">
 <table class="autosummary longtable docutils align-default">
@@ -292,16 +328,16 @@
 <td><p>AttnSHAPExplainer: Attention-Guided SHAP with General Proxy Attention</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="shap_enhanced.explainers.BSHAP.html#module-shap_enhanced.explainers.BSHAP" title="shap_enhanced.explainers.BSHAP"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BSHAP</span></code></a></p></td>
-<td><p>BShapExplainer (Distribution-Free SHAP, LSTM/sequence edition)</p></td>
+<td><p>BShapExplainer: Distribution-Free SHAP for Sequential Models</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="shap_enhanced.explainers.CASHAP.html#module-shap_enhanced.explainers.CASHAP" title="shap_enhanced.explainers.CASHAP"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CASHAP</span></code></a></p></td>
-<td><p>Coalition-Aware SHAP (CASHAP) Explainer</p></td>
+<td><p>CASHAP: Coalition-Aware SHAP Explainer</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="shap_enhanced.explainers.CMSHAP.html#module-shap_enhanced.explainers.CMSHAP" title="shap_enhanced.explainers.CMSHAP"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CMSHAP</span></code></a></p></td>
 <td><p>Contextual Masking SHAP (CM-SHAP) Explainer for Sequential Models</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="shap_enhanced.explainers.ECSHAP.html#module-shap_enhanced.explainers.ECSHAP" title="shap_enhanced.explainers.ECSHAP"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ECSHAP</span></code></a></p></td>
-<td><p>Empirical Conditional SHAP (EC-SHAP) for Discrete Data</p></td>
+<td><p>EC-SHAP: Empirical Conditional SHAP for Discrete Data</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="shap_enhanced.explainers.ERSHAP.html#module-shap_enhanced.explainers.ERSHAP" title="shap_enhanced.explainers.ERSHAP"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ERSHAP</span></code></a></p></td>
 <td><p>ER-SHAP: Ensemble of Random SHAP Explainer</p></td>
@@ -310,10 +346,10 @@
 <td><p>EnsembleSHAPWithNoise: Robust Ensemble Wrapper for SHAP/Custom Explainers</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="shap_enhanced.explainers.LatentSHAP.html#module-shap_enhanced.explainers.LatentSHAP" title="shap_enhanced.explainers.LatentSHAP"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LatentSHAP</span></code></a></p></td>
-<td><p></p></td>
+<td><p>Latent SHAP with Autoencoding for Structured Time Series</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="shap_enhanced.explainers.MBSHAP.html#module-shap_enhanced.explainers.MBSHAP" title="shap_enhanced.explainers.MBSHAP"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MBSHAP</span></code></a></p></td>
-<td><p>Multi-Baseline SHAP (MB-SHAP) Explainer</p></td>
+<td><p>MB-SHAP: Multi-Baseline SHAP Explainer</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="shap_enhanced.explainers.RLSHAP.html#module-shap_enhanced.explainers.RLSHAP" title="shap_enhanced.explainers.RLSHAP"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RLSHAP</span></code></a></p></td>
 <td><p>RL-SHAP: Reinforcement Learning SHAP Explainer</p></td>
@@ -325,13 +361,13 @@
 <td><p>Support-Preserving SHAP Explainer</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="shap_enhanced.explainers.SurroSHAP.html#module-shap_enhanced.explainers.SurroSHAP" title="shap_enhanced.explainers.SurroSHAP"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SurroSHAP</span></code></a></p></td>
-<td><p>Surrogate Model SHAP (SurroSHAP) Explainer</p></td>
+<td><p>SurroSHAP: Surrogate Model SHAP Explainer</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="shap_enhanced.explainers.TimeSHAP.html#module-shap_enhanced.explainers.TimeSHAP" title="shap_enhanced.explainers.TimeSHAP"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TimeSHAP</span></code></a></p></td>
-<td><p>TimeSHAP Explainer (pruning-enhanced SHAP for sequential models).</p></td>
+<td><p>TimeSHAP Explainer: Pruning-Enhanced SHAP for Sequential Models</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="shap_enhanced.explainers.hSHAP.html#module-shap_enhanced.explainers.hSHAP" title="shap_enhanced.explainers.hSHAP"><code class="xref py py-obj docutils literal notranslate"><span class="pre">hSHAP</span></code></a></p></td>
-<td><p>Hierarchical SHAP (h-SHAP) Explainer</p></td>
+<td><p>h-SHAP: Hierarchical SHAP Explainer</p></td>
 </tr>
 </tbody>
 </table>
@@ -381,8 +417,32 @@
         
       </footer>
     </div>
-    <aside class="toc-drawer no-toc">
+    <aside class="toc-drawer">
       
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">shap_enhanced.explainers</a><ul>
+<li><a class="reference internal" href="#shap-explainers-collection">SHAP Explainers Collection</a><ul>
+<li><a class="reference internal" href="#overview">Overview</a></li>
+<li><a class="reference internal" href="#modules">Modules</a></li>
+<li><a class="reference internal" href="#usage">Usage</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
       
       
     </aside>

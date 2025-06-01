@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../genindex.html" /><link rel="search" title="Search" href="../../../search.html" />
 
     <!-- Generated with Sphinx 8.2.3 and Furo 2024.08.06 -->
-        <title>shap_enhanced.explainers.MBSHAP - shap_enhanced documentation</title>
+        <title>shap_enhanced.explainers.MBSHAP - Enhanced SHAP documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=354aac6f" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?v=302659d7" />
@@ -165,7 +165,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../../index.html"><div class="brand">shap_enhanced  documentation</div></a>
+      <a href="../../../index.html"><div class="brand">Enhanced SHAP  documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -193,7 +193,7 @@
     <img class="sidebar-logo only-dark" src="../../../_static/fau_wiso_dark.png" alt="Dark Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">shap_enhanced  documentation</span>
+  <span class="sidebar-brand-text">Enhanced SHAP  documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -273,31 +273,63 @@
         <article role="main" id="furo-main-content">
           <h1>Source code for shap_enhanced.explainers.MBSHAP</h1><div class="highlight"><pre>
 <span></span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">Multi-Baseline SHAP (MB-SHAP) Explainer</span>
+<span class="sd">MB-SHAP: Multi-Baseline SHAP Explainer</span>
+<span class="sd">======================================</span>
 
-<span class="sd">## Theoretical Explanation</span>
+<span class="sd">Theoretical Explanation</span>
+<span class="sd">-----------------------</span>
 
-<span class="sd">Multi-Baseline SHAP (MB-SHAP) computes SHAP values using multiple baseline references (e.g., random samples, mean, or k-means centroids) and averages the results to reduce dependence on a single baseline. This approach increases robustness and stability of feature attributions, especially for models or data where the choice of baseline can significantly affect SHAP values.</span>
+<span class="sd">Multi-Baseline SHAP (MB-SHAP) enhances the robustness of SHAP-based feature attribution  </span>
+<span class="sd">by computing SHAP values with respect to multiple baselines rather than a single reference.  </span>
+<span class="sd">This addresses a key limitation in standard SHAP explainers: their sensitivity to baseline selection.</span>
 
-<span class="sd">### Key Concepts</span>
+<span class="sd">By averaging attributions from diverse or locally-relevant baselines (e.g., nearest neighbors, mean, k-means centroids),  </span>
+<span class="sd">MB-SHAP produces more stable, reliable, and representative explanations—particularly useful in domains with  </span>
+<span class="sd">heterogeneous data distributions or models that exhibit local nonlinearity.</span>
 
-<span class="sd">- **Multiple Baselines:** Instead of using a single background reference, MB-SHAP selects multiple baselines (e.g., nearest neighbors, random samples, or user-supplied) for each input sample.</span>
-<span class="sd">- **Explainer Flexibility:** Supports any SHAP-style explainer (e.g., DeepExplainer, KernelExplainer) by wrapping the base explainer and running it for each baseline.</span>
-<span class="sd">- **Averaging Attributions:** For each input, SHAP values are computed with respect to each baseline and then averaged to produce the final attribution.</span>
-<span class="sd">- **Nearest-Neighbor Option:** Optionally, for each input, the K nearest background samples are used as baselines, further improving local fidelity.</span>
+<span class="sd">Key Concepts</span>
+<span class="sd">^^^^^^^^^^^^</span>
 
-<span class="sd">## Algorithm</span>
+<span class="sd">- **Multiple Baselines**:  </span>
+<span class="sd">    Each input is explained with respect to a set of baselines instead of just one. Baseline options include:</span>
+<span class="sd">        - Random background samples.</span>
+<span class="sd">        - Mean or centroid-based references.</span>
+<span class="sd">        - K nearest neighbors (local context).</span>
+<span class="sd">        - User-specified selections.</span>
 
-<span class="sd">1. **Initialization:**</span>
-<span class="sd">    - Accepts a model, background data, number of baselines, baseline selection strategy, base explainer class, and device.</span>
-<span class="sd">2. **Baseline Selection:**</span>
-<span class="sd">    - For each input sample, select multiple baselines (e.g., nearest neighbors, random, mean, k-means, or user-supplied).</span>
-<span class="sd">3. **SHAP Value Computation:**</span>
-<span class="sd">    - For each baseline, instantiate the base explainer and compute SHAP values for the input.</span>
-<span class="sd">    - Aggregate (average) the SHAP values across all baselines for each input.</span>
-<span class="sd">4. **Output:**</span>
-<span class="sd">    - Returns the averaged attributions for each input sample.</span>
+<span class="sd">- **Explainer Flexibility**:  </span>
+<span class="sd">    MB-SHAP is compatible with any SHAP-style explainer, including `DeepExplainer`, `GradientExplainer`, and `KernelExplainer`.  </span>
+<span class="sd">    It wraps the base explainer and runs it separately for each baseline.</span>
+
+<span class="sd">- **Attribution Averaging**:  </span>
+<span class="sd">    For each input sample:</span>
+<span class="sd">        - SHAP values are computed with respect to each baseline.</span>
+<span class="sd">        - The resulting attribution vectors are averaged to yield a final, smoothed explanation.</span>
+
+<span class="sd">- **Local Fidelity**:  </span>
+<span class="sd">    Using per-input nearest neighbors as baselines helps improve explanation fidelity for local model behavior.</span>
+
+<span class="sd">Algorithm</span>
+<span class="sd">---------</span>
+
+<span class="sd">1. **Initialization**:</span>
+<span class="sd">    - Accepts a model, background dataset, number of baselines, baseline selection strategy (`&#39;random&#39;`, `&#39;nearest&#39;`, `&#39;mean&#39;`, `&#39;kmeans&#39;`, etc.),  </span>
+<span class="sd">        SHAP explainer class (e.g., `shap.DeepExplainer`), and device context.</span>
+
+<span class="sd">2. **Baseline Selection**:</span>
+<span class="sd">    - For each input sample:   </span>
+<span class="sd">        - Select multiple baseline samples from the background using the chosen strategy.</span>
+
+<span class="sd">3. **SHAP Value Computation**:</span>
+<span class="sd">    - For each selected baseline:</span>
+<span class="sd">        - Instantiate the base SHAP explainer.</span>
+<span class="sd">        - Compute SHAP values for the input sample with respect to that baseline.</span>
+<span class="sd">    - Average the SHAP results across all baselines.</span>
+
+<span class="sd">4. **Output**:</span>
+<span class="sd">    - Return the final attributions as averaged SHAP values, preserving shape and semantics of the model input.</span>
 <span class="sd">&quot;&quot;&quot;</span>
+
 
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">shap_enhanced.base_explainer</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseExplainer</span>
@@ -309,11 +341,28 @@
 <div class="viewcode-block" id="NearestNeighborMultiBaselineSHAP">
 <a class="viewcode-back" href="../../../generated/shap_enhanced.explainers.MBSHAP.html#shap_enhanced.explainers.MBSHAP.NearestNeighborMultiBaselineSHAP">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">NearestNeighborMultiBaselineSHAP</span><span class="p">(</span><span class="n">BaseExplainer</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Nearest-Neighbor Multi-Baseline SHAP Explainer.</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    NearestNeighborMultiBaselineSHAP: Multi-Baseline SHAP Explainer</span>
 
-<span class="sd">    For each sample, selects its K nearest backgrounds as the explainer&#39;s reference set.</span>
-<span class="sd">    Robust to both DeepExplainer (LSTM, neural nets) and KernelExplainer (tabular).</span>
+<span class="sd">    This explainer improves attribution robustness by selecting the K nearest neighbors </span>
+<span class="sd">    from a background dataset as baselines for each input sample, computing SHAP values </span>
+<span class="sd">    individually for each baseline, and then averaging the results.</span>
+
+<span class="sd">    It is compatible with various SHAP explainers (e.g., `DeepExplainer`, `GradientExplainer`, `KernelExplainer`)</span>
+<span class="sd">    and automatically adapts input types and parameter formats accordingly.</span>
+
+<span class="sd">    .. note::</span>
+<span class="sd">        Baseline selection is input-dependent and done per sample using L2 distance in flattened input space.</span>
+
+<span class="sd">    :param base_explainer_class: The SHAP explainer class to use (e.g., `shap.DeepExplainer`).</span>
+<span class="sd">    :param model: The predictive model to explain.</span>
+<span class="sd">    :type model: Any</span>
+<span class="sd">    :param background: Background dataset (N, ...) for nearest neighbor selection.</span>
+<span class="sd">    :type background: np.ndarray</span>
+<span class="sd">    :param int n_baselines: Number of nearest neighbor baselines to use per sample.</span>
+<span class="sd">    :param base_explainer_kwargs: Additional keyword arguments passed to the SHAP explainer.</span>
+<span class="sd">    :type base_explainer_kwargs: dict or None</span>
+<span class="sd">    :param str device: Device context for torch-based explainers (&#39;cpu&#39; or &#39;cuda&#39;).</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -366,6 +415,24 @@
 <div class="viewcode-block" id="NearestNeighborMultiBaselineSHAP.shap_values">
 <a class="viewcode-back" href="../../../generated/shap_enhanced.explainers.MBSHAP.html#shap_enhanced.explainers.MBSHAP.NearestNeighborMultiBaselineSHAP.shap_values">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">shap_values</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute SHAP values using per-sample nearest neighbor baselines.</span>
+
+<span class="sd">        For each sample in `X`, this method:</span>
+<span class="sd">        1. Selects the `n_baselines` nearest neighbors from the background.</span>
+<span class="sd">        2. Instantiates the explainer with the selected baselines.</span>
+<span class="sd">        3. Computes SHAP values with respect to each baseline.</span>
+<span class="sd">        4. Averages SHAP values across baselines to produce a robust explanation.</span>
+
+<span class="sd">        .. math::</span>
+<span class="sd">            \phi(x) = \frac{1}{K} \sum_{k=1}^{K} \text{SHAP}(x | b_k)</span>
+
+<span class="sd">        :param X: Input samples to explain, shape (N, ...) or single sample (...).</span>
+<span class="sd">        :type X: np.ndarray</span>
+<span class="sd">        :param kwargs: Additional keyword arguments forwarded to the SHAP explainer.</span>
+<span class="sd">        :return: Averaged SHAP attributions, shape (N, ...) or (...) for single input.</span>
+<span class="sd">        :rtype: np.ndarray</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">X</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">X</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
             <span class="n">X</span> <span class="o">=</span> <span class="n">X</span><span class="p">[</span><span class="kc">None</span><span class="p">]</span>

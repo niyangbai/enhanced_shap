@@ -6,7 +6,7 @@
 <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="shap_enhanced.explainers.AttnSHAP" href="shap_enhanced.explainers.AttnSHAP.html" /><link rel="prev" title="shap_enhanced.explainers" href="shap_enhanced.explainers.html" />
 
     <!-- Generated with Sphinx 8.2.3 and Furo 2024.08.06 -->
-        <title>shap_enhanced.explainers.ABSHAP - shap_enhanced documentation</title>
+        <title>shap_enhanced.explainers.ABSHAP - Enhanced SHAP documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=354aac6f" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=302659d7" />
@@ -166,7 +166,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../index.html"><div class="brand">shap_enhanced  documentation</div></a>
+      <a href="../index.html"><div class="brand">Enhanced SHAP  documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -194,7 +194,7 @@
     <img class="sidebar-logo only-dark" src="../_static/fau_wiso_dark.png" alt="Dark Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">shap_enhanced  documentation</span>
+  <span class="sidebar-brand-text">Enhanced SHAP  documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -280,50 +280,74 @@
         <article role="main" id="furo-main-content">
           <section id="module-shap_enhanced.explainers.ABSHAP">
 <span id="shap-enhanced-explainers-abshap"></span><h1>shap_enhanced.explainers.ABSHAP<a class="headerlink" href="#module-shap_enhanced.explainers.ABSHAP" title="Link to this heading">¶</a></h1>
-<p>Adaptive Baseline SHAP (Sparse)</p>
-<p>## Theoretical Explanation</p>
-<p>Adaptive Baseline SHAP (ABSHAP) is a feature attribution method based on the SHAP framework, designed to provide valid and meaningful explanations for both dense (continuous/tabular) and sparse (categorical/one-hot) data. Unlike classic SHAP, which often uses mean or zero baselines for masking features, ABSHAP always draws baselines for masked features from real observed samples. This ensures that all perturbed samples are valid and avoids out-of-distribution artifacts, especially important for categorical or sparse data.</p>
-<p>### Key Concepts</p>
+<section id="adaptive-baseline-shap-sparse">
+<h2>Adaptive Baseline SHAP (Sparse)<a class="headerlink" href="#adaptive-baseline-shap-sparse" title="Link to this heading">¶</a></h2>
+<section id="theoretical-explanation">
+<h3>Theoretical Explanation<a class="headerlink" href="#theoretical-explanation" title="Link to this heading">¶</a></h3>
+<p>Adaptive Baseline SHAP (ABSHAP) is a feature attribution method built upon the SHAP framework.
+It is specifically designed to yield valid, interpretable explanations for both dense (e.g., continuous or tabular)
+and sparse (e.g., categorical or one-hot encoded) input data.</p>
+<p>Unlike traditional SHAP methods that use static baselines (such as zeros or means), ABSHAP dynamically samples baselines
+for masked features from real observed background samples. This helps avoid out-of-distribution perturbations,
+which is particularly critical for sparse or categorical data where unrealistic combinations can easily arise.</p>
+<section id="key-concepts">
+<h4>Key Concepts<a class="headerlink" href="#key-concepts" title="Link to this heading">¶</a></h4>
 <ul class="simple">
 <li><dl class="simple">
-<dt><strong>Adaptive Masking:</strong> For each feature, ABSHAP chooses the masking strategy:</dt><dd><ul>
-<li><p>If a feature is dense/continuous, it uses the mean value from the background data as the baseline (classic SHAP).</p></li>
-<li><p>If a feature is sparse/one-hot/categorical (i.e., &gt;90% zeros in the background), it uses values sampled from real background samples.</p></li>
+<dt><strong>Adaptive Masking</strong>: Each feature’s masking method is chosen based on its distribution:</dt><dd><ul>
+<li><p>Dense/continuous features use the mean value from the background dataset.</p></li>
+<li><p>Sparse/categorical features (e.g., those with &gt;90% zeros) are replaced using values from real background examples.</p></li>
 </ul>
 </dd>
 </dl>
 </li>
-<li><p><strong>Automatic or Manual Strategy:</strong> The masking strategy can be set automatically per feature or specified by the user.</p></li>
-<li><p><strong>Valid Perturbations:</strong> All masked samples are guaranteed to be valid, preserving the data distribution.</p></li>
+<li><p><strong>Strategy Selection</strong>: The masking approach can be assigned automatically per feature or manually specified by the user.</p></li>
+<li><p><strong>Valid Perturbations</strong>: All masked samples are guaranteed to lie within the original data distribution, preventing unrealistic inputs.</p></li>
 </ul>
-<p>## Algorithm</p>
+</section>
+</section>
+<section id="algorithm">
+<h3>Algorithm<a class="headerlink" href="#algorithm" title="Link to this heading">¶</a></h3>
 <ol class="arabic simple">
 <li><dl class="simple">
-<dt><strong>Initialization:</strong></dt><dd><ul class="simple">
-<li><p>Accepts a model, background data, number of baselines, masking strategy, and device.</p></li>
-<li><p>Determines the masking strategy for each feature (auto or user-specified).</p></li>
-<li><p>Computes the mean baseline for mean-masked features.</p></li>
+<dt><strong>Initialization</strong>:</dt><dd><ul class="simple">
+<li><p>Accepts a model, background dataset, number of baselines, masking strategy, and device.</p></li>
+<li><p>Automatically determines a masking strategy per feature or uses a user-specified configuration.</p></li>
+<li><p>Computes mean values for dense-feature masking.</p></li>
 </ul>
 </dd>
 </dl>
 </li>
 <li><dl class="simple">
-<dt><strong>Masking:</strong></dt><dd><ul class="simple">
-<li><p>For each coalition (subset of features to mask), masked features are replaced by either the mean (for dense features) or by values from a randomly selected background sample (for sparse features).</p></li>
+<dt><strong>Masking</strong>:</dt><dd><ul class="simple">
+<li><dl class="simple">
+<dt>For each coalition (a selected subset of features to mask), masked values are replaced with:</dt><dd><ul>
+<li><p>The feature-wise mean (dense features), or</p></li>
+<li><p>A sampled value from a real background example (sparse features).</p></li>
+</ul>
+</dd>
+</dl>
+</li>
 </ul>
 </dd>
 </dl>
 </li>
 <li><dl class="simple">
-<dt><strong>SHAP Value Estimation:</strong></dt><dd><ul class="simple">
+<dt><strong>SHAP Value Estimation</strong>:</dt><dd><ul class="simple">
 <li><dl class="simple">
-<dt>For each feature position, repeatedly:</dt><dd><ul>
-<li><p>Randomly select a subset of other positions to mask.</p></li>
+<dt>For each feature:</dt><dd><ul>
+<li><p>Randomly sample subsets of other features to mask.</p></li>
 <li><dl class="simple">
-<dt>For each baseline sample:</dt><dd><ul>
-<li><p>Mask the selected positions in the input.</p></li>
-<li><p>Mask the selected positions plus the feature of interest.</p></li>
-<li><p>Compute the model output difference.</p></li>
+<dt>For each sampled baseline:</dt><dd><ul>
+<li><dl class="simple">
+<dt>Compute model outputs on:</dt><dd><ul>
+<li><p>Input with selected features masked.</p></li>
+<li><p>Input with selected features plus the current feature masked.</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><p>Calculate the difference in model outputs.</p></li>
 </ul>
 </dd>
 </dl>
@@ -333,59 +357,113 @@
 </dd>
 </dl>
 </li>
-<li><p>Normalize attributions so their sum matches the difference between the original and fully-masked model output.</p></li>
+<li><p>Normalize the resulting attributions so their sum equals the difference between the original and fully-masked model outputs.</p></li>
 </ul>
 </dd>
 </dl>
 </li>
 </ol>
+</section>
+</section>
 <p class="rubric">Classes</p>
 <div class="table-wrapper autosummary longtable docutils container">
 <table class="autosummary longtable docutils align-default">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#shap_enhanced.explainers.ABSHAP.AdaptiveBaselineSHAPExplainer" title="shap_enhanced.explainers.ABSHAP.AdaptiveBaselineSHAPExplainer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AdaptiveBaselineSHAPExplainer</span></code></a>(model, background)</p></td>
-<td><p>Universal Adaptive SHAP Explainer.</p></td>
+<td><p>Adaptive Baseline SHAP (ABSHAP) Explainer for Dense and Sparse Features.</p></td>
 </tr>
 </tbody>
 </table>
 </div>
 <dl class="py class">
 <dt class="sig sig-object py" id="shap_enhanced.explainers.ABSHAP.AdaptiveBaselineSHAPExplainer">
-<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">shap_enhanced.explainers.ABSHAP.</span></span><span class="sig-name descname"><span class="pre">AdaptiveBaselineSHAPExplainer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">background</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_baselines</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask_strategy</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'auto'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/shap_enhanced/explainers/ABSHAP.html#AdaptiveBaselineSHAPExplainer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#shap_enhanced.explainers.ABSHAP.AdaptiveBaselineSHAPExplainer" title="Link to this definition">¶</a></dt>
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">shap_enhanced.explainers.ABSHAP.</span></span><span class="sig-name descname"><span class="pre">AdaptiveBaselineSHAPExplainer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">background</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_baselines</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask_strategy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'auto'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/shap_enhanced/explainers/ABSHAP.html#AdaptiveBaselineSHAPExplainer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#shap_enhanced.explainers.ABSHAP.AdaptiveBaselineSHAPExplainer" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="shap_enhanced.base_explainer.html#shap_enhanced.base_explainer.BaseExplainer" title="shap_enhanced.base_explainer.BaseExplainer"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseExplainer</span></code></a></p>
-<p>Universal Adaptive SHAP Explainer.</p>
-<ul class="simple">
-<li><p>For dense/continuous/tabular features: uses mean baseline masking (SHAP default).</p></li>
-<li><p>For sparse/one-hot/categorical features: uses adaptive (sampled) baselines.</p></li>
-<li><p>Automatically detects feature type based on background data, or can be forced by user.</p></li>
-</ul>
+<p>Adaptive Baseline SHAP (ABSHAP) Explainer for Dense and Sparse Features.</p>
+<p>Implements a SHAP explainer that adaptively masks features based on their data distribution:
+using mean-based masking for continuous features and sample-based masking for sparse or
+categorical features. This ensures valid perturbations and avoids out-of-distribution artifacts.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Feature masking strategy can be determined automatically or manually specified.</p>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Adaptive masking requires background data and introduces computational overhead.</p>
+</div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>model</strong> (<em>Callable</em>) – The model to be explained.</p></li>
-<li><p><strong>background</strong> (<em>np.ndarray</em><em> | </em><em>torch.Tensor</em>) – Background data for baseline selection, shape (N, F) or (N, T, F).</p></li>
-<li><p><strong>n_baselines</strong> (<em>int</em>) – Number of baseline samples per coalition (for adaptive masking).</p></li>
-<li><p><strong>mask_strategy</strong> (<em>str</em><em> | </em><em>Sequence</em><em>[</em><em>str</em><em>]</em>) – “auto” (default): detect per feature; or explicitly provide per-feature list (e.g., [“mean”, “adaptive”, …]).</p></li>
-<li><p><strong>device</strong> (<em>str</em><em> | </em><em>None</em>) – PyTorch device string.</p></li>
+<li><p><strong>model</strong> (<em>Callable</em>) – Model to be explained. Should accept PyTorch tensors as input.</p></li>
+<li><p><strong>background</strong> (<em>Union</em><em>[</em><em>np.ndarray</em><em>, </em><em>torch.Tensor</em><em>]</em>) – Background dataset for baseline sampling.
+Shape: (N, F) or (N, T, F).</p></li>
+<li><p><strong>n_baselines</strong> (<em>int</em>) – Number of baselines to sample per explanation. Default is 10.</p></li>
+<li><p><strong>mask_strategy</strong> (<em>Union</em><em>[</em><em>str</em><em>, </em><em>Sequence</em><em>[</em><em>str</em><em>]</em><em>]</em>) – Either “auto” for detection or list per feature.</p></li>
+<li><p><strong>device</strong> (<em>str</em>) – PyTorch device identifier, e.g., “cpu” or “cuda”. Defaults to auto-detection.</p></li>
 </ul>
 </dd>
 </dl>
 <dl class="py property">
 <dt class="sig sig-object py" id="shap_enhanced.explainers.ABSHAP.AdaptiveBaselineSHAPExplainer.expected_value">
 <em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">expected_value</span></span><a class="headerlink" href="#shap_enhanced.explainers.ABSHAP.AdaptiveBaselineSHAPExplainer.expected_value" title="Link to this definition">¶</a></dt>
-<dd><p>(Optional) Return the expected value of the model output on the background dataset.</p>
+<dd><p>Optional property returning the expected model output on the background dataset.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Expected value if defined by the subclass, else None.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>float or None</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="shap_enhanced.explainers.ABSHAP.AdaptiveBaselineSHAPExplainer.explain">
-<span class="sig-name descname"><span class="pre">explain</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">torch.Tensor</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span></span></span><a class="headerlink" href="#shap_enhanced.explainers.ABSHAP.AdaptiveBaselineSHAPExplainer.explain" title="Link to this definition">¶</a></dt>
-<dd><p>Alias for shap_values, for compatibility and future flexibility.</p>
+<span class="sig-name descname"><span class="pre">explain</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#shap_enhanced.explainers.ABSHAP.AdaptiveBaselineSHAPExplainer.explain" title="Link to this definition">¶</a></dt>
+<dd><p>Alias to <cite>shap_values</cite> for flexibility and API compatibility.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>X</strong> (<em>Union</em><em>[</em><em>np.ndarray</em><em>, </em><em>torch.Tensor</em><em>, </em><em>list</em><em>]</em>) – Input samples to explain.</p></li>
+<li><p><strong>kwargs</strong> – Additional arguments.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>SHAP values.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Union[np.ndarray, list]</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="shap_enhanced.explainers.ABSHAP.AdaptiveBaselineSHAPExplainer.shap_values">
-<span class="sig-name descname"><span class="pre">shap_values</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nsamples</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">random_seed</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">42</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="reference internal" href="../_modules/shap_enhanced/explainers/ABSHAP.html#AdaptiveBaselineSHAPExplainer.shap_values"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#shap_enhanced.explainers.ABSHAP.AdaptiveBaselineSHAPExplainer.shap_values" title="Link to this definition">¶</a></dt>
-<dd><p>Compute SHAP values for X (single or batch).</p>
+<span class="sig-name descname"><span class="pre">shap_values</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nsamples</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">random_seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">42</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/shap_enhanced/explainers/ABSHAP.html#AdaptiveBaselineSHAPExplainer.shap_values"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#shap_enhanced.explainers.ABSHAP.AdaptiveBaselineSHAPExplainer.shap_values" title="Link to this definition">¶</a></dt>
+<dd><p>Estimates SHAP values for the given input <cite>X</cite> using the ABSHAP algorithm.</p>
+<p>For each feature (t, f), estimates its marginal contribution by comparing model
+outputs with and without the feature masked, averaging over sampled coalitions and baselines.</p>
+<div class="math-wrapper docutils container">
+<div class="math notranslate nohighlight">
+\[\phi_{i} = \mathbb{E}_{S \subseteq N \setminus \{i\}} \left[ f(x_{S \cup \{i\}}) - f(x_S) \right]\]</div>
+</div>
+<p>The attributions are then normalized to match the output difference between the original and
+fully-masked prediction.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>X</strong> (<em>Union</em><em>[</em><em>np.ndarray</em><em>, </em><em>torch.Tensor</em><em>]</em>) – Input samples, shape (B, T, F) or (T, F).</p></li>
+<li><p><strong>nsamples</strong> (<em>int</em>) – Number of masking combinations per feature. Default is 100.</p></li>
+<li><p><strong>random_seed</strong> (<em>int</em>) – Seed for reproducibility. Default is 42.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return np.ndarray<span class="colon">:</span></dt>
+<dd class="field-even"><p>SHAP values of shape (T, F) or (B, T, F).</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code></span></p>
+</dd>
+</dl>
 </dd></dl>
 
 </dd></dl>
@@ -448,6 +526,14 @@
           <div class="toc-tree">
             <ul>
 <li><a class="reference internal" href="#">shap_enhanced.explainers.ABSHAP</a><ul>
+<li><a class="reference internal" href="#adaptive-baseline-shap-sparse">Adaptive Baseline SHAP (Sparse)</a><ul>
+<li><a class="reference internal" href="#theoretical-explanation">Theoretical Explanation</a><ul>
+<li><a class="reference internal" href="#key-concepts">Key Concepts</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#algorithm">Algorithm</a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#shap_enhanced.explainers.ABSHAP.AdaptiveBaselineSHAPExplainer"><code class="docutils literal notranslate"><span class="pre">AdaptiveBaselineSHAPExplainer</span></code></a><ul>
 <li><a class="reference internal" href="#shap_enhanced.explainers.ABSHAP.AdaptiveBaselineSHAPExplainer.expected_value"><code class="docutils literal notranslate"><span class="pre">AdaptiveBaselineSHAPExplainer.expected_value</span></code></a></li>
 <li><a class="reference internal" href="#shap_enhanced.explainers.ABSHAP.AdaptiveBaselineSHAPExplainer.explain"><code class="docutils literal notranslate"><span class="pre">AdaptiveBaselineSHAPExplainer.explain()</span></code></a></li>
@@ -469,5 +555,6 @@
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/scripts/furo.js?v=5fa4622c"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     </body>
 </html>

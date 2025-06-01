@@ -6,7 +6,7 @@
 <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="prev" title="shap_enhanced.tools.timer" href="shap_enhanced.tools.timer.html" />
 
     <!-- Generated with Sphinx 8.2.3 and Furo 2024.08.06 -->
-        <title>shap_enhanced.tools.visulization - shap_enhanced documentation</title>
+        <title>shap_enhanced.tools.visulization - Enhanced SHAP documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=354aac6f" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=302659d7" />
@@ -166,7 +166,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../index.html"><div class="brand">shap_enhanced  documentation</div></a>
+      <a href="../index.html"><div class="brand">Enhanced SHAP  documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -194,7 +194,7 @@
     <img class="sidebar-logo only-dark" src="../_static/fau_wiso_dark.png" alt="Dark Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">shap_enhanced  documentation</span>
+  <span class="sidebar-brand-text">Enhanced SHAP  documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -280,21 +280,70 @@
         <article role="main" id="furo-main-content">
           <section id="module-shap_enhanced.tools.visulization">
 <span id="shap-enhanced-tools-visulization"></span><h1>shap_enhanced.tools.visulization<a class="headerlink" href="#module-shap_enhanced.tools.visulization" title="Link to this heading">¶</a></h1>
+<section id="shap-visualization-utilities">
+<h2>SHAP Visualization Utilities<a class="headerlink" href="#shap-visualization-utilities" title="Link to this heading">¶</a></h2>
+<section id="overview">
+<h3>Overview<a class="headerlink" href="#overview" title="Link to this heading">¶</a></h3>
+<p>This module provides a set of clean, publication-ready visualization utilities for comparing
+SHAP attributions against ground-truth or across multiple explainers. The visualizations support
+both <strong>sequential</strong> (2D) and <strong>tabular</strong> (1D) input formats and offer multiple views such as bar plots,
+3D surface plots, and 3D bar plots.</p>
+<p>The focus is on <strong>clarity</strong>, <strong>aesthetics</strong>, and <strong>comparability</strong>, making the tools well-suited
+for research papers, presentations, and internal model audits.</p>
+<section id="key-functions">
+<h4>Key Functions<a class="headerlink" href="#key-functions" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p><strong>plot_mse_pearson</strong>:
+Bar chart comparing MSE and Pearson correlation of each explainer vs ground-truth SHAP.</p></li>
+<li><p><strong>plot_3d_surface</strong>:
+Side-by-side 3D surface plots for ground-truth and predicted SHAP values over time and features.</p></li>
+<li><p><strong>plot_3d_bars</strong>:
+Paired 3D bar plots for SHAP values, visually appealing and easy to compare height/direction.</p></li>
+<li><p><strong>plot_feature_comparison</strong>:
+Side-by-side bar plots for SHAP values from different explainers (1D/tabular inputs only).</p></li>
+</ul>
+</section>
+</section>
+<section id="customization">
+<h3>Customization<a class="headerlink" href="#customization" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p><strong>Color maps</strong>: Most functions support custom colormaps via <cite>cmap</cite> (default: <cite>‘viridis’</cite>).</p></li>
+<li><p><strong>Saving</strong>: All plots can be saved using the <cite>save</cite> argument (PDF/PNG via <cite>matplotlib</cite>).</p></li>
+<li><p><strong>Interactivity</strong>: Plots are shown by default, but this can be toggled with <cite>show=False</cite>.</p></li>
+</ul>
+</section>
+<section id="use-case">
+<h3>Use Case<a class="headerlink" href="#use-case" title="Link to this heading">¶</a></h3>
+<p>These tools are especially useful for:
+- Benchmarking explainers on synthetic datasets.
+- Visualizing time-series explanations (e.g., SHAP over <cite>(T, F)</cite> inputs).
+- Comparing surrogate vs exact SHAP explainers.
+- Producing clean visuals for publications and reports.</p>
+<p class="rubric">Example</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">plot_mse_pearson</span><span class="p">(</span><span class="n">mse_dict</span><span class="p">,</span> <span class="n">pearson_dict</span><span class="p">,</span> <span class="n">save</span><span class="o">=</span><span class="s2">&quot;comparison.pdf&quot;</span><span class="p">)</span>
+
+<span class="n">plot_3d_surface</span><span class="p">(</span><span class="n">gt_shap</span><span class="p">,</span> <span class="n">shap_outputs</span><span class="p">,</span> <span class="n">seq_len</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">n_features</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+
+<span class="n">plot_feature_comparison</span><span class="p">(</span><span class="n">gt_tab</span><span class="p">,</span> <span class="n">shap_dict_tabular</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
 <p class="rubric">Functions</p>
 <div class="table-wrapper autosummary longtable docutils container">
 <table class="autosummary longtable docutils align-default">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#shap_enhanced.tools.visulization.plot_3d_bars" title="shap_enhanced.tools.visulization.plot_3d_bars"><code class="xref py py-obj docutils literal notranslate"><span class="pre">plot_3d_bars</span></code></a>(shap_gt, shap_models, seq_len, ...)</p></td>
-<td><p>Plot ground truth and explainer SHAP values as paired 3D bar plots, visually appealing and publication ready.</p></td>
+<td><p>Visual comparison of SHAP values using 3D bar plots for ground-truth and explainer outputs.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#shap_enhanced.tools.visulization.plot_3d_surface" title="shap_enhanced.tools.visulization.plot_3d_surface"><code class="xref py py-obj docutils literal notranslate"><span class="pre">plot_3d_surface</span></code></a>(shap_gt, shap_models, ...[, ...])</p></td>
-<td><p>Plot ground truth and explainer SHAP values as paired 3D surface plots.</p></td>
+<td><p>Generate side-by-side 3D surface plots for SHAP values from ground-truth and explainers.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#shap_enhanced.tools.visulization.plot_feature_comparison" title="shap_enhanced.tools.visulization.plot_feature_comparison"><code class="xref py py-obj docutils literal notranslate"><span class="pre">plot_feature_comparison</span></code></a>(shap_gt, shap_models)</p></td>
-<td><p>Bar plot for feature attributions of all explainers vs ground truth (tabular/1D).</p></td>
+<td><p>Plot bar charts comparing 1D/tabular SHAP attributions across explainers and ground truth.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#shap_enhanced.tools.visulization.plot_mse_pearson" title="shap_enhanced.tools.visulization.plot_mse_pearson"><code class="xref py py-obj docutils literal notranslate"><span class="pre">plot_mse_pearson</span></code></a>(results, pearson_results[, ...])</p></td>
-<td><p>Plot MSE and Pearson correlation for SHAP explainers vs ground truth.</p></td>
+<td><p>Plot comparison of Mean Squared Error and Pearson Correlation across SHAP explainers.</p></td>
 </tr>
 </tbody>
 </table>
@@ -302,28 +351,78 @@
 <dl class="py function">
 <dt class="sig sig-object py" id="shap_enhanced.tools.visulization.plot_3d_bars">
 <span class="sig-prename descclassname"><span class="pre">shap_enhanced.tools.visulization.</span></span><span class="sig-name descname"><span class="pre">plot_3d_bars</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shap_gt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shap_models</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seq_len</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_features</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bar_alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.88</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bar_color</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'#3498db'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/shap_enhanced/tools/visulization.html#plot_3d_bars"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#shap_enhanced.tools.visulization.plot_3d_bars" title="Link to this definition">¶</a></dt>
-<dd><p>Plot ground truth and explainer SHAP values as paired 3D bar plots, visually appealing and publication ready.
-No colorbar, single color bars, minimal margin.</p>
+<dd><p>Visual comparison of SHAP values using 3D bar plots for ground-truth and explainer outputs.</p>
+<p>Emphasizes direction and magnitude using colored bars over (T, F) space.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>shap_gt</strong> (<em>np.ndarray</em>) – Ground-truth SHAP values.</p></li>
+<li><p><strong>shap_models</strong> (<em>dict</em>) – Dictionary mapping explainer names to SHAP arrays.</p></li>
+<li><p><strong>seq_len</strong> (<em>int</em>) – Length of the sequence (T).</p></li>
+<li><p><strong>n_features</strong> (<em>int</em>) – Number of input features (F).</p></li>
+<li><p><strong>save</strong> (<em>str</em>) – Optional path to save the plot.</p></li>
+<li><p><strong>bar_alpha</strong> (<em>float</em>) – Transparency of bars (default: 0.88).</p></li>
+<li><p><strong>bar_color</strong> (<em>str</em>) – Hex color string for positive bars.</p></li>
+<li><p><strong>show</strong> (<em>bool</em>) – Whether to display the figure.</p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="shap_enhanced.tools.visulization.plot_3d_surface">
 <span class="sig-prename descclassname"><span class="pre">shap_enhanced.tools.visulization.</span></span><span class="sig-name descname"><span class="pre">plot_3d_surface</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shap_gt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shap_models</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seq_len</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_features</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'viridis'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vlim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/shap_enhanced/tools/visulization.html#plot_3d_surface"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#shap_enhanced.tools.visulization.plot_3d_surface" title="Link to this definition">¶</a></dt>
-<dd><p>Plot ground truth and explainer SHAP values as paired 3D surface plots.
-Handles 1D/2D/3D input arrays for SHAP.</p>
+<dd><p>Generate side-by-side 3D surface plots for SHAP values from ground-truth and explainers.</p>
+<p>Used for comparing SHAP explanations on sequential (T, F) inputs with rich spatial structure.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>shap_gt</strong> (<em>np.ndarray</em>) – Ground-truth SHAP array (T, F) or (1, T, F).</p></li>
+<li><p><strong>shap_models</strong> (<em>dict</em>) – Dictionary mapping explainer names to SHAP arrays.</p></li>
+<li><p><strong>seq_len</strong> (<em>int</em>) – Sequence length (T).</p></li>
+<li><p><strong>n_features</strong> (<em>int</em>) – Number of input features (F).</p></li>
+<li><p><strong>save</strong> (<em>str</em>) – Optional filename to save the figure.</p></li>
+<li><p><strong>cmap</strong> (<em>str</em>) – Colormap for surface shading.</p></li>
+<li><p><strong>vlim</strong> (<em>tuple</em>) – Optional tuple of (vmin, vmax) for shared Z-axis scaling.</p></li>
+<li><p><strong>show</strong> (<em>bool</em>) – Whether to display the figure.</p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="shap_enhanced.tools.visulization.plot_feature_comparison">
 <span class="sig-prename descclassname"><span class="pre">shap_enhanced.tools.visulization.</span></span><span class="sig-name descname"><span class="pre">plot_feature_comparison</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shap_gt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shap_models</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">feature_names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/shap_enhanced/tools/visulization.html#plot_feature_comparison"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#shap_enhanced.tools.visulization.plot_feature_comparison" title="Link to this definition">¶</a></dt>
-<dd><p>Bar plot for feature attributions of all explainers vs ground truth (tabular/1D).</p>
+<dd><p>Plot bar charts comparing 1D/tabular SHAP attributions across explainers and ground truth.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>shap_gt</strong> (<em>np.ndarray</em>) – Ground-truth SHAP values (1D).</p></li>
+<li><p><strong>shap_models</strong> (<em>dict</em>) – Dictionary of SHAP arrays from different explainers.</p></li>
+<li><p><strong>feature_names</strong> (<em>list</em>) – Optional list of feature names.</p></li>
+<li><p><strong>save</strong> (<em>str</em>) – Optional path to save the plot.</p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="shap_enhanced.tools.visulization.plot_mse_pearson">
 <span class="sig-prename descclassname"><span class="pre">shap_enhanced.tools.visulization.</span></span><span class="sig-name descname"><span class="pre">plot_mse_pearson</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pearson_results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bar_threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'viridis'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/shap_enhanced/tools/visulization.html#plot_mse_pearson"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#shap_enhanced.tools.visulization.plot_mse_pearson" title="Link to this definition">¶</a></dt>
-<dd><p>Plot MSE and Pearson correlation for SHAP explainers vs ground truth.
-No colorbar, clean plot, minimal white margin when saving as pdf/png.</p>
+<dd><p>Plot comparison of Mean Squared Error and Pearson Correlation across SHAP explainers.</p>
+<p>Generates side-by-side bar charts to compare each explainer’s SHAP attributions to ground-truth values.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>results</strong> (<em>dict</em>) – Dictionary mapping explainer names to MSE values.</p></li>
+<li><p><strong>pearson_results</strong> (<em>dict</em>) – Dictionary mapping explainer names to Pearson correlation scores.</p></li>
+<li><p><strong>save</strong> (<em>str</em>) – Optional filename to save the figure (PDF/PNG).</p></li>
+<li><p><strong>bar_threshold</strong> (<em>int</em>) – Orientation switches to horizontal if number of bars exceeds this threshold.</p></li>
+<li><p><strong>cmap</strong> (<em>str</em>) – Colormap name for value encoding (default: “viridis”).</p></li>
+<li><p><strong>show</strong> (<em>bool</em>) – Whether to display the plot.</p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 </section>
@@ -376,6 +475,15 @@ No colorbar, clean plot, minimal white margin when saving as pdf/png.</p>
           <div class="toc-tree">
             <ul>
 <li><a class="reference internal" href="#">shap_enhanced.tools.visulization</a><ul>
+<li><a class="reference internal" href="#shap-visualization-utilities">SHAP Visualization Utilities</a><ul>
+<li><a class="reference internal" href="#overview">Overview</a><ul>
+<li><a class="reference internal" href="#key-functions">Key Functions</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#customization">Customization</a></li>
+<li><a class="reference internal" href="#use-case">Use Case</a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#shap_enhanced.tools.visulization.plot_3d_bars"><code class="docutils literal notranslate"><span class="pre">plot_3d_bars()</span></code></a></li>
 <li><a class="reference internal" href="#shap_enhanced.tools.visulization.plot_3d_surface"><code class="docutils literal notranslate"><span class="pre">plot_3d_surface()</span></code></a></li>
 <li><a class="reference internal" href="#shap_enhanced.tools.visulization.plot_feature_comparison"><code class="docutils literal notranslate"><span class="pre">plot_feature_comparison()</span></code></a></li>

@@ -6,7 +6,7 @@
 <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="shap_enhanced.explainers.CASHAP" href="shap_enhanced.explainers.CASHAP.html" /><link rel="prev" title="shap_enhanced.explainers.AttnSHAP" href="shap_enhanced.explainers.AttnSHAP.html" />
 
     <!-- Generated with Sphinx 8.2.3 and Furo 2024.08.06 -->
-        <title>shap_enhanced.explainers.BSHAP - shap_enhanced documentation</title>
+        <title>shap_enhanced.explainers.BSHAP - Enhanced SHAP documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=354aac6f" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=302659d7" />
@@ -166,7 +166,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../index.html"><div class="brand">shap_enhanced  documentation</div></a>
+      <a href="../index.html"><div class="brand">Enhanced SHAP  documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -194,7 +194,7 @@
     <img class="sidebar-logo only-dark" src="../_static/fau_wiso_dark.png" alt="Dark Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">shap_enhanced  documentation</span>
+  <span class="sidebar-brand-text">Enhanced SHAP  documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -280,70 +280,93 @@
         <article role="main" id="furo-main-content">
           <section id="module-shap_enhanced.explainers.BSHAP">
 <span id="shap-enhanced-explainers-bshap"></span><h1>shap_enhanced.explainers.BSHAP<a class="headerlink" href="#module-shap_enhanced.explainers.BSHAP" title="Link to this heading">¶</a></h1>
-<p>BShapExplainer (Distribution-Free SHAP, LSTM/sequence edition)</p>
-<p>## Theoretical Explanation</p>
-<p>BShap is a distribution-free variant of SHAP for feature attribution, particularly suited for sequence models (e.g., LSTM). Unlike classic SHAP, which uses empirical data or mean values as baselines, BShap masks features by replacing them with uninformative, random values (e.g., uniform noise, Gaussian noise, or zeros), never relying on the data distribution. This approach is useful when the data distribution is unknown, unreliable, or when a truly “uninformative” baseline is desired.</p>
-<p>### Key Concepts</p>
+<section id="bshapexplainer-distribution-free-shap-for-sequential-models">
+<h2>BShapExplainer: Distribution-Free SHAP for Sequential Models<a class="headerlink" href="#bshapexplainer-distribution-free-shap-for-sequential-models" title="Link to this heading">¶</a></h2>
+<section id="theoretical-explanation">
+<h3>Theoretical Explanation<a class="headerlink" href="#theoretical-explanation" title="Link to this heading">¶</a></h3>
+<p>BShap is a distribution-free variant of the SHAP framework, specifically designed for sequential models such as LSTMs.
+Unlike classical SHAP methods that rely on empirical data (e.g., using mean or sample values as feature baselines),
+BShap masks features using uninformative replacements such as uniform noise, Gaussian noise, or zeros.
+This makes it particularly suitable when the underlying data distribution is unknown, unreliable, or intentionally ignored.</p>
+<p>By avoiding assumptions about the data, BShap enables a cleaner interpretation of how a model behaves under
+entirely synthetic perturbations—revealing how features contribute even when removed from their contextual correlations.</p>
+<section id="key-concepts">
+<h4>Key Concepts<a class="headerlink" href="#key-concepts" title="Link to this heading">¶</a></h4>
 <ul class="simple">
-<li><p><strong>Distribution-Free Masking:</strong> Masked features are replaced with random values sampled independently from a specified range or noise distribution, not from the empirical data.</p></li>
-<li><dl class="simple">
-<dt><strong>Masking Strategies:</strong></dt><dd><ul>
-<li><p><cite>‘random’</cite>: Uniformly sample values for each mask (default).</p></li>
-<li><p><cite>‘noise’</cite>: Add Gaussian noise to masked features.</p></li>
-<li><p><cite>‘zero’</cite>: Set masked features to zero.</p></li>
+<li><p><strong>Distribution-Free Masking</strong>: Masked features are replaced with independently sampled values that do not rely on the input data distribution.</p></li>
+<li><p><strong>Masking Strategies</strong>:
+- <cite>‘random’</cite>: Sample feature values uniformly at random from a defined range (default).
+- <cite>‘noise’</cite>: Add Gaussian noise to masked feature values.
+- <cite>‘zero’</cite>: Set masked features to zero.</p></li>
+<li><p><strong>No Data Assumptions</strong>: All masking is performed without drawing from empirical feature distributions.</p></li>
+<li><p><strong>Additivity Normalization</strong>: Feature attributions are normalized so that their sum equals the change in model output
+between the original and fully-masked input.</p></li>
 </ul>
-</dd>
-</dl>
-</li>
-<li><p><strong>No Data Distribution Assumptions:</strong> The method does not use the empirical distribution of the data for masking.</p></li>
-<li><p><strong>Additivity Normalization:</strong> Attributions are normalized so their sum matches the model output difference between the original and fully-masked input.</p></li>
-</ul>
-<p>## Algorithm</p>
+</section>
+</section>
+<section id="algorithm">
+<h3>Algorithm<a class="headerlink" href="#algorithm" title="Link to this heading">¶</a></h3>
 <ol class="arabic simple">
+<li><p><strong>Initialization</strong>:
+- Accepts a model, a value range for feature sampling, the number of samples, masking strategy (<cite>‘random’</cite>, <cite>‘noise’</cite>, <cite>‘zero’</cite>), and device context.</p></li>
 <li><dl class="simple">
-<dt><strong>Initialization:</strong></dt><dd><ul class="simple">
-<li><p>Accepts a model, input value range, number of samples, masking strategy, and device.</p></li>
+<dt><strong>Masking</strong>:</dt><dd><ul class="simple">
+<li><dl class="simple">
+<dt>For each coalition (a subset of features to mask), masked values are replaced by:</dt><dd><ul>
+<li><p>Random values (uniform), or</p></li>
+<li><p>Gaussian noise, or</p></li>
+<li><p>Zeros, depending on the selected strategy.</p></li>
+</ul>
+</dd>
+</dl>
+</li>
 </ul>
 </dd>
 </dl>
 </li>
 <li><dl class="simple">
-<dt><strong>Masking:</strong></dt><dd><ul class="simple">
-<li><p>For each coalition (subset of features to mask), masked features are replaced by random values, noise, or zeros, depending on the chosen strategy.</p></li>
+<dt><strong>SHAP Value Estimation</strong>:</dt><dd><ul class="simple">
+<li><dl class="simple">
+<dt>For each feature:</dt><dd><ul>
+<li><p>Randomly select a subset of other features to mask.</p></li>
+<li><dl class="simple">
+<dt>Compute model output for:</dt><dd><ul>
+<li><p>The input with the coalition masked.</p></li>
+<li><p>The input with the coalition plus the current feature masked.</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><p>Record and average the difference in outputs as the estimated contribution.</p></li>
+</ul>
+</dd>
+</dl>
+</li>
 </ul>
 </dd>
 </dl>
 </li>
 <li><dl class="simple">
-<dt><strong>SHAP Value Estimation:</strong></dt><dd><ul class="simple">
-<li><dl class="simple">
-<dt>For each feature position, repeatedly:</dt><dd><ul>
-<li><p>Randomly select a subset of other positions to mask.</p></li>
-<li><p>Mask the selected positions in the input.</p></li>
-<li><p>Mask the selected positions plus the feature of interest.</p></li>
-<li><p>Compute the model output difference.</p></li>
-<li><p>Average these differences to estimate the marginal contribution of the feature.</p></li>
-</ul>
-</dd>
-</dl>
-</li>
-<li><p>Normalize attributions so their sum matches the difference between the original and fully-masked model output.</p></li>
+<dt><strong>Normalization</strong>:</dt><dd><ul class="simple">
+<li><p>Scale the attributions so that their sum equals the difference between the original and fully-masked model outputs.</p></li>
 </ul>
 </dd>
 </dl>
 </li>
 </ol>
-<p>## References</p>
+<p class="rubric">References</p>
 <ul class="simple">
-<li><p>Lundberg, S. M., &amp; Lee, S.-I. (2017). A Unified Approach to Interpreting Model Predictions. <em>Advances in Neural Information Processing Systems</em>.</p></li>
-<li><p>[Distribution-Free SHAP Reference](<a class="reference external" href="https://www.tandfonline.com/doi/full/10.1080/02331888.2025.2487853">https://www.tandfonline.com/doi/full/10.1080/02331888.2025.2487853</a>)</p></li>
+<li><p>Lundberg, S. M., &amp; Lee, S.-I. (2017). <em>A Unified Approach to Interpreting Model Predictions</em>. Advances in Neural Information Processing Systems.</p></li>
+<li><p><a class="reference external" href="https://www.tandfonline.com/doi/full/10.1080/02331888.2025.2487853">Distribution-Free SHAP Reference</a></p></li>
 </ul>
+</section>
+</section>
 <p class="rubric">Classes</p>
 <div class="table-wrapper autosummary longtable docutils container">
 <table class="autosummary longtable docutils align-default">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#shap_enhanced.explainers.BSHAP.BShapExplainer" title="shap_enhanced.explainers.BSHAP.BShapExplainer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BShapExplainer</span></code></a>(model[, input_range, ...])</p></td>
-<td><p>BShap: Distribution-Free SHAP Explainer (LSTM/sequence)</p></td>
+<td><p>BShap: Distribution-Free SHAP Explainer for Sequential Models</p></td>
 </tr>
 </tbody>
 </table>
@@ -352,36 +375,83 @@
 <dt class="sig sig-object py" id="shap_enhanced.explainers.BSHAP.BShapExplainer">
 <em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">shap_enhanced.explainers.BSHAP.</span></span><span class="sig-name descname"><span class="pre">BShapExplainer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_range</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_samples</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask_strategy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'random'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/shap_enhanced/explainers/BSHAP.html#BShapExplainer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#shap_enhanced.explainers.BSHAP.BShapExplainer" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="shap_enhanced.base_explainer.html#shap_enhanced.base_explainer.BaseExplainer" title="shap_enhanced.base_explainer.BaseExplainer"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseExplainer</span></code></a></p>
-<p>BShap: Distribution-Free SHAP Explainer (LSTM/sequence)</p>
+<p>BShap: Distribution-Free SHAP Explainer for Sequential Models</p>
+<p>Implements a SHAP-based attribution method that avoids empirical data distribution assumptions
+by applying synthetic masking strategies (e.g., uniform noise, Gaussian noise, or zero).
+This is useful for evaluating model robustness or interpretability in data-agnostic contexts.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>model</strong> (<em>Any</em>) – Sequence model to be explained.</p></li>
-<li><p><strong>input_range</strong> (<em>tuple</em><em> or </em><em>(</em><em>min</em><em>, </em><em>max</em><em>) </em><em>arrays</em>) – (min, max) or per-feature min/max to sample for each feature.
-If None, uses (-1, 1) or actual data min/max.</p></li>
-<li><p><strong>n_samples</strong> (<em>int</em>) – Number of random coalitions per feature to average.</p></li>
-<li><p><strong>mask_strategy</strong> (<em>str</em>) – ‘random’, ‘noise’, or ‘zero’</p></li>
-<li><p><strong>device</strong> (<em>str</em>) – ‘cpu’ or ‘cuda’.</p></li>
+<li><p><strong>model</strong> – Sequence model to explain.</p></li>
+<li><p><strong>input_range</strong> (<em>tuple</em><em> or </em><em>(</em><em>np.ndarray</em><em>, </em><em>np.ndarray</em><em>)</em>) – Tuple of (min, max) or arrays defining per-feature value bounds. Used for random masking.</p></li>
+<li><p><strong>n_samples</strong> (<em>int</em>) – Number of coalitions sampled per feature.</p></li>
+<li><p><strong>mask_strategy</strong> (<em>str</em>) – Masking strategy: ‘random’, ‘noise’, or ‘zero’.</p></li>
+<li><p><strong>device</strong> (<em>str</em>) – Device identifier, e.g., ‘cpu’ or ‘cuda’.</p></li>
 </ul>
 </dd>
 </dl>
 <dl class="py property">
 <dt class="sig sig-object py" id="shap_enhanced.explainers.BSHAP.BShapExplainer.expected_value">
 <em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">expected_value</span></span><a class="headerlink" href="#shap_enhanced.explainers.BSHAP.BShapExplainer.expected_value" title="Link to this definition">¶</a></dt>
-<dd><p>(Optional) Return the expected value of the model output on the background dataset.</p>
+<dd><p>Optional property returning the expected model output on the background dataset.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Expected value if defined by the subclass, else None.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>float or None</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="shap_enhanced.explainers.BSHAP.BShapExplainer.explain">
-<span class="sig-name descname"><span class="pre">explain</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">torch.Tensor</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span></span></span><a class="headerlink" href="#shap_enhanced.explainers.BSHAP.BShapExplainer.explain" title="Link to this definition">¶</a></dt>
-<dd><p>Alias for shap_values, for compatibility and future flexibility.</p>
+<span class="sig-name descname"><span class="pre">explain</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#shap_enhanced.explainers.BSHAP.BShapExplainer.explain" title="Link to this definition">¶</a></dt>
+<dd><p>Alias to <cite>shap_values</cite> for flexibility and API compatibility.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>X</strong> (<em>Union</em><em>[</em><em>np.ndarray</em><em>, </em><em>torch.Tensor</em><em>, </em><em>list</em><em>]</em>) – Input samples to explain.</p></li>
+<li><p><strong>kwargs</strong> – Additional arguments.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>SHAP values.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Union[np.ndarray, list]</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="shap_enhanced.explainers.BSHAP.BShapExplainer.shap_values">
 <span class="sig-name descname"><span class="pre">shap_values</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nsamples</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">check_additivity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">random_seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">42</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/shap_enhanced/explainers/BSHAP.html#BShapExplainer.shap_values"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#shap_enhanced.explainers.BSHAP.BShapExplainer.shap_values" title="Link to this definition">¶</a></dt>
-<dd><p>BShap for (B, T, F) or (T, F).
-Returns: (T, F) or (B, T, F)</p>
+<dd><p>Compute SHAP values using distribution-free perturbations.</p>
+<p>Estimates marginal feature contributions by averaging differences between model outputs
+under masked coalitions. Uses synthetic masking based on the configured strategy
+without any reliance on background data statistics.</p>
+<p>Final attributions are normalized to satisfy the SHAP additivity constraint:</p>
+<div class="math-wrapper docutils container">
+<div class="math notranslate nohighlight">
+\[\sum_{t=1}^T \sum_{f=1}^F \phi_{t,f} \approx f(x) - f(x_{\text{masked}})\]</div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>X</strong> (<em>np.ndarray</em><em> or </em><em>torch.Tensor</em>) – Input of shape (T, F) or (B, T, F)</p></li>
+<li><p><strong>nsamples</strong> (<em>int</em>) – Number of coalition samples per feature (defaults to self.n_samples).</p></li>
+<li><p><strong>check_additivity</strong> (<em>bool</em>) – Print diagnostic message for SHAP sum vs. model delta.</p></li>
+<li><p><strong>random_seed</strong> (<em>int</em>) – Seed for reproducibility.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>SHAP values of shape (T, F) or (B, T, F)</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
 </dd></dl>
 
 </dd></dl>
@@ -444,6 +514,14 @@ Returns: (T, F) or (B, T, F)</p>
           <div class="toc-tree">
             <ul>
 <li><a class="reference internal" href="#">shap_enhanced.explainers.BSHAP</a><ul>
+<li><a class="reference internal" href="#bshapexplainer-distribution-free-shap-for-sequential-models">BShapExplainer: Distribution-Free SHAP for Sequential Models</a><ul>
+<li><a class="reference internal" href="#theoretical-explanation">Theoretical Explanation</a><ul>
+<li><a class="reference internal" href="#key-concepts">Key Concepts</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#algorithm">Algorithm</a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#shap_enhanced.explainers.BSHAP.BShapExplainer"><code class="docutils literal notranslate"><span class="pre">BShapExplainer</span></code></a><ul>
 <li><a class="reference internal" href="#shap_enhanced.explainers.BSHAP.BShapExplainer.expected_value"><code class="docutils literal notranslate"><span class="pre">BShapExplainer.expected_value</span></code></a></li>
 <li><a class="reference internal" href="#shap_enhanced.explainers.BSHAP.BShapExplainer.explain"><code class="docutils literal notranslate"><span class="pre">BShapExplainer.explain()</span></code></a></li>
@@ -465,5 +543,6 @@ Returns: (T, F) or (B, T, F)</p>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/scripts/furo.js?v=5fa4622c"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     </body>
 </html>

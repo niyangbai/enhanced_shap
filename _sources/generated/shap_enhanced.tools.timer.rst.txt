@@ -4,3 +4,9 @@ shap\_enhanced.tools.timer
 .. automodule:: shap_enhanced.tools.timer
 
    
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      Timer
+   

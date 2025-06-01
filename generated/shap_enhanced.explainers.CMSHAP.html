@@ -6,7 +6,7 @@
 <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="shap_enhanced.explainers.ECSHAP" href="shap_enhanced.explainers.ECSHAP.html" /><link rel="prev" title="shap_enhanced.explainers.CASHAP" href="shap_enhanced.explainers.CASHAP.html" />
 
     <!-- Generated with Sphinx 8.2.3 and Furo 2024.08.06 -->
-        <title>shap_enhanced.explainers.CMSHAP - shap_enhanced documentation</title>
+        <title>shap_enhanced.explainers.CMSHAP - Enhanced SHAP documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=354aac6f" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=302659d7" />
@@ -166,7 +166,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../index.html"><div class="brand">shap_enhanced  documentation</div></a>
+      <a href="../index.html"><div class="brand">Enhanced SHAP  documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -194,7 +194,7 @@
     <img class="sidebar-logo only-dark" src="../_static/fau_wiso_dark.png" alt="Dark Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">shap_enhanced  documentation</span>
+  <span class="sidebar-brand-text">Enhanced SHAP  documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -280,40 +280,49 @@
         <article role="main" id="furo-main-content">
           <section id="module-shap_enhanced.explainers.CMSHAP">
 <span id="shap-enhanced-explainers-cmshap"></span><h1>shap_enhanced.explainers.CMSHAP<a class="headerlink" href="#module-shap_enhanced.explainers.CMSHAP" title="Link to this heading">¶</a></h1>
-<p>Contextual Masking SHAP (CM-SHAP) Explainer for Sequential Models</p>
-<p>## Theoretical Explanation</p>
-<p>CM-SHAP is a SHAP-style feature attribution method designed for sequential (time series) models. Instead of masking features with zeros or mean values, CM-SHAP uses context-aware imputation: masked values are replaced by interpolating between their immediate temporal neighbors (forward/backward average). This preserves the temporal structure and context, leading to more realistic and faithful perturbations for sequential data.</p>
-<p>### Key Concepts</p>
+<section id="contextual-masking-shap-cm-shap-explainer-for-sequential-models">
+<h2>Contextual Masking SHAP (CM-SHAP) Explainer for Sequential Models<a class="headerlink" href="#contextual-masking-shap-cm-shap-explainer-for-sequential-models" title="Link to this heading">¶</a></h2>
+<section id="theoretical-explanation">
+<h3>Theoretical Explanation<a class="headerlink" href="#theoretical-explanation" title="Link to this heading">¶</a></h3>
+<p>CM-SHAP is a SHAP-style feature attribution method designed for sequential (time series) models.
+Instead of masking features with zeros or mean values, CM-SHAP uses context-aware imputation:
+masked values are replaced by interpolating between their immediate temporal neighbors (forward/backward average).
+This preserves the temporal structure and context, leading to more realistic and faithful perturbations for sequential data.</p>
+<section id="key-concepts">
+<h4>Key Concepts<a class="headerlink" href="#key-concepts" title="Link to this heading">¶</a></h4>
 <ul class="simple">
-<li><p><strong>Contextual Masking:</strong> When masking a feature at time t, its value is replaced by the average of its neighboring time steps (t-1 and t+1). For boundary cases (first or last time step), only the available neighbor is used.</p></li>
-<li><p><strong>Coalition Sampling:</strong> For each feature-time position (t, f), random coalitions (subsets of all other positions) are sampled. The marginal contribution of (t, f) is estimated by measuring the change in model output when (t, f) is added to the coalition.</p></li>
-<li><p><strong>Additivity Normalization:</strong> Attributions are normalized so their sum matches the model output difference between the original and fully-masked input.</p></li>
+<li><p><strong>Contextual Masking</strong>: When masking a feature at time <code class="docutils literal notranslate"><span class="pre">t</span></code>, its value is replaced by the average of its neighboring time steps (<code class="docutils literal notranslate"><span class="pre">t-1</span></code> and <code class="docutils literal notranslate"><span class="pre">t+1</span></code>). For boundary cases (first or last time step), only the available neighbor is used.</p></li>
+<li><p><strong>Coalition Sampling</strong>: For each feature-time position <code class="docutils literal notranslate"><span class="pre">(t,</span> <span class="pre">f)</span></code>, random coalitions (subsets of all other positions) are sampled. The marginal contribution of <code class="docutils literal notranslate"><span class="pre">(t,</span> <span class="pre">f)</span></code> is estimated by measuring the change in model output when <code class="docutils literal notranslate"><span class="pre">(t,</span> <span class="pre">f)</span></code> is added to the coalition.</p></li>
+<li><p><strong>Additivity Normalization</strong>: Attributions are normalized so their sum matches the model output difference between the original and fully-masked input.</p></li>
 </ul>
-<p>## Algorithm</p>
+</section>
+</section>
+<section id="algorithm">
+<h3>Algorithm<a class="headerlink" href="#algorithm" title="Link to this heading">¶</a></h3>
 <ol class="arabic simple">
 <li><dl class="simple">
-<dt><strong>Initialization:</strong></dt><dd><ul class="simple">
+<dt><strong>Initialization</strong>:</dt><dd><ul class="simple">
 <li><p>Accepts a model and device.</p></li>
 </ul>
 </dd>
 </dl>
 </li>
 <li><dl class="simple">
-<dt><strong>Contextual Masking:</strong></dt><dd><ul class="simple">
+<dt><strong>Contextual Masking</strong>:</dt><dd><ul class="simple">
 <li><p>For each coalition (subset of features to mask), masked positions are replaced by the average of their immediate temporal neighbors.</p></li>
 </ul>
 </dd>
 </dl>
 </li>
 <li><dl class="simple">
-<dt><strong>SHAP Value Estimation:</strong></dt><dd><ul class="simple">
+<dt><strong>SHAP Value Estimation</strong>:</dt><dd><ul class="simple">
 <li><dl class="simple">
-<dt>For each feature-time position (t, f), repeatedly:</dt><dd><ul>
+<dt>For each feature-time position <code class="docutils literal notranslate"><span class="pre">(t,</span> <span class="pre">f)</span></code>, repeatedly:</dt><dd><ul>
 <li><p>Sample a random coalition of other positions.</p></li>
 <li><p>Mask the coalition using contextual interpolation.</p></li>
-<li><p>Mask the coalition plus (t, f) using contextual interpolation.</p></li>
+<li><p>Mask the coalition plus <code class="docutils literal notranslate"><span class="pre">(t,</span> <span class="pre">f)</span></code> using contextual interpolation.</p></li>
 <li><p>Compute the model output difference.</p></li>
-<li><p>Average these differences to estimate the marginal contribution of (t, f).</p></li>
+<li><p>Average these differences to estimate the marginal contribution of <code class="docutils literal notranslate"><span class="pre">(t,</span> <span class="pre">f)</span></code>.</p></li>
 </ul>
 </dd>
 </dl>
@@ -324,58 +333,102 @@
 </dl>
 </li>
 </ol>
+</section>
+</section>
 <p class="rubric">Classes</p>
 <div class="table-wrapper autosummary longtable docutils container">
 <table class="autosummary longtable docutils align-default">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#shap_enhanced.explainers.CMSHAP.ContextualMaskingSHAPExplainer" title="shap_enhanced.explainers.CMSHAP.ContextualMaskingSHAPExplainer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ContextualMaskingSHAPExplainer</span></code></a>(model[, device])</p></td>
-<td><p>Contextual Masking SHAP (CM-SHAP) Explainer.</p></td>
+<td><p>Contextual Masking SHAP (CM-SHAP) Explainer for Sequential Models</p></td>
 </tr>
 </tbody>
 </table>
 </div>
 <dl class="py class">
 <dt class="sig sig-object py" id="shap_enhanced.explainers.CMSHAP.ContextualMaskingSHAPExplainer">
-<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">shap_enhanced.explainers.CMSHAP.</span></span><span class="sig-name descname"><span class="pre">ContextualMaskingSHAPExplainer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/shap_enhanced/explainers/CMSHAP.html#ContextualMaskingSHAPExplainer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#shap_enhanced.explainers.CMSHAP.ContextualMaskingSHAPExplainer" title="Link to this definition">¶</a></dt>
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">shap_enhanced.explainers.CMSHAP.</span></span><span class="sig-name descname"><span class="pre">ContextualMaskingSHAPExplainer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/shap_enhanced/explainers/CMSHAP.html#ContextualMaskingSHAPExplainer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#shap_enhanced.explainers.CMSHAP.ContextualMaskingSHAPExplainer" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="shap_enhanced.base_explainer.html#shap_enhanced.base_explainer.BaseExplainer" title="shap_enhanced.base_explainer.BaseExplainer"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseExplainer</span></code></a></p>
-<p>Contextual Masking SHAP (CM-SHAP) Explainer.</p>
-<p>Estimates Shapley values for sequential models by masking input positions using local interpolation
-(averaging immediate neighbors in time), preserving temporal structure and context.</p>
+<p>Contextual Masking SHAP (CM-SHAP) Explainer for Sequential Models</p>
+<p>Estimates SHAP values for sequential inputs by replacing masked feature values with
+interpolated values from neighboring time steps. This context-aware masking strategy
+preserves temporal coherence and enables more realistic feature perturbation in time-series data.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>model</strong> (<em>Any</em>) – The model to be explained.</p></li>
-<li><p><strong>device</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em>) – ‘cpu’ or ‘cuda’ (PyTorch only).</p></li>
+<li><p><strong>model</strong> (<em>Any</em>) – Model to explain. Must accept NumPy arrays or PyTorch tensors.</p></li>
+<li><p><strong>device</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em>) – Device to perform computations on (‘cpu’ or ‘cuda’). Defaults to ‘cuda’ if available.</p></li>
 </ul>
 </dd>
 </dl>
 <dl class="py property">
 <dt class="sig sig-object py" id="shap_enhanced.explainers.CMSHAP.ContextualMaskingSHAPExplainer.expected_value">
 <em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">expected_value</span></span><a class="headerlink" href="#shap_enhanced.explainers.CMSHAP.ContextualMaskingSHAPExplainer.expected_value" title="Link to this definition">¶</a></dt>
-<dd><p>(Optional) Return the expected value of the model output on the background dataset.</p>
+<dd><p>Optional property returning the expected model output on the background dataset.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Expected value if defined by the subclass, else None.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>float or None</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="shap_enhanced.explainers.CMSHAP.ContextualMaskingSHAPExplainer.explain">
-<span class="sig-name descname"><span class="pre">explain</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">torch.Tensor</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span></span></span><a class="headerlink" href="#shap_enhanced.explainers.CMSHAP.ContextualMaskingSHAPExplainer.explain" title="Link to this definition">¶</a></dt>
-<dd><p>Alias for shap_values, for compatibility and future flexibility.</p>
+<span class="sig-name descname"><span class="pre">explain</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#shap_enhanced.explainers.CMSHAP.ContextualMaskingSHAPExplainer.explain" title="Link to this definition">¶</a></dt>
+<dd><p>Alias to <cite>shap_values</cite> for flexibility and API compatibility.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>X</strong> (<em>Union</em><em>[</em><em>np.ndarray</em><em>, </em><em>torch.Tensor</em><em>, </em><em>list</em><em>]</em>) – Input samples to explain.</p></li>
+<li><p><strong>kwargs</strong> – Additional arguments.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>SHAP values.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Union[np.ndarray, list]</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="shap_enhanced.explainers.CMSHAP.ContextualMaskingSHAPExplainer.shap_values">
-<span class="sig-name descname"><span class="pre">shap_values</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nsamples</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">check_additivity</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">random_seed</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">42</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="reference internal" href="../_modules/shap_enhanced/explainers/CMSHAP.html#ContextualMaskingSHAPExplainer.shap_values"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#shap_enhanced.explainers.CMSHAP.ContextualMaskingSHAPExplainer.shap_values" title="Link to this definition">¶</a></dt>
-<dd><p>Compute SHAP values by locally interpolating (rather than zero-masking) features.</p>
+<span class="sig-name descname"><span class="pre">shap_values</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nsamples</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">check_additivity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">random_seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">42</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/shap_enhanced/explainers/CMSHAP.html#ContextualMaskingSHAPExplainer.shap_values"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#shap_enhanced.explainers.CMSHAP.ContextualMaskingSHAPExplainer.shap_values" title="Link to this definition">¶</a></dt>
+<dd><p>Estimate SHAP values using contextual (interpolated) masking.</p>
+<p>Each feature-time pair (t, f) is evaluated by sampling coalitions of other
+positions, applying context-aware masking, and averaging the difference
+in model outputs when (t, f) is added to the coalition.</p>
+<p>Interpolation strategy ensures continuity in time series by replacing masked
+values with averages of adjacent time steps:</p>
+<div class="math-wrapper docutils container">
+<div class="math notranslate nohighlight">
+\[\begin{split}x_{t,f}^{masked} =
+\begin{cases}
+    x_{t+1,f}, &amp; \text{if } t = 0 \\
+    x_{t-1,f}, &amp; \text{if } t = T-1 \\
+    \frac{x_{t-1,f} + x_{t+1,f}}{2}, &amp; \text{otherwise}
+\end{cases}\end{split}\]</div>
+</div>
+<p>Final attributions are normalized such that:</p>
+<div class="math-wrapper docutils container">
+<div class="math notranslate nohighlight">
+\[\sum_{t=1}^T \sum_{f=1}^F \phi_{t,f} \approx f(x) - f(x_{masked})\]</div>
+</div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>X</strong> (<em>np.ndarray</em><em> or </em><em>torch.Tensor</em>) – Input sequence(s), shape (T, F) or (B, T, F).</p></li>
-<li><p><strong>nsamples</strong> (<em>int</em>) – Number of coalitions to sample per position.</p></li>
-<li><p><strong>check_additivity</strong> (<em>bool</em>) – Whether to rescale for additivity.</p></li>
+<li><p><strong>X</strong> (<em>np.ndarray</em><em> or </em><em>torch.Tensor</em>) – Input array of shape (T, F) or (B, T, F)</p></li>
+<li><p><strong>nsamples</strong> (<em>int</em>) – Number of sampled coalitions per position.</p></li>
+<li><p><strong>check_additivity</strong> (<em>bool</em>) – Whether to normalize SHAP values to match output difference.</p></li>
 <li><p><strong>random_seed</strong> (<em>int</em>) – Random seed for reproducibility.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>shap_vals</strong> – Attributions, shape (T, F) or (B, T, F).</p>
+<dd class="field-even"><p>SHAP values with same shape as input.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>np.ndarray</p>
@@ -443,6 +496,14 @@
           <div class="toc-tree">
             <ul>
 <li><a class="reference internal" href="#">shap_enhanced.explainers.CMSHAP</a><ul>
+<li><a class="reference internal" href="#contextual-masking-shap-cm-shap-explainer-for-sequential-models">Contextual Masking SHAP (CM-SHAP) Explainer for Sequential Models</a><ul>
+<li><a class="reference internal" href="#theoretical-explanation">Theoretical Explanation</a><ul>
+<li><a class="reference internal" href="#key-concepts">Key Concepts</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#algorithm">Algorithm</a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#shap_enhanced.explainers.CMSHAP.ContextualMaskingSHAPExplainer"><code class="docutils literal notranslate"><span class="pre">ContextualMaskingSHAPExplainer</span></code></a><ul>
 <li><a class="reference internal" href="#shap_enhanced.explainers.CMSHAP.ContextualMaskingSHAPExplainer.expected_value"><code class="docutils literal notranslate"><span class="pre">ContextualMaskingSHAPExplainer.expected_value</span></code></a></li>
 <li><a class="reference internal" href="#shap_enhanced.explainers.CMSHAP.ContextualMaskingSHAPExplainer.explain"><code class="docutils literal notranslate"><span class="pre">ContextualMaskingSHAPExplainer.explain()</span></code></a></li>
@@ -464,5 +525,6 @@
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/scripts/furo.js?v=5fa4622c"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     </body>
 </html>

@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../genindex.html" /><link rel="search" title="Search" href="../../../search.html" />
 
     <!-- Generated with Sphinx 8.2.3 and Furo 2024.08.06 -->
-        <title>shap_enhanced.explainers.ECSHAP - shap_enhanced documentation</title>
+        <title>shap_enhanced.explainers.ECSHAP - Enhanced SHAP documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=354aac6f" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?v=302659d7" />
@@ -165,7 +165,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../../index.html"><div class="brand">shap_enhanced  documentation</div></a>
+      <a href="../../../index.html"><div class="brand">Enhanced SHAP  documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -193,7 +193,7 @@
     <img class="sidebar-logo only-dark" src="../../../_static/fau_wiso_dark.png" alt="Dark Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">shap_enhanced  documentation</span>
+  <span class="sidebar-brand-text">Enhanced SHAP  documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -273,34 +273,66 @@
         <article role="main" id="furo-main-content">
           <h1>Source code for shap_enhanced.explainers.ECSHAP</h1><div class="highlight"><pre>
 <span></span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">Empirical Conditional SHAP (EC-SHAP) for Discrete Data</span>
+<span class="sd">EC-SHAP: Empirical Conditional SHAP for Discrete Data</span>
+<span class="sd">=====================================================</span>
 
-<span class="sd">## Theoretical Explanation</span>
+<span class="sd">Theoretical Explanation</span>
+<span class="sd">-----------------------</span>
 
-<span class="sd">Empirical Conditional SHAP (EC-SHAP) is a feature attribution method for discrete (binary, categorical, or one-hot) data. For each coalition (subset of masked features), EC-SHAP imputes the masked features by sampling from the empirical conditional distribution given the observed (unmasked) features, using the background dataset. This ensures that all imputations correspond to valid, observed patterns in the data, avoiding unrealistic or out-of-distribution perturbations.</span>
+<span class="sd">Empirical Conditional SHAP (EC-SHAP) is a feature attribution method tailored for discrete data types,  </span>
+<span class="sd">including binary, categorical, and one-hot encoded features. Unlike classical SHAP methods that often rely  </span>
+<span class="sd">on unconditional sampling or simplistic imputations, EC-SHAP imputes masked features based on the  </span>
+<span class="sd">**empirical conditional distribution** derived from a background dataset.</span>
 
-<span class="sd">### Key Concepts</span>
+<span class="sd">For each coalition (a subset of masked features), EC-SHAP seeks background samples that match the unmasked features,  </span>
+<span class="sd">ensuring that imputed instances remain within the data manifold and reflect realistic, observed patterns.</span>
 
-<span class="sd">- **Empirical Conditional Imputation:** For each coalition, masked features are filled in by finding background samples that match the unmasked features. If no exact match is found, the method can skip the coalition or use the closest match (by Hamming distance).</span>
-<span class="sd">- **Valid Discrete Patterns:** All imputations are guaranteed to be valid, observed binary/one-hot patterns, preserving the data distribution.</span>
-<span class="sd">- **Fallback for Continuous Data:** If the data is detected as continuous (many unique values per feature), EC-SHAP falls back to mean imputation.</span>
-<span class="sd">- **Additivity Normalization:** Attributions are normalized so their sum matches the model output difference between the original and fully-masked input.</span>
+<span class="sd">Key Concepts</span>
+<span class="sd">^^^^^^^^^^^^</span>
 
-<span class="sd">## Algorithm</span>
+<span class="sd">- **Empirical Conditional Imputation**:  </span>
+<span class="sd">    Masked features are filled by matching the unmasked portion of an input to background data. If no exact match exists,  </span>
+<span class="sd">    the algorithm can either skip the coalition or use the closest match (by Hamming distance).</span>
 
-<span class="sd">1. **Initialization:**</span>
-<span class="sd">    - Accepts a model, background data, skip/closest matching flags, and device.</span>
-<span class="sd">2. **Conditional Imputation:**</span>
-<span class="sd">    - For each coalition (subset of features to mask), find a background sample that matches the unmasked features. If none is found, optionally use the closest match or mean imputation.</span>
-<span class="sd">3. **SHAP Value Estimation:**</span>
-<span class="sd">    - For each feature position, repeatedly:</span>
-<span class="sd">        - Sample a random coalition of other positions.</span>
-<span class="sd">        - Impute the coalition using empirical conditional matching.</span>
-<span class="sd">        - Impute the coalition plus the feature of interest.</span>
-<span class="sd">        - Compute the model output difference.</span>
-<span class="sd">        - Average these differences to estimate the marginal contribution of the feature.</span>
-<span class="sd">    - Normalize attributions so their sum matches the difference between the original and fully-masked model output.</span>
+<span class="sd">- **Valid Discrete Patterns**:  </span>
+<span class="sd">    All imputations correspond to real, observed combinations in the background dataset—preserving the statistical validity  </span>
+<span class="sd">    and interpretability of the perturbed inputs.</span>
+
+<span class="sd">- **Fallback for Continuous Features**:  </span>
+<span class="sd">    If features appear continuous (e.g., many unique values), EC-SHAP automatically falls back to mean imputation.</span>
+
+<span class="sd">- **Additivity Normalization**:  </span>
+<span class="sd">    Attributions are scaled such that their sum equals the difference in model outputs between the original  </span>
+<span class="sd">    and fully-masked inputs.</span>
+
+<span class="sd">Algorithm</span>
+<span class="sd">---------</span>
+
+<span class="sd">1. **Initialization**:</span>
+<span class="sd">    - Accepts a model, background dataset, device context, and configuration for skipping or relaxing matches (e.g., using closest match).</span>
+
+<span class="sd">2. **Conditional Imputation**:</span>
+<span class="sd">    - For each coalition (subset of features to mask):</span>
+<span class="sd">        - Identify background samples where the unmasked features match.</span>
+<span class="sd">        - If a match exists, use it to fill in masked features.</span>
+<span class="sd">        - If no match:</span>
+<span class="sd">            - Optionally use the nearest match (by Hamming distance), or</span>
+<span class="sd">            - Fallback to mean imputation (for continuous features), or</span>
+<span class="sd">            - Skip the coalition.</span>
+
+<span class="sd">3. **SHAP Value Estimation**:</span>
+<span class="sd">    - For each feature:</span>
+<span class="sd">        - Sample random coalitions of other features.</span>
+<span class="sd">        - Impute both:</span>
+<span class="sd">            - The coalition alone, and</span>
+<span class="sd">            - The coalition plus the target feature.</span>
+<span class="sd">        - Compute the difference in model outputs.</span>
+<span class="sd">        - Average the differences to estimate marginal contribution.</span>
+
+<span class="sd">4. **Normalization**:</span>
+<span class="sd">   - Ensure the sum of feature attributions equals the difference in model output between the original and fully-masked input.</span>
 <span class="sd">&quot;&quot;&quot;</span>
+
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">shap_enhanced.base_explainer</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseExplainer</span>
@@ -308,6 +340,25 @@
 <div class="viewcode-block" id="EmpiricalConditionalSHAPExplainer">
 <a class="viewcode-back" href="../../../generated/shap_enhanced.explainers.ECSHAP.html#shap_enhanced.explainers.ECSHAP.EmpiricalConditionalSHAPExplainer">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">EmpiricalConditionalSHAPExplainer</span><span class="p">(</span><span class="n">BaseExplainer</span><span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Empirical Conditional SHAP (EC-SHAP) Explainer for Discrete Data</span>
+
+<span class="sd">    This explainer estimates Shapley values for discrete (e.g., categorical, binary, or one-hot)</span>
+<span class="sd">    feature inputs by imputing masked features from a background dataset using conditional matching.</span>
+<span class="sd">    It ensures perturbed samples remain within the data manifold, preserving interpretability.</span>
+
+<span class="sd">    :param model: Model to explain, must support PyTorch tensors as input.</span>
+<span class="sd">    :type model: Any</span>
+<span class="sd">    :param background: Background dataset used for empirical conditional imputation.</span>
+<span class="sd">    :type background: np.ndarray or torch.Tensor</span>
+<span class="sd">    :param skip_unmatched: If True, skip coalitions where no matching background sample exists.</span>
+<span class="sd">    :type skip_unmatched: bool</span>
+<span class="sd">    :param use_closest: If True, use the closest (Hamming distance) background sample when no exact match is found.</span>
+<span class="sd">    :type use_closest: bool</span>
+<span class="sd">    :param device: Device on which to run the model (&#39;cpu&#39; or &#39;cuda&#39;).</span>
+<span class="sd">    :type device: Optional[str]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">model</span><span class="p">,</span>
@@ -331,6 +382,19 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">mean_baseline</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">background</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>  <span class="c1"># (T, F)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_find_conditional_match</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mask</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Find a background sample that matches the unmasked features of the input.</span>
+
+<span class="sd">        If `use_closest` is enabled, falls back to the nearest background match</span>
+<span class="sd">        (measured via Hamming distance) when no exact match is found.</span>
+
+<span class="sd">        :param mask: Boolean mask array indicating masked positions (True).</span>
+<span class="sd">        :type mask: np.ndarray</span>
+<span class="sd">        :param x: Input array to match against background samples.</span>
+<span class="sd">        :type x: np.ndarray</span>
+<span class="sd">        :return: Index of matched background sample or None.</span>
+<span class="sd">        :rtype: Optional[int]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">unmasked_flat</span> <span class="o">=</span> <span class="p">(</span><span class="o">~</span><span class="n">mask</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
         <span class="n">x_flat</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
         <span class="n">bg_flat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">background</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">background</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
@@ -355,6 +419,36 @@
         <span class="n">random_seed</span><span class="o">=</span><span class="mi">42</span><span class="p">,</span>
         <span class="o">**</span><span class="n">kwargs</span>
     <span class="p">):</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Estimate SHAP values using empirical conditional imputation.</span>
+
+<span class="sd">        For each feature-time index (t, f), this method:</span>
+<span class="sd">        - Samples coalitions of other features.</span>
+<span class="sd">        - Finds background samples matching the unmasked portion of the input.</span>
+<span class="sd">        - Imputes masked values with corresponding values from the matched sample.</span>
+<span class="sd">        - Computes model output with and without the target feature masked.</span>
+<span class="sd">        - Averages the differences over multiple coalitions.</span>
+
+<span class="sd">        Normalization ensures:</span>
+
+<span class="sd">        .. math::</span>
+<span class="sd">            \sum_{t=1}^T \sum_{f=1}^F \phi_{t,f} \approx f(x) - f(x_{\text{masked}})</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            If no exact match is found and `use_closest` is False, the coalition may be skipped.</span>
+<span class="sd">            For continuous-looking data, the method will fallback to mean imputation.</span>
+
+<span class="sd">        :param X: Input data of shape (T, F) or (B, T, F)</span>
+<span class="sd">        :type X: np.ndarray or torch.Tensor</span>
+<span class="sd">        :param nsamples: Number of coalitions to sample per feature.</span>
+<span class="sd">        :type nsamples: int</span>
+<span class="sd">        :param check_additivity: Whether to rescale SHAP values to match model output difference.</span>
+<span class="sd">        :type check_additivity: bool</span>
+<span class="sd">        :param random_seed: Seed for reproducibility.</span>
+<span class="sd">        :type random_seed: int</span>
+<span class="sd">        :return: SHAP values of shape (T, F) or (B, T, F)</span>
+<span class="sd">        :rtype: np.ndarray</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="n">random_seed</span><span class="p">)</span>
         <span class="n">is_torch</span> <span class="o">=</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="s1">&#39;detach&#39;</span><span class="p">)</span>
         <span class="n">X_in</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span> <span class="k">if</span> <span class="n">is_torch</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>

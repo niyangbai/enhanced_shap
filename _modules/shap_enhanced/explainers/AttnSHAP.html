@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../genindex.html" /><link rel="search" title="Search" href="../../../search.html" />
 
     <!-- Generated with Sphinx 8.2.3 and Furo 2024.08.06 -->
-        <title>shap_enhanced.explainers.AttnSHAP - shap_enhanced documentation</title>
+        <title>shap_enhanced.explainers.AttnSHAP - Enhanced SHAP documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=354aac6f" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?v=302659d7" />
@@ -165,7 +165,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../../index.html"><div class="brand">shap_enhanced  documentation</div></a>
+      <a href="../../../index.html"><div class="brand">Enhanced SHAP  documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -193,7 +193,7 @@
     <img class="sidebar-logo only-dark" src="../../../_static/fau_wiso_dark.png" alt="Dark Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">shap_enhanced  documentation</span>
+  <span class="sidebar-brand-text">Enhanced SHAP  documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -272,39 +272,56 @@
         </div>
         <article role="main" id="furo-main-content">
           <h1>Source code for shap_enhanced.explainers.AttnSHAP</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span></span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">AttnSHAPExplainer: Attention-Guided SHAP with General Proxy Attention</span>
+<span class="sd">=====================================================================</span>
 
-<span class="sd">## Theoretical Explanation</span>
+<span class="sd">Theoretical Explanation</span>
+<span class="sd">-----------------------</span>
 
-<span class="sd">AttnSHAP is a feature attribution method that extends the SHAP framework by incorporating attention mechanisms to guide the coalition sampling process. This is especially useful for sequential or structured data where certain positions or features are more relevant, as indicated by model attention or proxy attention scores.</span>
+<span class="sd">AttnSHAP is a feature attribution method that enhances the traditional SHAP framework by leveraging attention mechanisms  </span>
+<span class="sd">to guide the sampling of feature coalitions. This is especially effective for sequential or structured data,  </span>
+<span class="sd">where model-provided or proxy attention scores highlight important feature positions.</span>
 
-<span class="sd">### Key Concepts</span>
+<span class="sd">By biasing the coalition selection process with attention, AttnSHAP prioritizes the masking of less informative features  </span>
+<span class="sd">and isolates the contributions of more relevant ones more effectively than uniform sampling.</span>
 
-<span class="sd">- **Attention-Guided Sampling:** If the model provides attention weights (via `get_attention_weights`), these are used to bias the selection of feature coalitions for masking, focusing on more relevant positions.</span>
-<span class="sd">- **Proxy Attention:** If no attention is available, AttnSHAP can compute proxy attention using:</span>
-<span class="sd">    - **Gradient-based:** Magnitude of input gradients.</span>
-<span class="sd">    - **Input-based:** Magnitude of input values.</span>
-<span class="sd">    - **Perturbation-based:** Sensitivity of the model output to masking each position.</span>
-<span class="sd">- **Uniform Sampling:** If attention is not used, coalitions are sampled uniformly at random (classic SHAP approach).</span>
-<span class="sd">- **Additivity Normalization:** Attributions are normalized so their sum matches the model output difference between the original and fully-masked input.</span>
+<span class="sd">Key Concepts</span>
+<span class="sd">^^^^^^^^^^^^</span>
 
-<span class="sd">## Algorithm</span>
+<span class="sd">- **Attention-Guided Sampling**: When available, model attention weights (via `get_attention_weights`) are used  </span>
+<span class="sd">    to bias coalition sampling toward informative features.</span>
+<span class="sd">- **Proxy Attention**: If direct attention is unavailable, attention scores can be approximated using:</span>
+<span class="sd">    - **Gradient-based**: Magnitude of input gradients.</span>
+<span class="sd">    - **Input-based**: Magnitude of input values.</span>
+<span class="sd">    - **Perturbation-based**: Change in model output due to masking each individual feature.</span>
+<span class="sd">- **Uniform Sampling**: Falls back to classical SHAP&#39;s uniform random sampling when attention is not used.</span>
+<span class="sd">- **Additivity Normalization**: Attribution values are scaled such that their sum equals the model output difference  </span>
+<span class="sd">    between the original and fully-masked inputs.</span>
 
-<span class="sd">1. **Initialization:**</span>
-<span class="sd">    - Accepts a model, background data, attention usage flag, proxy attention type, and device.</span>
-<span class="sd">2. **Attention/Proxy Computation:**</span>
-<span class="sd">    - For each input, obtain attention weights from the model or compute proxy attention.</span>
-<span class="sd">3. **Coalition Sampling:**</span>
-<span class="sd">    - For each feature position, repeatedly:</span>
-<span class="sd">        - Sample a coalition (subset of other positions) to mask, with probability proportional to attention (if used).</span>
-<span class="sd">        - Mask the coalition and compute the model output.</span>
-<span class="sd">        - Mask the coalition plus the feature of interest and compute the model output.</span>
-<span class="sd">        - Record the difference.</span>
-<span class="sd">    - Average these differences to estimate the marginal contribution of the feature.</span>
-<span class="sd">4. **Normalization:**</span>
-<span class="sd">    - Scale attributions so their sum matches the difference between the original and fully-masked model output.</span>
+<span class="sd">Algorithm</span>
+<span class="sd">---------</span>
+
+<span class="sd">1. **Initialization**:</span>
+<span class="sd">    - Takes a model, background dataset, a flag for using attention, a proxy attention strategy, and device context.</span>
+
+<span class="sd">2. **Attention/Proxy Computation**:</span>
+<span class="sd">    - For each input:</span>
+<span class="sd">        - Retrieve model attention weights if available.</span>
+<span class="sd">        - Otherwise, compute proxy attention based on the configured method.</span>
+
+<span class="sd">3. **Coalition Sampling**:</span>
+<span class="sd">    - For each feature:</span>
+<span class="sd">        - Repeatedly sample a subset (coalition) of other features, with probability weighted by attention (if applicable).</span>
+<span class="sd">        - Compute model output after masking the coalition.</span>
+<span class="sd">        - Compute model output after masking the coalition plus the target feature.</span>
+<span class="sd">        - Record the difference to estimate the marginal contribution.</span>
+
+<span class="sd">4. **Normalization**:</span>
+<span class="sd">    - Normalize feature attributions so that their sum matches the model output difference  </span>
+<span class="sd">        between the unmasked input and a fully-masked input baseline.</span>
 <span class="sd">&quot;&quot;&quot;</span>
+
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
@@ -313,6 +330,20 @@
 <div class="viewcode-block" id="AttnSHAPExplainer">
 <a class="viewcode-back" href="../../../generated/shap_enhanced.explainers.AttnSHAP.html#shap_enhanced.explainers.AttnSHAP.AttnSHAPExplainer">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">AttnSHAPExplainer</span><span class="p">(</span><span class="n">BaseExplainer</span><span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Attention-Guided SHAP Explainer for structured/sequential data.</span>
+<span class="sd">    </span>
+<span class="sd">    This class implements an extension to the SHAP framework that leverages attention mechanisms</span>
+<span class="sd">    (either native to the model or via proxy strategies) to guide the coalition sampling process,</span>
+<span class="sd">    focusing attribution on informative feature regions.</span>
+
+<span class="sd">    :param model: PyTorch model to be explained.</span>
+<span class="sd">    :param background: Background dataset used for SHAP estimation.</span>
+<span class="sd">    :param bool use_attention: If True, uses attention weights (or proxy) for guiding feature masking.</span>
+<span class="sd">    :param str proxy_attention: Strategy to approximate attention when model does not provide it.</span>
+<span class="sd">                                Options: &quot;gradient&quot;, &quot;input&quot;, &quot;perturb&quot;.</span>
+<span class="sd">    :param device: Computation device (&#39;cuda&#39; or &#39;cpu&#39;).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">model</span><span class="p">,</span>
@@ -327,11 +358,22 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">device</span> <span class="o">=</span> <span class="n">device</span> <span class="ow">or</span> <span class="p">(</span><span class="s2">&quot;cuda&quot;</span> <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">()</span> <span class="k">else</span> <span class="s2">&quot;cpu&quot;</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_get_attention_weights</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Returns attention weights for input x (T, F).</span>
-<span class="sd">        If model has get_attention_weights(x), uses that;</span>
-<span class="sd">        else, uses proxy specified by self.proxy_attention.</span>
-<span class="sd">        Output: (T,) or (T, F)</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Computes attention weights for a single input.</span>
+
+<span class="sd">        Uses native model attention if available. Otherwise, calculates proxy attention scores</span>
+<span class="sd">        based on gradients, input magnitude, or perturbation sensitivity.</span>
+
+<span class="sd">        .. math::</span>
+<span class="sd">            \text{Gradient proxy: } \alpha_t = \frac{\sum_{f=1}^F |\frac{\partial y}{\partial x_{t,f}}|}{\sum_{t&#39;=1}^T \sum_{f=1}^F |\frac{\partial y}{\partial x_{t&#39;,f}}| + \epsilon}</span>
+
+<span class="sd">            \text{Input proxy: } \alpha_t = \frac{\sum_{f=1}^F |x_{t,f}|}{\sum_{t&#39;=1}^T \sum_{f=1}^F |x_{t&#39;,f}| + \epsilon}</span>
+
+<span class="sd">            \text{Perturb proxy: } \alpha_t = \frac{|y - y_{(-t)}|}{\sum_{t&#39;=1}^T |y - y_{(-t&#39;)}| + \epsilon}</span>
+
+<span class="sd">        :param x: Input array of shape (T, F)</span>
+<span class="sd">        :return: Attention weights as a numpy array of shape (T,) or (T, F)</span>
+<span class="sd">        :rtype: np.ndarray</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Try to use model&#39;s attention method if exists</span>
         <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">,</span> <span class="s2">&quot;get_attention_weights&quot;</span><span class="p">):</span>
@@ -383,9 +425,26 @@
         <span class="n">random_seed</span><span class="o">=</span><span class="mi">42</span><span class="p">,</span>
         <span class="o">**</span><span class="n">kwargs</span>
     <span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        SHAP with attention/proxy-guided coalition sampling.</span>
-<span class="sd">        Returns: (T, F) or (B, T, F)</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute SHAP values using attention-guided or proxy-guided coalition sampling.</span>
+
+<span class="sd">        For each feature at each time step, it estimates the marginal contribution by comparing</span>
+<span class="sd">        model outputs when the feature is masked vs. when it is included in a masked coalition.</span>
+<span class="sd">        Sampling is optionally biased using attention scores.</span>
+
+<span class="sd">        The final attributions are normalized to satisfy SHAP&#39;s additivity constraint:</span>
+
+<span class="sd">        .. math::</span>
+<span class="sd">            \sum_{t=1}^T \sum_{f=1}^F \phi_{t,f} \approx f(x) - f(x_{masked})</span>
+
+<span class="sd">        :param X: Input data of shape (B, T, F) or (T, F)</span>
+<span class="sd">        :type X: np.ndarray or torch.Tensor</span>
+<span class="sd">        :param int nsamples: Number of coalitions sampled per feature.</span>
+<span class="sd">        :param int coalition_size: Number of features in each sampled coalition.</span>
+<span class="sd">        :param bool check_additivity: Whether to print additivity check results.</span>
+<span class="sd">        :param int random_seed: Seed for reproducible coalition sampling.</span>
+<span class="sd">        :return: SHAP values of shape (T, F) for single input or (B, T, F) for batch.</span>
+<span class="sd">        :rtype: np.ndarray</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="n">random_seed</span><span class="p">)</span>
         <span class="n">is_torch</span> <span class="o">=</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="s1">&#39;detach&#39;</span><span class="p">)</span>

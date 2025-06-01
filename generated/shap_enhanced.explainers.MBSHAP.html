@@ -6,7 +6,7 @@
 <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="shap_enhanced.explainers.RLSHAP" href="shap_enhanced.explainers.RLSHAP.html" /><link rel="prev" title="shap_enhanced.explainers.LatentSHAP" href="shap_enhanced.explainers.LatentSHAP.html" />
 
     <!-- Generated with Sphinx 8.2.3 and Furo 2024.08.06 -->
-        <title>shap_enhanced.explainers.MBSHAP - shap_enhanced documentation</title>
+        <title>shap_enhanced.explainers.MBSHAP - Enhanced SHAP documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=354aac6f" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=302659d7" />
@@ -166,7 +166,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../index.html"><div class="brand">shap_enhanced  documentation</div></a>
+      <a href="../index.html"><div class="brand">Enhanced SHAP  documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -194,7 +194,7 @@
     <img class="sidebar-logo only-dark" src="../_static/fau_wiso_dark.png" alt="Dark Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">shap_enhanced  documentation</span>
+  <span class="sidebar-brand-text">Enhanced SHAP  documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -280,54 +280,115 @@
         <article role="main" id="furo-main-content">
           <section id="module-shap_enhanced.explainers.MBSHAP">
 <span id="shap-enhanced-explainers-mbshap"></span><h1>shap_enhanced.explainers.MBSHAP<a class="headerlink" href="#module-shap_enhanced.explainers.MBSHAP" title="Link to this heading">¶</a></h1>
-<p>Multi-Baseline SHAP (MB-SHAP) Explainer</p>
-<p>## Theoretical Explanation</p>
-<p>Multi-Baseline SHAP (MB-SHAP) computes SHAP values using multiple baseline references (e.g., random samples, mean, or k-means centroids) and averages the results to reduce dependence on a single baseline. This approach increases robustness and stability of feature attributions, especially for models or data where the choice of baseline can significantly affect SHAP values.</p>
-<p>### Key Concepts</p>
+<section id="mb-shap-multi-baseline-shap-explainer">
+<h2>MB-SHAP: Multi-Baseline SHAP Explainer<a class="headerlink" href="#mb-shap-multi-baseline-shap-explainer" title="Link to this heading">¶</a></h2>
+<section id="theoretical-explanation">
+<h3>Theoretical Explanation<a class="headerlink" href="#theoretical-explanation" title="Link to this heading">¶</a></h3>
+<p>Multi-Baseline SHAP (MB-SHAP) enhances the robustness of SHAP-based feature attribution
+by computing SHAP values with respect to multiple baselines rather than a single reference.
+This addresses a key limitation in standard SHAP explainers: their sensitivity to baseline selection.</p>
+<p>By averaging attributions from diverse or locally-relevant baselines (e.g., nearest neighbors, mean, k-means centroids),
+MB-SHAP produces more stable, reliable, and representative explanations—particularly useful in domains with
+heterogeneous data distributions or models that exhibit local nonlinearity.</p>
+<section id="key-concepts">
+<h4>Key Concepts<a class="headerlink" href="#key-concepts" title="Link to this heading">¶</a></h4>
 <ul class="simple">
-<li><p><strong>Multiple Baselines:</strong> Instead of using a single background reference, MB-SHAP selects multiple baselines (e.g., nearest neighbors, random samples, or user-supplied) for each input sample.</p></li>
-<li><p><strong>Explainer Flexibility:</strong> Supports any SHAP-style explainer (e.g., DeepExplainer, KernelExplainer) by wrapping the base explainer and running it for each baseline.</p></li>
-<li><p><strong>Averaging Attributions:</strong> For each input, SHAP values are computed with respect to each baseline and then averaged to produce the final attribution.</p></li>
-<li><p><strong>Nearest-Neighbor Option:</strong> Optionally, for each input, the K nearest background samples are used as baselines, further improving local fidelity.</p></li>
+<li><dl class="simple">
+<dt><strong>Multiple Baselines</strong>:</dt><dd><dl class="simple">
+<dt>Each input is explained with respect to a set of baselines instead of just one. Baseline options include:</dt><dd><ul>
+<li><p>Random background samples.</p></li>
+<li><p>Mean or centroid-based references.</p></li>
+<li><p>K nearest neighbors (local context).</p></li>
+<li><p>User-specified selections.</p></li>
 </ul>
-<p>## Algorithm</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><strong>Explainer Flexibility</strong>:</dt><dd><p>MB-SHAP is compatible with any SHAP-style explainer, including <cite>DeepExplainer</cite>, <cite>GradientExplainer</cite>, and <cite>KernelExplainer</cite>.
+It wraps the base explainer and runs it separately for each baseline.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><strong>Attribution Averaging</strong>:</dt><dd><dl class="simple">
+<dt>For each input sample:</dt><dd><ul>
+<li><p>SHAP values are computed with respect to each baseline.</p></li>
+<li><p>The resulting attribution vectors are averaged to yield a final, smoothed explanation.</p></li>
+</ul>
+</dd>
+</dl>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><strong>Local Fidelity</strong>:</dt><dd><p>Using per-input nearest neighbors as baselines helps improve explanation fidelity for local model behavior.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</section>
+</section>
+<section id="algorithm">
+<h3>Algorithm<a class="headerlink" href="#algorithm" title="Link to this heading">¶</a></h3>
 <ol class="arabic simple">
 <li><dl class="simple">
-<dt><strong>Initialization:</strong></dt><dd><ul class="simple">
-<li><p>Accepts a model, background data, number of baselines, baseline selection strategy, base explainer class, and device.</p></li>
+<dt><strong>Initialization</strong>:</dt><dd><ul class="simple">
+<li><dl class="simple">
+<dt>Accepts a model, background dataset, number of baselines, baseline selection strategy (<cite>‘random’</cite>, <cite>‘nearest’</cite>, <cite>‘mean’</cite>, <cite>‘kmeans’</cite>, etc.),</dt><dd><p>SHAP explainer class (e.g., <cite>shap.DeepExplainer</cite>), and device context.</p>
+</dd>
+</dl>
+</li>
 </ul>
 </dd>
 </dl>
 </li>
 <li><dl class="simple">
-<dt><strong>Baseline Selection:</strong></dt><dd><ul class="simple">
-<li><p>For each input sample, select multiple baselines (e.g., nearest neighbors, random, mean, k-means, or user-supplied).</p></li>
+<dt><strong>Baseline Selection</strong>:</dt><dd><ul class="simple">
+<li><dl class="simple">
+<dt>For each input sample:</dt><dd><ul>
+<li><p>Select multiple baseline samples from the background using the chosen strategy.</p></li>
+</ul>
+</dd>
+</dl>
+</li>
 </ul>
 </dd>
 </dl>
 </li>
 <li><dl class="simple">
-<dt><strong>SHAP Value Computation:</strong></dt><dd><ul class="simple">
-<li><p>For each baseline, instantiate the base explainer and compute SHAP values for the input.</p></li>
-<li><p>Aggregate (average) the SHAP values across all baselines for each input.</p></li>
+<dt><strong>SHAP Value Computation</strong>:</dt><dd><ul class="simple">
+<li><dl class="simple">
+<dt>For each selected baseline:</dt><dd><ul>
+<li><p>Instantiate the base SHAP explainer.</p></li>
+<li><p>Compute SHAP values for the input sample with respect to that baseline.</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><p>Average the SHAP results across all baselines.</p></li>
 </ul>
 </dd>
 </dl>
 </li>
 <li><dl class="simple">
-<dt><strong>Output:</strong></dt><dd><ul class="simple">
-<li><p>Returns the averaged attributions for each input sample.</p></li>
+<dt><strong>Output</strong>:</dt><dd><ul class="simple">
+<li><p>Return the final attributions as averaged SHAP values, preserving shape and semantics of the model input.</p></li>
 </ul>
 </dd>
 </dl>
 </li>
 </ol>
+</section>
+</section>
 <p class="rubric">Classes</p>
 <div class="table-wrapper autosummary longtable docutils container">
 <table class="autosummary longtable docutils align-default">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#shap_enhanced.explainers.MBSHAP.NearestNeighborMultiBaselineSHAP" title="shap_enhanced.explainers.MBSHAP.NearestNeighborMultiBaselineSHAP"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NearestNeighborMultiBaselineSHAP</span></code></a>(...[, ...])</p></td>
-<td><p>Nearest-Neighbor Multi-Baseline SHAP Explainer.</p></td>
+<td><p>NearestNeighborMultiBaselineSHAP: Multi-Baseline SHAP Explainer</p></td>
 </tr>
 </tbody>
 </table>
@@ -336,38 +397,87 @@
 <dt class="sig sig-object py" id="shap_enhanced.explainers.MBSHAP.NearestNeighborMultiBaselineSHAP">
 <em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">shap_enhanced.explainers.MBSHAP.</span></span><span class="sig-name descname"><span class="pre">NearestNeighborMultiBaselineSHAP</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">base_explainer_class</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">background</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_baselines</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">base_explainer_kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/shap_enhanced/explainers/MBSHAP.html#NearestNeighborMultiBaselineSHAP"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#shap_enhanced.explainers.MBSHAP.NearestNeighborMultiBaselineSHAP" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="shap_enhanced.base_explainer.html#shap_enhanced.base_explainer.BaseExplainer" title="shap_enhanced.base_explainer.BaseExplainer"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseExplainer</span></code></a></p>
-<p>Nearest-Neighbor Multi-Baseline SHAP Explainer.</p>
-<p>For each sample, selects its K nearest backgrounds as the explainer’s reference set.
-Robust to both DeepExplainer (LSTM, neural nets) and KernelExplainer (tabular).</p>
+<p>NearestNeighborMultiBaselineSHAP: Multi-Baseline SHAP Explainer</p>
+<p>This explainer improves attribution robustness by selecting the K nearest neighbors
+from a background dataset as baselines for each input sample, computing SHAP values
+individually for each baseline, and then averaging the results.</p>
+<p>It is compatible with various SHAP explainers (e.g., <cite>DeepExplainer</cite>, <cite>GradientExplainer</cite>, <cite>KernelExplainer</cite>)
+and automatically adapts input types and parameter formats accordingly.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Baseline selection is input-dependent and done per sample using L2 distance in flattened input space.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>base_explainer_class</strong> – The SHAP explainer class to use (e.g., <cite>shap.DeepExplainer</cite>).</p></li>
+<li><p><strong>model</strong> (<em>Any</em>) – The predictive model to explain.</p></li>
+<li><p><strong>background</strong> (<em>np.ndarray</em>) – Background dataset (N, …) for nearest neighbor selection.</p></li>
+<li><p><strong>n_baselines</strong> (<em>int</em>) – Number of nearest neighbor baselines to use per sample.</p></li>
+<li><p><strong>base_explainer_kwargs</strong> (<em>dict</em><em> or </em><em>None</em>) – Additional keyword arguments passed to the SHAP explainer.</p></li>
+<li><p><strong>device</strong> (<em>str</em>) – Device context for torch-based explainers (‘cpu’ or ‘cuda’).</p></li>
+</ul>
+</dd>
+</dl>
 <dl class="py property">
 <dt class="sig sig-object py" id="shap_enhanced.explainers.MBSHAP.NearestNeighborMultiBaselineSHAP.expected_value">
 <em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">expected_value</span></span><a class="headerlink" href="#shap_enhanced.explainers.MBSHAP.NearestNeighborMultiBaselineSHAP.expected_value" title="Link to this definition">¶</a></dt>
-<dd><p>(Optional) Return the expected value of the model output on the background dataset.</p>
+<dd><p>Optional property returning the expected model output on the background dataset.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Expected value if defined by the subclass, else None.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>float or None</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="shap_enhanced.explainers.MBSHAP.NearestNeighborMultiBaselineSHAP.explain">
-<span class="sig-name descname"><span class="pre">explain</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">torch.Tensor</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span></span></span><a class="headerlink" href="#shap_enhanced.explainers.MBSHAP.NearestNeighborMultiBaselineSHAP.explain" title="Link to this definition">¶</a></dt>
-<dd><p>Alias for shap_values, for compatibility and future flexibility.</p>
+<span class="sig-name descname"><span class="pre">explain</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#shap_enhanced.explainers.MBSHAP.NearestNeighborMultiBaselineSHAP.explain" title="Link to this definition">¶</a></dt>
+<dd><p>Alias to <cite>shap_values</cite> for flexibility and API compatibility.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>X</strong> (<em>Union</em><em>[</em><em>np.ndarray</em><em>, </em><em>torch.Tensor</em><em>, </em><em>list</em><em>]</em>) – Input samples to explain.</p></li>
+<li><p><strong>kwargs</strong> – Additional arguments.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>SHAP values.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Union[np.ndarray, list]</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="shap_enhanced.explainers.MBSHAP.NearestNeighborMultiBaselineSHAP.shap_values">
 <span class="sig-name descname"><span class="pre">shap_values</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/shap_enhanced/explainers/MBSHAP.html#NearestNeighborMultiBaselineSHAP.shap_values"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#shap_enhanced.explainers.MBSHAP.NearestNeighborMultiBaselineSHAP.shap_values" title="Link to this definition">¶</a></dt>
-<dd><p>Compute SHAP values for the input data.</p>
+<dd><p>Compute SHAP values using per-sample nearest neighbor baselines.</p>
+<p>For each sample in <cite>X</cite>, this method:
+1. Selects the <cite>n_baselines</cite> nearest neighbors from the background.
+2. Instantiates the explainer with the selected baselines.
+3. Computes SHAP values with respect to each baseline.
+4. Averages SHAP values across baselines to produce a robust explanation.</p>
+<div class="math-wrapper docutils container">
+<div class="math notranslate nohighlight">
+\[\phi(x) = \frac{1}{K} \sum_{k=1}^{K} \text{SHAP}(x | b_k)\]</div>
+</div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>X</strong> (<em>np.ndarray</em><em> or </em><em>torch.Tensor</em><em> or </em><em>list</em>) – Input samples for which to compute SHAP values.</p></li>
-<li><p><strong>check_additivity</strong> (<em>bool</em>) – Whether to verify that SHAP values sum to model output difference.</p></li>
-<li><p><strong>kwargs</strong> (<em>dict</em>) – Additional arguments for derived explainers.</p></li>
+<li><p><strong>X</strong> (<em>np.ndarray</em>) – Input samples to explain, shape (N, …) or single sample (…).</p></li>
+<li><p><strong>kwargs</strong> – Additional keyword arguments forwarded to the SHAP explainer.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>shap_values</strong> – The computed SHAP values, shape matches input X.</p>
+<dd class="field-even"><p>Averaged SHAP attributions, shape (N, …) or (…) for single input.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>np.ndarray or list of np.ndarray</p>
+<dd class="field-odd"><p>np.ndarray</p>
 </dd>
 </dl>
 </dd></dl>
@@ -432,6 +542,14 @@ Robust to both DeepExplainer (LSTM, neural nets) and KernelExplainer (tabular).<
           <div class="toc-tree">
             <ul>
 <li><a class="reference internal" href="#">shap_enhanced.explainers.MBSHAP</a><ul>
+<li><a class="reference internal" href="#mb-shap-multi-baseline-shap-explainer">MB-SHAP: Multi-Baseline SHAP Explainer</a><ul>
+<li><a class="reference internal" href="#theoretical-explanation">Theoretical Explanation</a><ul>
+<li><a class="reference internal" href="#key-concepts">Key Concepts</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#algorithm">Algorithm</a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#shap_enhanced.explainers.MBSHAP.NearestNeighborMultiBaselineSHAP"><code class="docutils literal notranslate"><span class="pre">NearestNeighborMultiBaselineSHAP</span></code></a><ul>
 <li><a class="reference internal" href="#shap_enhanced.explainers.MBSHAP.NearestNeighborMultiBaselineSHAP.expected_value"><code class="docutils literal notranslate"><span class="pre">NearestNeighborMultiBaselineSHAP.expected_value</span></code></a></li>
 <li><a class="reference internal" href="#shap_enhanced.explainers.MBSHAP.NearestNeighborMultiBaselineSHAP.explain"><code class="docutils literal notranslate"><span class="pre">NearestNeighborMultiBaselineSHAP.explain()</span></code></a></li>
@@ -453,5 +571,6 @@ Robust to both DeepExplainer (LSTM, neural nets) and KernelExplainer (tabular).<
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/scripts/furo.js?v=5fa4622c"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     </body>
 </html>

@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../genindex.html" /><link rel="search" title="Search" href="../../../search.html" />
 
     <!-- Generated with Sphinx 8.2.3 and Furo 2024.08.06 -->
-        <title>shap_enhanced.explainers.TimeSHAP - shap_enhanced documentation</title>
+        <title>shap_enhanced.explainers.TimeSHAP - Enhanced SHAP documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=354aac6f" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?v=302659d7" />
@@ -165,7 +165,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../../index.html"><div class="brand">shap_enhanced  documentation</div></a>
+      <a href="../../../index.html"><div class="brand">Enhanced SHAP  documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -193,7 +193,7 @@
     <img class="sidebar-logo only-dark" src="../../../_static/fau_wiso_dark.png" alt="Dark Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">shap_enhanced  documentation</span>
+  <span class="sidebar-brand-text">Enhanced SHAP  documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -273,33 +273,79 @@
         <article role="main" id="furo-main-content">
           <h1>Source code for shap_enhanced.explainers.TimeSHAP</h1><div class="highlight"><pre>
 <span></span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">TimeSHAP Explainer (pruning-enhanced SHAP for sequential models).</span>
+<span class="sd">TimeSHAP Explainer: Pruning-Enhanced SHAP for Sequential Models</span>
+<span class="sd">================================================================</span>
 
-<span class="sd">## Theoretical Explanation</span>
+<span class="sd">Theoretical Explanation</span>
+<span class="sd">-----------------------</span>
 
-<span class="sd">TimeSHAP is a SHAP-style feature attribution method for sequential or event-based models that uses pruning to efficiently estimate attributions over time-event windows. It implements KernelSHAP-style estimation, but avoids the combinatorial explosion of possible feature/time subsets by pruning to the most important events or windows. TimeSHAP supports attribution at the timestep, feature, or event (window) level.</span>
+<span class="sd">**TimeSHAP** is a SHAP-style feature attribution method specifically designed for **sequential, temporal,  </span>
+<span class="sd">or event-based models**. It builds upon the principles of KernelSHAP but introduces **pruning** to handle  </span>
+<span class="sd">the combinatorial complexity of time-series input structures.</span>
 
-<span class="sd">### Key Concepts</span>
+<span class="sd">Rather than sampling all possible feature–timestep or event subsets, TimeSHAP first performs a **rough importance  </span>
+<span class="sd">scan**, then prunes the space down to the **top-k most relevant events**, windows, or timesteps. This makes it  </span>
+<span class="sd">scalable to long sequences while maintaining fidelity.</span>
 
-<span class="sd">- **Pruned Coalition Sampling:** Instead of exhaustively sampling all possible coalitions, TimeSHAP first estimates rough importances for all units (timesteps, features, or events), then prunes to the top-k most important units for refined estimation.</span>
-<span class="sd">- **Event/Window Support:** Attributions can be computed for individual timesteps, features, or over sliding windows of events.</span>
-<span class="sd">- **Flexible Masking:** Masked features can be imputed with zeros or mean values from the background data.</span>
-<span class="sd">- **Additivity Normalization:** Attributions are normalized so their sum matches the model output difference between the original and fully-masked input.</span>
+<span class="sd">Key Concepts</span>
+<span class="sd">^^^^^^^^^^^^</span>
 
-<span class="sd">## Algorithm</span>
+<span class="sd">- **Pruned Coalition Sampling**:  </span>
+<span class="sd">    Performs an initial round of random sampling to estimate rough feature/event importance.  </span>
+<span class="sd">    Only the top-k units are retained for precise SHAP estimation.</span>
 
-<span class="sd">1. **Initialization:**</span>
-<span class="sd">    - Accepts a model, background data, masking strategy, event window size, pruning parameter, and device.</span>
-<span class="sd">2. **Rough Importance Estimation:**</span>
-<span class="sd">    - For each unit (timestep, feature, or event window), estimate its marginal contribution by sampling random coalitions and measuring the change in model output.</span>
-<span class="sd">3. **Pruning:**</span>
-<span class="sd">    - If pruning is enabled, select the top-k most important units for further analysis.</span>
-<span class="sd">4. **Refined Attribution:**</span>
-<span class="sd">    - For each selected unit, sample random coalitions and compute the marginal contribution more accurately.</span>
-<span class="sd">    - Assign attributions to the appropriate timesteps, features, or events.</span>
-<span class="sd">5. **Normalization:**</span>
-<span class="sd">    - Scale attributions so their sum matches the difference between the original and fully-masked model output.</span>
+<span class="sd">- **Event/Window Attribution**:  </span>
+<span class="sd">    Supports attribution across:</span>
+<span class="sd">        - Individual timesteps (fine-grained),</span>
+<span class="sd">        - Features (vertical slices),</span>
+<span class="sd">        - Event windows (e.g., rolling sequences).</span>
+
+<span class="sd">- **Flexible Masking**:  </span>
+<span class="sd">    Masked features can be:</span>
+<span class="sd">        - Set to zero (hard masking), or</span>
+<span class="sd">        - Replaced with the mean from background data (soft masking).</span>
+
+<span class="sd">- **Additivity Normalization**:  </span>
+<span class="sd">    Final SHAP attributions are normalized so that their total equals the model output difference  </span>
+<span class="sd">    between the original and fully-masked inputs.</span>
+
+<span class="sd">Algorithm</span>
+<span class="sd">---------</span>
+
+<span class="sd">1. **Initialization**:</span>
+<span class="sd">    - Accepts a target model, background data, event window size, masking strategy, pruning parameter (e.g., top-k),  </span>
+<span class="sd">        and device context.</span>
+
+<span class="sd">2. **Rough Importance Estimation**:</span>
+<span class="sd">    - For each unit (feature, timestep, or window):</span>
+<span class="sd">        - Sample random coalitions excluding the unit.</span>
+<span class="sd">        - Compute model outputs with and without the unit masked.</span>
+<span class="sd">        - Estimate marginal contribution based on output difference.</span>
+
+<span class="sd">3. **Pruning**:</span>
+<span class="sd">    - If pruning is enabled:</span>
+<span class="sd">        - Retain only the top-k most important units from the rough scan.</span>
+<span class="sd">        - Discard lower-importance units from further evaluation.</span>
+
+<span class="sd">4. **Refined Attribution**:</span>
+<span class="sd">    - For each selected unit:</span>
+<span class="sd">        - Sample coalitions and compute more precise SHAP values.</span>
+<span class="sd">        - Assign contributions to the appropriate location in the attribution map  </span>
+<span class="sd">            (e.g., timestep, feature, or window).</span>
+
+<span class="sd">5. **Normalization**:</span>
+<span class="sd">    - Rescale all SHAP values so that their sum equals the difference between  </span>
+<span class="sd">        the model prediction on the original and fully-masked input.</span>
+
+<span class="sd">Use Case</span>
+<span class="sd">--------</span>
+
+<span class="sd">TimeSHAP is ideal for:</span>
+<span class="sd">    - Event sequences, medical time-series, or log data.</span>
+<span class="sd">    - Models where full SHAP computation is infeasible due to input length.</span>
+<span class="sd">    - Explaining model behavior over time, including “when” and “what” drove a prediction.</span>
 <span class="sd">&quot;&quot;&quot;</span>
+
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
@@ -309,23 +355,25 @@
 <div class="viewcode-block" id="TimeSHAPExplainer">
 <a class="viewcode-back" href="../../../generated/shap_enhanced.explainers.TimeSHAP.html#shap_enhanced.explainers.TimeSHAP.TimeSHAPExplainer">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">TimeSHAPExplainer</span><span class="p">(</span><span class="n">BaseExplainer</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    TimeSHAP: SHAP with pruning for sequential/event models, supporting true per-(t, f) attributions.</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    TimeSHAPExplainer: Pruned SHAP Attribution for Sequential Models</span>
 
-<span class="sd">    Parameters</span>
-<span class="sd">    ----------</span>
-<span class="sd">    model : Any</span>
-<span class="sd">        The model to be explained.</span>
-<span class="sd">    background : np.ndarray or torch.Tensor</span>
-<span class="sd">        Background data for imputation (N, T, F).</span>
-<span class="sd">    mask_strategy : str</span>
-<span class="sd">        &#39;zero&#39; or &#39;mean&#39; (default).</span>
-<span class="sd">    event_window : int or None</span>
-<span class="sd">        If set, computes SHAP over windows of this size instead of single (t, f) units.</span>
-<span class="sd">    prune_topk : int or None</span>
-<span class="sd">        If set, after initial run, prune to top-k most important units, then resample only these.</span>
-<span class="sd">    device : str</span>
-<span class="sd">        &#39;cpu&#39; or &#39;cuda&#39;.</span>
+<span class="sd">    Implements a SHAP-style explainer for time-series and sequential data using pruning</span>
+<span class="sd">    to efficiently estimate per-(t, f) or event-level attributions.</span>
+
+<span class="sd">    Combines:</span>
+<span class="sd">        - Masking strategy (zero or mean-based).</span>
+<span class="sd">        - Optional event windowing (for segment-level attribution).</span>
+<span class="sd">        - Top-k pruning to reduce the coalition space before final SHAP estimation.</span>
+
+<span class="sd">    :param model: The model to be explained.</span>
+<span class="sd">    :type model: Any</span>
+<span class="sd">    :param background: Background dataset for imputation and mean estimation.</span>
+<span class="sd">    :type background: np.ndarray or torch.Tensor</span>
+<span class="sd">    :param str mask_strategy: Masking method, either &#39;zero&#39; or &#39;mean&#39;.</span>
+<span class="sd">    :param int or None event_window: Optional window size for event-based attribution.</span>
+<span class="sd">    :param int or None prune_topk: If specified, retain only top-k units (based on rough attribution) for refinement.</span>
+<span class="sd">    :param str device: Computation device (&#39;cpu&#39; or &#39;cuda&#39;).</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">background</span><span class="p">,</span>
@@ -374,8 +422,21 @@
         <span class="n">random_seed</span><span class="o">=</span><span class="mi">42</span><span class="p">,</span>
         <span class="o">**</span><span class="n">kwargs</span>
     <span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Computes SHAP attributions at timestep-feature, event, or feature level using pruned coalition sampling.</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute SHAP values for sequential input with optional pruning and window-based attribution.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            Pruned estimation uses an initial coarse pass to identify important units</span>
+<span class="sd">            (features, timesteps, or windows), followed by refined SHAP estimation over that subset.</span>
+
+<span class="sd">        :param X: Input tensor or array of shape (T, F) or (B, T, F).</span>
+<span class="sd">        :type X: Union[np.ndarray, torch.Tensor]</span>
+<span class="sd">        :param int nsamples: Number of coalitions to sample per unit.</span>
+<span class="sd">        :param str level: Attribution level: &#39;timestep&#39;, &#39;feature&#39;, or &#39;event&#39;.</span>
+<span class="sd">        :param bool check_additivity: If True, print additivity diagnostics.</span>
+<span class="sd">        :param int random_seed: Random seed for reproducibility.</span>
+<span class="sd">        :return: SHAP values with shape (T, F) or (B, T, F).</span>
+<span class="sd">        :rtype: np.ndarray</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="n">random_seed</span><span class="p">)</span>
         <span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="n">random_seed</span><span class="p">)</span>

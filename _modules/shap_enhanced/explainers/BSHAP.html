@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../genindex.html" /><link rel="search" title="Search" href="../../../search.html" />
 
     <!-- Generated with Sphinx 8.2.3 and Furo 2024.08.06 -->
-        <title>shap_enhanced.explainers.BSHAP - shap_enhanced documentation</title>
+        <title>shap_enhanced.explainers.BSHAP - Enhanced SHAP documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=354aac6f" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?v=302659d7" />
@@ -165,7 +165,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../../index.html"><div class="brand">shap_enhanced  documentation</div></a>
+      <a href="../../../index.html"><div class="brand">Enhanced SHAP  documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -193,7 +193,7 @@
     <img class="sidebar-logo only-dark" src="../../../_static/fau_wiso_dark.png" alt="Dark Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">shap_enhanced  documentation</span>
+  <span class="sidebar-brand-text">Enhanced SHAP  documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -272,43 +272,63 @@
         </div>
         <article role="main" id="furo-main-content">
           <h1>Source code for shap_enhanced.explainers.BSHAP</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">BShapExplainer (Distribution-Free SHAP, LSTM/sequence edition)</span>
+<span></span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">BShapExplainer: Distribution-Free SHAP for Sequential Models</span>
+<span class="sd">============================================================</span>
 
-<span class="sd">## Theoretical Explanation</span>
+<span class="sd">Theoretical Explanation</span>
+<span class="sd">-----------------------</span>
 
-<span class="sd">BShap is a distribution-free variant of SHAP for feature attribution, particularly suited for sequence models (e.g., LSTM). Unlike classic SHAP, which uses empirical data or mean values as baselines, BShap masks features by replacing them with uninformative, random values (e.g., uniform noise, Gaussian noise, or zeros), never relying on the data distribution. This approach is useful when the data distribution is unknown, unreliable, or when a truly &quot;uninformative&quot; baseline is desired.</span>
+<span class="sd">BShap is a distribution-free variant of the SHAP framework, specifically designed for sequential models such as LSTMs.  </span>
+<span class="sd">Unlike classical SHAP methods that rely on empirical data (e.g., using mean or sample values as feature baselines),  </span>
+<span class="sd">BShap masks features using uninformative replacements such as uniform noise, Gaussian noise, or zeros.  </span>
+<span class="sd">This makes it particularly suitable when the underlying data distribution is unknown, unreliable, or intentionally ignored.</span>
 
-<span class="sd">### Key Concepts</span>
+<span class="sd">By avoiding assumptions about the data, BShap enables a cleaner interpretation of how a model behaves under  </span>
+<span class="sd">entirely synthetic perturbations—revealing how features contribute even when removed from their contextual correlations.</span>
 
-<span class="sd">- **Distribution-Free Masking:** Masked features are replaced with random values sampled independently from a specified range or noise distribution, not from the empirical data.</span>
-<span class="sd">- **Masking Strategies:** </span>
-<span class="sd">    - `&#39;random&#39;`: Uniformly sample values for each mask (default).</span>
-<span class="sd">    - `&#39;noise&#39;`: Add Gaussian noise to masked features.</span>
-<span class="sd">    - `&#39;zero&#39;`: Set masked features to zero.</span>
-<span class="sd">- **No Data Distribution Assumptions:** The method does not use the empirical distribution of the data for masking.</span>
-<span class="sd">- **Additivity Normalization:** Attributions are normalized so their sum matches the model output difference between the original and fully-masked input.</span>
+<span class="sd">Key Concepts</span>
+<span class="sd">^^^^^^^^^^^^</span>
 
-<span class="sd">## Algorithm</span>
+<span class="sd">- **Distribution-Free Masking**: Masked features are replaced with independently sampled values that do not rely on the input data distribution.</span>
+<span class="sd">- **Masking Strategies**:</span>
+<span class="sd">  - `&#39;random&#39;`: Sample feature values uniformly at random from a defined range (default).</span>
+<span class="sd">  - `&#39;noise&#39;`: Add Gaussian noise to masked feature values.</span>
+<span class="sd">  - `&#39;zero&#39;`: Set masked features to zero.</span>
+<span class="sd">- **No Data Assumptions**: All masking is performed without drawing from empirical feature distributions.</span>
+<span class="sd">- **Additivity Normalization**: Feature attributions are normalized so that their sum equals the change in model output  </span>
+<span class="sd">  between the original and fully-masked input.</span>
 
-<span class="sd">1. **Initialization:**</span>
-<span class="sd">    - Accepts a model, input value range, number of samples, masking strategy, and device.</span>
-<span class="sd">2. **Masking:**</span>
-<span class="sd">    - For each coalition (subset of features to mask), masked features are replaced by random values, noise, or zeros, depending on the chosen strategy.</span>
-<span class="sd">3. **SHAP Value Estimation:**</span>
-<span class="sd">    - For each feature position, repeatedly:</span>
-<span class="sd">        - Randomly select a subset of other positions to mask.</span>
-<span class="sd">        - Mask the selected positions in the input.</span>
-<span class="sd">        - Mask the selected positions plus the feature of interest.</span>
-<span class="sd">        - Compute the model output difference.</span>
-<span class="sd">        - Average these differences to estimate the marginal contribution of the feature.</span>
-<span class="sd">    - Normalize attributions so their sum matches the difference between the original and fully-masked model output.</span>
+<span class="sd">Algorithm</span>
+<span class="sd">---------</span>
 
-<span class="sd">## References</span>
+<span class="sd">1. **Initialization**:</span>
+<span class="sd">   - Accepts a model, a value range for feature sampling, the number of samples, masking strategy (`&#39;random&#39;`, `&#39;noise&#39;`, `&#39;zero&#39;`), and device context.</span>
 
-<span class="sd">- Lundberg, S. M., &amp; Lee, S.-I. (2017). A Unified Approach to Interpreting Model Predictions. *Advances in Neural Information Processing Systems*.</span>
-<span class="sd">- [Distribution-Free SHAP Reference](https://www.tandfonline.com/doi/full/10.1080/02331888.2025.2487853)</span>
+<span class="sd">2. **Masking**:</span>
+<span class="sd">    - For each coalition (a subset of features to mask), masked values are replaced by:</span>
+<span class="sd">        - Random values (uniform), or</span>
+<span class="sd">        - Gaussian noise, or</span>
+<span class="sd">        - Zeros, depending on the selected strategy.</span>
+
+<span class="sd">3. **SHAP Value Estimation**:</span>
+<span class="sd">    - For each feature:</span>
+<span class="sd">        - Randomly select a subset of other features to mask.</span>
+<span class="sd">        - Compute model output for:</span>
+<span class="sd">            - The input with the coalition masked.</span>
+<span class="sd">            - The input with the coalition plus the current feature masked.</span>
+<span class="sd">        - Record and average the difference in outputs as the estimated contribution.</span>
+
+<span class="sd">4. **Normalization**:</span>
+<span class="sd">    - Scale the attributions so that their sum equals the difference between the original and fully-masked model outputs.</span>
+
+<span class="sd">References</span>
+<span class="sd">----------</span>
+
+<span class="sd">- Lundberg, S. M., &amp; Lee, S.-I. (2017). *A Unified Approach to Interpreting Model Predictions*. Advances in Neural Information Processing Systems.</span>
+<span class="sd">- `Distribution-Free SHAP Reference &lt;https://www.tandfonline.com/doi/full/10.1080/02331888.2025.2487853&gt;`_</span>
 <span class="sd">&quot;&quot;&quot;</span>
+
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
@@ -317,22 +337,19 @@
 <div class="viewcode-block" id="BShapExplainer">
 <a class="viewcode-back" href="../../../generated/shap_enhanced.explainers.BSHAP.html#shap_enhanced.explainers.BSHAP.BShapExplainer">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">BShapExplainer</span><span class="p">(</span><span class="n">BaseExplainer</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    BShap: Distribution-Free SHAP Explainer (LSTM/sequence)</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    BShap: Distribution-Free SHAP Explainer for Sequential Models</span>
 
-<span class="sd">    Parameters</span>
-<span class="sd">    ----------</span>
-<span class="sd">    model : Any</span>
-<span class="sd">        Sequence model to be explained.</span>
-<span class="sd">    input_range : tuple or (min, max) arrays</span>
-<span class="sd">        (min, max) or per-feature min/max to sample for each feature.</span>
-<span class="sd">        If None, uses (-1, 1) or actual data min/max.</span>
-<span class="sd">    n_samples : int</span>
-<span class="sd">        Number of random coalitions per feature to average.</span>
-<span class="sd">    mask_strategy : str</span>
-<span class="sd">        &#39;random&#39;, &#39;noise&#39;, or &#39;zero&#39;</span>
-<span class="sd">    device : str</span>
-<span class="sd">        &#39;cpu&#39; or &#39;cuda&#39;.</span>
+<span class="sd">    Implements a SHAP-based attribution method that avoids empirical data distribution assumptions</span>
+<span class="sd">    by applying synthetic masking strategies (e.g., uniform noise, Gaussian noise, or zero).</span>
+<span class="sd">    This is useful for evaluating model robustness or interpretability in data-agnostic contexts.</span>
+
+<span class="sd">    :param model: Sequence model to explain.</span>
+<span class="sd">    :param input_range: Tuple of (min, max) or arrays defining per-feature value bounds. Used for random masking.</span>
+<span class="sd">    :type input_range: tuple or (np.ndarray, np.ndarray)</span>
+<span class="sd">    :param int n_samples: Number of coalitions sampled per feature.</span>
+<span class="sd">    :param str mask_strategy: Masking strategy: &#39;random&#39;, &#39;noise&#39;, or &#39;zero&#39;.</span>
+<span class="sd">    :param str device: Device identifier, e.g., &#39;cpu&#39; or &#39;cuda&#39;.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -349,6 +366,21 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">device</span> <span class="o">=</span> <span class="n">device</span> <span class="ow">or</span> <span class="p">(</span><span class="s2">&quot;cuda&quot;</span> <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">()</span> <span class="k">else</span> <span class="s2">&quot;cpu&quot;</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_mask</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">mask_idxs</span><span class="p">):</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Apply masking to the input at specified (t, f) indices.</span>
+
+<span class="sd">        Masked values are replaced using the selected masking strategy:</span>
+<span class="sd">        - &#39;random&#39;: Sampled uniformly from input_range or [-1, 1].</span>
+<span class="sd">        - &#39;noise&#39;: Original value plus Gaussian noise.</span>
+<span class="sd">        - &#39;zero&#39;: Set to zero.</span>
+
+<span class="sd">        :param x: Input sample of shape (T, F).</span>
+<span class="sd">        :type x: np.ndarray</span>
+<span class="sd">        :param mask_idxs: List of (t, f) index pairs to mask.</span>
+<span class="sd">        :type mask_idxs: list[tuple[int, int]]</span>
+<span class="sd">        :return: Masked input.</span>
+<span class="sd">        :rtype: np.ndarray</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">x_masked</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
         <span class="n">T</span><span class="p">,</span> <span class="n">F</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span>
         <span class="k">for</span> <span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span> <span class="ow">in</span> <span class="n">mask_idxs</span><span class="p">:</span>
@@ -380,9 +412,25 @@
         <span class="n">random_seed</span><span class="o">=</span><span class="mi">42</span><span class="p">,</span>
         <span class="o">**</span><span class="n">kwargs</span>
     <span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        BShap for (B, T, F) or (T, F).</span>
-<span class="sd">        Returns: (T, F) or (B, T, F)</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute SHAP values using distribution-free perturbations.</span>
+
+<span class="sd">        Estimates marginal feature contributions by averaging differences between model outputs</span>
+<span class="sd">        under masked coalitions. Uses synthetic masking based on the configured strategy</span>
+<span class="sd">        without any reliance on background data statistics.</span>
+
+<span class="sd">        Final attributions are normalized to satisfy the SHAP additivity constraint:</span>
+
+<span class="sd">        .. math::</span>
+<span class="sd">            \sum_{t=1}^T \sum_{f=1}^F \phi_{t,f} \approx f(x) - f(x_{\text{masked}})</span>
+
+<span class="sd">        :param X: Input of shape (T, F) or (B, T, F)</span>
+<span class="sd">        :type X: np.ndarray or torch.Tensor</span>
+<span class="sd">        :param int nsamples: Number of coalition samples per feature (defaults to self.n_samples).</span>
+<span class="sd">        :param bool check_additivity: Print diagnostic message for SHAP sum vs. model delta.</span>
+<span class="sd">        :param int random_seed: Seed for reproducibility.</span>
+<span class="sd">        :return: SHAP values of shape (T, F) or (B, T, F)</span>
+<span class="sd">        :rtype: np.ndarray</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="n">random_seed</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">nsamples</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>

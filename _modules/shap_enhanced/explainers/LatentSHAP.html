@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../genindex.html" /><link rel="search" title="Search" href="../../../search.html" />
 
     <!-- Generated with Sphinx 8.2.3 and Furo 2024.08.06 -->
-        <title>shap_enhanced.explainers.LatentSHAP - shap_enhanced documentation</title>
+        <title>shap_enhanced.explainers.LatentSHAP - Enhanced SHAP documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=354aac6f" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?v=302659d7" />
@@ -165,7 +165,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../../index.html"><div class="brand">shap_enhanced  documentation</div></a>
+      <a href="../../../index.html"><div class="brand">Enhanced SHAP  documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -193,7 +193,7 @@
     <img class="sidebar-logo only-dark" src="../../../_static/fau_wiso_dark.png" alt="Dark Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">shap_enhanced  documentation</span>
+  <span class="sidebar-brand-text">Enhanced SHAP  documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -272,7 +272,85 @@
         </div>
         <article role="main" id="furo-main-content">
           <h1>Source code for shap_enhanced.explainers.LatentSHAP</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Latent SHAP with Autoencoding for Structured Time Series</span>
+<span class="sd">=========================================================</span>
+
+<span class="sd">Theoretical Explanation</span>
+<span class="sd">-----------------------</span>
+
+<span class="sd">This module implements a **Latent SHAP Explainer** that applies SHAP to the latent space of an autoencoder,  </span>
+<span class="sd">specifically designed for sequential or multivariate time-series data.  </span>
+<span class="sd">By operating in a compressed latent representation, the explainer benefits from reduced dimensionality  </span>
+<span class="sd">and improved noise tolerance, while maintaining interpretability through a decoder Jacobian projection.</span>
+
+<span class="sd">The workflow is based on encoding the input data, applying SHAP in latent space (e.g., via `GradientExplainer`),  </span>
+<span class="sd">and then projecting the latent attributions back into the input space using the decoder&#39;s Jacobian.  </span>
+<span class="sd">This approach is especially useful for high-dimensional or noisy input domains where direct SHAP attribution  </span>
+<span class="sd">is unstable or computationally expensive.</span>
+
+<span class="sd">Key Components</span>
+<span class="sd">^^^^^^^^^^^^^^</span>
+
+<span class="sd">- **Conv1dEncoder / Conv1dDecoder**: Lightweight 1D convolutional autoencoder architecture for time-series encoding/decoding.</span>
+<span class="sd">- **LatentModelWrapper**: Wraps a downstream model and decoder into a latent-to-output computation graph for SHAP.</span>
+<span class="sd">- **LatentSHAPExplainer**:</span>
+<span class="sd">    - Runs SHAP (e.g., `GradientExplainer`) on the latent representation of input data.</span>
+<span class="sd">    - Projects latent attributions to input space using decoder Jacobians (optionally path-integrated).</span>
+<span class="sd">- **make_shap_explainer**: Utility that handles compatibility across SHAP versions and explainer signatures.</span>
+<span class="sd">- **train_conv1d_autoencoder**: Simple MSE-based training function for the autoencoder.</span>
+
+<span class="sd">Algorithm</span>
+<span class="sd">---------</span>
+
+<span class="sd">1. **Autoencoder Construction and Training**:</span>
+<span class="sd">    - Build a `Conv1dEncoder` and `Conv1dDecoder` for the desired input shape.</span>
+<span class="sd">    - Train them using standard MSE reconstruction loss.</span>
+
+<span class="sd">2. **Latent Attribution via SHAP**:</span>
+<span class="sd">    - Encode the input and background into latent space.</span>
+<span class="sd">    - Run a base SHAP explainer (e.g., `GradientExplainer`) on the latent representations.</span>
+<span class="sd">    - Estimate input attributions by projecting SHAP values using the decoder&#39;s Jacobian:</span>
+<span class="sd">   </span>
+<span class="sd">    .. math::</span>
+<span class="sd">        \phi_{\text{input}} = J_{\text{decoder}}(z) \cdot \phi_{\text{latent}}</span>
+
+<span class="sd">3. **Jacobian Projection Options**:</span>
+<span class="sd">    - Compute Jacobian at a single point (`z`) or along a path from baseline to `z` for smoother attribution.</span>
+
+<span class="sd">4. **Normalization and Output**:</span>
+<span class="sd">    - Return attributions in the shape of the original input (e.g., `[T, F]` for time-series).</span>
+
+<span class="sd">Use Case</span>
+<span class="sd">--------</span>
+
+<span class="sd">This setup is ideal when:</span>
+<span class="sd">    - Inputs are high-dimensional sequences or grids.</span>
+<span class="sd">    - The model is highly non-linear or unstable with direct input perturbations.</span>
+<span class="sd">    - Interpretability is needed at both latent and original input levels.</span>
+
+<span class="sd">Example</span>
+<span class="sd">-------</span>
+
+<span class="sd">.. code-block:: python</span>
+
+<span class="sd">    model = DummyLSTM(F)</span>
+<span class="sd">    encoder = Conv1dEncoder(F, T, latent_dim=4)</span>
+<span class="sd">    decoder = Conv1dDecoder(latent_dim=4, seq_len=T, output_features=F)</span>
+
+<span class="sd">    latent_expl = LatentSHAPExplainer(</span>
+<span class="sd">        model=model,</span>
+<span class="sd">        encoder=encoder,</span>
+<span class="sd">        decoder=decoder,</span>
+<span class="sd">        base_explainer_class=shap.GradientExplainer,</span>
+<span class="sd">        background=X[:32]</span>
+<span class="sd">    )</span>
+
+<span class="sd">    attr = latent_expl.shap_values(X[0])</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nn</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">shap</span>
@@ -282,6 +360,21 @@
 <div class="viewcode-block" id="Conv1dEncoder">
 <a class="viewcode-back" href="../../../generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.Conv1dEncoder">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">Conv1dEncoder</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Conv1dEncoder: Temporal Convolutional Encoder for Time-Series</span>
+
+<span class="sd">    A lightweight 1D convolutional encoder that transforms multivariate time-series input </span>
+<span class="sd">    of shape (B, T, F) into a fixed-dimensional latent representation.</span>
+
+<span class="sd">    Architecture:</span>
+<span class="sd">    </span>
+<span class="sd">        - 3 stacked Conv1d layers with ReLU activations.</span>
+<span class="sd">        - Output is flattened and linearly projected to latent_dim.</span>
+
+<span class="sd">    :param int input_features: Number of input features (F).</span>
+<span class="sd">    :param int seq_len: Length of the input sequence (T).</span>
+<span class="sd">    :param int latent_dim: Dimension of the latent space.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_features</span><span class="p">,</span> <span class="n">seq_len</span><span class="p">,</span> <span class="n">latent_dim</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">conv</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span>
@@ -297,6 +390,14 @@
 <div class="viewcode-block" id="Conv1dEncoder.forward">
 <a class="viewcode-back" href="../../../generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.Conv1dEncoder.forward">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Encode input into latent space.</span>
+
+<span class="sd">        :param x: Input tensor of shape (B, T, F).</span>
+<span class="sd">        :type x: torch.Tensor</span>
+<span class="sd">        :return: Latent representation of shape (B, latent_dim).</span>
+<span class="sd">        :rtype: torch.Tensor</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">x</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">permute</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>  <span class="c1"># (B, F, T)</span>
         <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conv</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
         <span class="n">x</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">permute</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>  <span class="c1"># (B, T, C)</span>
@@ -309,6 +410,16 @@
 <div class="viewcode-block" id="Conv1dDecoder">
 <a class="viewcode-back" href="../../../generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.Conv1dDecoder">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">Conv1dDecoder</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Conv1dDecoder: Temporal Convolutional Decoder for Time-Series</span>
+
+<span class="sd">    A lightweight decoder that reconstructs time-series input from a latent representation.</span>
+<span class="sd">    Mirrors the structure of Conv1dEncoder using Conv1d layers.</span>
+
+<span class="sd">    :param int latent_dim: Dimensionality of the latent input.</span>
+<span class="sd">    :param int seq_len: Desired output sequence length (T).</span>
+<span class="sd">    :param int output_features: Number of output features (F).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">latent_dim</span><span class="p">,</span> <span class="n">seq_len</span><span class="p">,</span> <span class="n">output_features</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">fc</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">latent_dim</span><span class="p">,</span> <span class="mi">32</span> <span class="o">*</span> <span class="n">seq_len</span><span class="p">)</span>
@@ -323,6 +434,14 @@
 <div class="viewcode-block" id="Conv1dDecoder.forward">
 <a class="viewcode-back" href="../../../generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.Conv1dDecoder.forward">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">z</span><span class="p">):</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Decode latent representation into reconstructed time-series.</span>
+
+<span class="sd">        :param z: Latent input of shape (B, latent_dim).</span>
+<span class="sd">        :type z: torch.Tensor</span>
+<span class="sd">        :return: Reconstructed input of shape (B, T, F).</span>
+<span class="sd">        :rtype: torch.Tensor</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fc</span><span class="p">(</span><span class="n">z</span><span class="p">)</span>
         <span class="n">x</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">seq_len</span><span class="p">)</span>
         <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">deconv</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
@@ -334,7 +453,19 @@
 <div class="viewcode-block" id="LatentModelWrapper">
 <a class="viewcode-back" href="../../../generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.LatentModelWrapper">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">LatentModelWrapper</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;nn.Module wrapper for latent-&gt;decoder-&gt;model, used for GradientExplainer.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    LatentModelWrapper: Compose Decoder and Model for SHAP</span>
+
+<span class="sd">    Utility wrapper that chains decoder and model together. Accepts latent input,</span>
+<span class="sd">    decodes it to input space, and passes it through the downstream model.</span>
+
+<span class="sd">    This is used to apply SHAP directly in the latent space.</span>
+
+<span class="sd">    :param model: Predictive model accepting decoded input.</span>
+<span class="sd">    :type model: torch.nn.Module</span>
+<span class="sd">    :param decoder: Decoder mapping latent to input space.</span>
+<span class="sd">    :type decoder: torch.nn.Module</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">decoder</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span>
@@ -343,6 +474,14 @@
 <div class="viewcode-block" id="LatentModelWrapper.forward">
 <a class="viewcode-back" href="../../../generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.LatentModelWrapper.forward">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">z</span><span class="p">):</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Pass latent vector through decoder and then model.</span>
+
+<span class="sd">        :param z: Latent input vector or batch.</span>
+<span class="sd">        :type z: torch.Tensor</span>
+<span class="sd">        :return: Model output for decoded input.</span>
+<span class="sd">        :rtype: torch.Tensor</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">z</span><span class="o">.</span><span class="n">dim</span><span class="p">()</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
             <span class="n">z</span> <span class="o">=</span> <span class="n">z</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
         <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">decoder</span><span class="p">(</span><span class="n">z</span><span class="p">)</span>
@@ -355,7 +494,18 @@
 <div class="viewcode-block" id="make_shap_explainer">
 <a class="viewcode-back" href="../../../generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.make_shap_explainer">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">make_shap_explainer</span><span class="p">(</span><span class="n">explainer_class</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">background</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Handles both old and new SHAP APIs.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Instantiate a SHAP explainer object in a version-agnostic way.</span>
+
+<span class="sd">    Handles differences in SHAP&#39;s API for older and newer versions, where the second argument</span>
+<span class="sd">    might be named &quot;data&quot;, &quot;background&quot;, or another keyword.</span>
+
+<span class="sd">    :param explainer_class: SHAP explainer class (e.g., GradientExplainer).</span>
+<span class="sd">    :param model: The model to explain.</span>
+<span class="sd">    :param background: Background dataset for SHAP.</span>
+<span class="sd">    :param kwargs: Additional keyword arguments.</span>
+<span class="sd">    :return: Instantiated SHAP explainer.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">sig</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">signature</span><span class="p">(</span><span class="n">explainer_class</span><span class="o">.</span><span class="fm">__init__</span><span class="p">)</span>
     <span class="n">params</span> <span class="o">=</span> <span class="p">[</span><span class="n">p</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">sig</span><span class="o">.</span><span class="n">parameters</span> <span class="k">if</span> <span class="n">p</span> <span class="o">!=</span> <span class="s2">&quot;self&quot;</span><span class="p">]</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">params</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
@@ -376,17 +526,21 @@
 <div class="viewcode-block" id="train_conv1d_autoencoder">
 <a class="viewcode-back" href="../../../generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.train_conv1d_autoencoder">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">train_conv1d_autoencoder</span><span class="p">(</span><span class="n">encoder</span><span class="p">,</span> <span class="n">decoder</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">epochs</span><span class="o">=</span><span class="mi">80</span><span class="p">,</span> <span class="n">lr</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="s2">&quot;cpu&quot;</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">32</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Train a Conv1dEncoder and Conv1dDecoder as an autoencoder.</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Train a Conv1dEncoder and Conv1dDecoder on time-series data using MSE loss.</span>
 
-<span class="sd">    Args:</span>
-<span class="sd">        encoder: torch.nn.Module (Conv1dEncoder)</span>
-<span class="sd">        decoder: torch.nn.Module (Conv1dDecoder)</span>
-<span class="sd">        X: np.ndarray or torch.Tensor, shape (N, T, F)</span>
-<span class="sd">        epochs: int, number of training epochs</span>
-<span class="sd">        lr: float, learning rate</span>
-<span class="sd">        device: str or torch.device</span>
-<span class="sd">        batch_size: int, mini-batch size (optional)</span>
+<span class="sd">    This function fits an autoencoder to reconstruct its input using batched SGD.</span>
+
+<span class="sd">    :param encoder: Instance of Conv1dEncoder.</span>
+<span class="sd">    :type encoder: torch.nn.Module</span>
+<span class="sd">    :param decoder: Instance of Conv1dDecoder.</span>
+<span class="sd">    :type decoder: torch.nn.Module</span>
+<span class="sd">    :param X: Input data of shape (N, T, F), either np.ndarray or torch.Tensor.</span>
+<span class="sd">    :type X: np.ndarray or torch.Tensor</span>
+<span class="sd">    :param int epochs: Number of training epochs.</span>
+<span class="sd">    :param float lr: Learning rate for Adam optimizer.</span>
+<span class="sd">    :param str device: Device to train on (e.g., &#39;cpu&#39; or &#39;cuda&#39;).</span>
+<span class="sd">    :param int batch_size: Mini-batch size.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">encoder</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
     <span class="n">decoder</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
@@ -425,9 +579,28 @@
 <div class="viewcode-block" id="LatentSHAPExplainer">
 <a class="viewcode-back" href="../../../generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.LatentSHAPExplainer">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">LatentSHAPExplainer</span><span class="p">(</span><span class="n">BaseExplainer</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    SHAP in Latent Space: uses GradientExplainer/KernelExplainer on latent vectors,</span>
-<span class="sd">    then projects attributions back to input using the decoder Jacobian.</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    LatentSHAPExplainer: SHAP Attribution in Autoencoded Latent Space</span>
+
+<span class="sd">    This class applies SHAP to the latent space of an autoencoder and projects the resulting attributions </span>
+<span class="sd">    back into input space using the decoder&#39;s Jacobian. It is especially useful for high-dimensional, </span>
+<span class="sd">    structured inputs (e.g., time series) where direct SHAP attribution is noisy or expensive.</span>
+
+<span class="sd">    .. math::</span>
+<span class="sd">        \phi_{\text{input}} = J_{\text{decoder}}(z) \cdot \phi_{\text{latent}}</span>
+
+<span class="sd">    :param model: Downstream predictive model, operating in input space.</span>
+<span class="sd">    :type model: torch.nn.Module</span>
+<span class="sd">    :param encoder: Encoder network mapping input to latent space.</span>
+<span class="sd">    :type encoder: torch.nn.Module</span>
+<span class="sd">    :param decoder: Decoder network mapping latent to input space.</span>
+<span class="sd">    :type decoder: torch.nn.Module</span>
+<span class="sd">    :param base_explainer_class: SHAP explainer class (e.g., GradientExplainer).</span>
+<span class="sd">    :param background: Background dataset (N, T, F) used for SHAP estimation.</span>
+<span class="sd">    :type background: np.ndarray or torch.Tensor</span>
+<span class="sd">    :param device: Device context (e.g., &#39;cpu&#39; or &#39;cuda&#39;).</span>
+<span class="sd">    :param base_explainer_kwargs: Optional dictionary of kwargs passed to SHAP explainer.</span>
+<span class="sd">    :type base_explainer_kwargs: dict</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -466,7 +639,17 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">latent_dim</span> <span class="o">=</span> <span class="n">latent_bg</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_decoder_jacobian</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">latent_vec</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Jacobian of decoder output w.r.t. latent vector.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute the Jacobian of the decoder output with respect to a latent vector.</span>
+
+<span class="sd">        .. math::</span>
+<span class="sd">            J(z) = \frac{\partial \text{Decoder}(z)}{\partial z}</span>
+
+<span class="sd">        :param latent_vec: Latent representation of a single sample.</span>
+<span class="sd">        :type latent_vec: np.ndarray</span>
+<span class="sd">        :return: Jacobian matrix of shape (input_dim, latent_dim).</span>
+<span class="sd">        :rtype: np.ndarray</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">latent</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">latent_vec</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">,</span> <span class="n">requires_grad</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="n">x_dec</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">decoder</span><span class="p">(</span><span class="n">latent</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x_dec</span><span class="p">,</span> <span class="p">(</span><span class="nb">tuple</span><span class="p">,</span> <span class="nb">list</span><span class="p">)):</span>
@@ -479,6 +662,20 @@
         <span class="k">return</span> <span class="n">jac</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_pathwise_decoder_jacobian</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">z_base</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">n_steps</span><span class="o">=</span><span class="mi">10</span><span class="p">):</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute the average decoder Jacobian over interpolated path from baseline to latent vector.</span>
+
+<span class="sd">        .. math::</span>
+<span class="sd">            \bar{J} = \frac{1}{n} \sum_{i=1}^{n} J\left((1 - \alpha_i) z_{\text{base}} + \alpha_i z\right)</span>
+
+<span class="sd">        :param z_base: Baseline latent vector (e.g., mean of background).</span>
+<span class="sd">        :type z_base: np.ndarray</span>
+<span class="sd">        :param z: Target latent vector for SHAP.</span>
+<span class="sd">        :type z: np.ndarray</span>
+<span class="sd">        :param int n_steps: Number of interpolation steps.</span>
+<span class="sd">        :return: Averaged Jacobian matrix along the path.</span>
+<span class="sd">        :rtype: np.ndarray</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">alphas</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">n_steps</span><span class="p">)</span>
         <span class="n">jacs</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">alpha</span> <span class="ow">in</span> <span class="n">alphas</span><span class="p">:</span>
@@ -489,7 +686,24 @@
 <div class="viewcode-block" id="LatentSHAPExplainer.shap_values">
 <a class="viewcode-back" href="../../../generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.LatentSHAPExplainer.shap_values">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">shap_values</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;X: torch.Tensor (N, T, F) or np.ndarray. Returns input attributions.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute SHAP values in latent space and project them to input space.</span>
+
+<span class="sd">        Steps:</span>
+<span class="sd">        1. Encode input and background into latent space.</span>
+<span class="sd">        2. Run SHAP (e.g., GradientExplainer) on latent input.</span>
+<span class="sd">        3. Compute Jacobian from latent to input.</span>
+<span class="sd">        4. Project latent SHAP values using the Jacobian.</span>
+<span class="sd">        5. Return attributions with original input shape.</span>
+
+<span class="sd">        .. math::</span>
+<span class="sd">            \phi_{\text{input}} = J(z) \cdot \phi_{\text{latent}}</span>
+
+<span class="sd">        :param X: Input sample(s), shape (T, F) or (B, T, F)</span>
+<span class="sd">        :type X: np.ndarray or torch.Tensor</span>
+<span class="sd">        :return: SHAP attributions in input space.</span>
+<span class="sd">        :rtype: np.ndarray</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">single_input</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
             <span class="n">X_t</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>

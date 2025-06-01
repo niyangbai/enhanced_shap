@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../genindex.html" /><link rel="search" title="Search" href="../../../search.html" />
 
     <!-- Generated with Sphinx 8.2.3 and Furo 2024.08.06 -->
-        <title>shap_enhanced.explainers.ABSHAP - shap_enhanced documentation</title>
+        <title>shap_enhanced.explainers.ABSHAP - Enhanced SHAP documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=354aac6f" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?v=302659d7" />
@@ -165,7 +165,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../../index.html"><div class="brand">shap_enhanced  documentation</div></a>
+      <a href="../../../index.html"><div class="brand">Enhanced SHAP  documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -193,7 +193,7 @@
     <img class="sidebar-logo only-dark" src="../../../_static/fau_wiso_dark.png" alt="Dark Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">shap_enhanced  documentation</span>
+  <span class="sidebar-brand-text">Enhanced SHAP  documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -272,40 +272,53 @@
         </div>
         <article role="main" id="furo-main-content">
           <h1>Source code for shap_enhanced.explainers.ABSHAP</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span></span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">Adaptive Baseline SHAP (Sparse)</span>
+<span class="sd">===============================</span>
 
-<span class="sd">## Theoretical Explanation</span>
+<span class="sd">Theoretical Explanation</span>
+<span class="sd">-----------------------</span>
 
-<span class="sd">Adaptive Baseline SHAP (ABSHAP) is a feature attribution method based on the SHAP framework, designed to provide valid and meaningful explanations for both dense (continuous/tabular) and sparse (categorical/one-hot) data. Unlike classic SHAP, which often uses mean or zero baselines for masking features, ABSHAP always draws baselines for masked features from real observed samples. This ensures that all perturbed samples are valid and avoids out-of-distribution artifacts, especially important for categorical or sparse data.</span>
+<span class="sd">Adaptive Baseline SHAP (ABSHAP) is a feature attribution method built upon the SHAP framework.  </span>
+<span class="sd">It is specifically designed to yield valid, interpretable explanations for both dense (e.g., continuous or tabular)  </span>
+<span class="sd">and sparse (e.g., categorical or one-hot encoded) input data.</span>
 
-<span class="sd">### Key Concepts</span>
+<span class="sd">Unlike traditional SHAP methods that use static baselines (such as zeros or means), ABSHAP dynamically samples baselines  </span>
+<span class="sd">for masked features from real observed background samples. This helps avoid out-of-distribution perturbations,  </span>
+<span class="sd">which is particularly critical for sparse or categorical data where unrealistic combinations can easily arise.</span>
 
-<span class="sd">- **Adaptive Masking:** For each feature, ABSHAP chooses the masking strategy:</span>
-<span class="sd">    - If a feature is dense/continuous, it uses the mean value from the background data as the baseline (classic SHAP).</span>
-<span class="sd">    - If a feature is sparse/one-hot/categorical (i.e., &gt;90% zeros in the background), it uses values sampled from real background samples.</span>
-<span class="sd">- **Automatic or Manual Strategy:** The masking strategy can be set automatically per feature or specified by the user.</span>
-<span class="sd">- **Valid Perturbations:** All masked samples are guaranteed to be valid, preserving the data distribution.</span>
+<span class="sd">Key Concepts</span>
+<span class="sd">^^^^^^^^^^^^</span>
 
-<span class="sd">## Algorithm</span>
+<span class="sd">- **Adaptive Masking**: Each feature’s masking method is chosen based on its distribution:</span>
+<span class="sd">    - Dense/continuous features use the mean value from the background dataset.</span>
+<span class="sd">    - Sparse/categorical features (e.g., those with &gt;90% zeros) are replaced using values from real background examples.</span>
+<span class="sd">- **Strategy Selection**: The masking approach can be assigned automatically per feature or manually specified by the user.</span>
+<span class="sd">- **Valid Perturbations**: All masked samples are guaranteed to lie within the original data distribution, preventing unrealistic inputs.</span>
 
-<span class="sd">1. **Initialization:**</span>
-<span class="sd">    - Accepts a model, background data, number of baselines, masking strategy, and device.</span>
-<span class="sd">    - Determines the masking strategy for each feature (auto or user-specified).</span>
-<span class="sd">    - Computes the mean baseline for mean-masked features.</span>
+<span class="sd">Algorithm</span>
+<span class="sd">---------</span>
 
-<span class="sd">2. **Masking:**</span>
-<span class="sd">    - For each coalition (subset of features to mask), masked features are replaced by either the mean (for dense features) or by values from a randomly selected background sample (for sparse features).</span>
+<span class="sd">1. **Initialization**:</span>
+<span class="sd">    - Accepts a model, background dataset, number of baselines, masking strategy, and device.</span>
+<span class="sd">    - Automatically determines a masking strategy per feature or uses a user-specified configuration.</span>
+<span class="sd">    - Computes mean values for dense-feature masking.</span>
 
-<span class="sd">3. **SHAP Value Estimation:**</span>
-<span class="sd">    - For each feature position, repeatedly:</span>
-<span class="sd">        - Randomly select a subset of other positions to mask.</span>
-<span class="sd">        - For each baseline sample:</span>
-<span class="sd">            - Mask the selected positions in the input.</span>
-<span class="sd">            - Mask the selected positions plus the feature of interest.</span>
-<span class="sd">            - Compute the model output difference.</span>
+<span class="sd">2. **Masking**:</span>
+<span class="sd">    - For each coalition (a selected subset of features to mask), masked values are replaced with:</span>
+<span class="sd">        - The feature-wise mean (dense features), or</span>
+<span class="sd">        - A sampled value from a real background example (sparse features).</span>
+
+<span class="sd">3. **SHAP Value Estimation**:</span>
+<span class="sd">    - For each feature:</span>
+<span class="sd">        - Randomly sample subsets of other features to mask.</span>
+<span class="sd">        - For each sampled baseline:</span>
+<span class="sd">            - Compute model outputs on:</span>
+<span class="sd">                - Input with selected features masked.</span>
+<span class="sd">                - Input with selected features plus the current feature masked.</span>
+<span class="sd">            - Calculate the difference in model outputs.</span>
 <span class="sd">        - Average these differences to estimate the marginal contribution of the feature.</span>
-<span class="sd">    - Normalize attributions so their sum matches the difference between the original and fully-masked model output.</span>
+<span class="sd">    - Normalize the resulting attributions so their sum equals the difference between the original and fully-masked model outputs.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
 
@@ -318,25 +331,25 @@
 <div class="viewcode-block" id="AdaptiveBaselineSHAPExplainer">
 <a class="viewcode-back" href="../../../generated/shap_enhanced.explainers.ABSHAP.html#shap_enhanced.explainers.ABSHAP.AdaptiveBaselineSHAPExplainer">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">AdaptiveBaselineSHAPExplainer</span><span class="p">(</span><span class="n">BaseExplainer</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Universal Adaptive SHAP Explainer.</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Adaptive Baseline SHAP (ABSHAP) Explainer for Dense and Sparse Features.</span>
 
-<span class="sd">    - For dense/continuous/tabular features: uses mean baseline masking (SHAP default).</span>
-<span class="sd">    - For sparse/one-hot/categorical features: uses adaptive (sampled) baselines.</span>
-<span class="sd">    - Automatically detects feature type based on background data, or can be forced by user.</span>
+<span class="sd">    Implements a SHAP explainer that adaptively masks features based on their data distribution:</span>
+<span class="sd">    using mean-based masking for continuous features and sample-based masking for sparse or</span>
+<span class="sd">    categorical features. This ensures valid perturbations and avoids out-of-distribution artifacts.</span>
 
-<span class="sd">    Parameters</span>
-<span class="sd">    ----------</span>
-<span class="sd">    model : Callable</span>
-<span class="sd">        The model to be explained.</span>
-<span class="sd">    background : np.ndarray | torch.Tensor</span>
-<span class="sd">        Background data for baseline selection, shape (N, F) or (N, T, F).</span>
-<span class="sd">    n_baselines : int</span>
-<span class="sd">        Number of baseline samples per coalition (for adaptive masking).</span>
-<span class="sd">    mask_strategy : str | Sequence[str]</span>
-<span class="sd">        &quot;auto&quot; (default): detect per feature; or explicitly provide per-feature list (e.g., [&quot;mean&quot;, &quot;adaptive&quot;, ...]).</span>
-<span class="sd">    device : str | None</span>
-<span class="sd">        PyTorch device string.</span>
+<span class="sd">    .. note::</span>
+<span class="sd">        Feature masking strategy can be determined automatically or manually specified.</span>
+
+<span class="sd">    .. warning::</span>
+<span class="sd">        Adaptive masking requires background data and introduces computational overhead.</span>
+
+<span class="sd">    :param Callable model: Model to be explained. Should accept PyTorch tensors as input.</span>
+<span class="sd">    :param Union[np.ndarray, torch.Tensor] background: Background dataset for baseline sampling.</span>
+<span class="sd">        Shape: (N, F) or (N, T, F).</span>
+<span class="sd">    :param int n_baselines: Number of baselines to sample per explanation. Default is 10.</span>
+<span class="sd">    :param Union[str, Sequence[str]] mask_strategy: Either &quot;auto&quot; for detection or list per feature.</span>
+<span class="sd">    :param str device: PyTorch device identifier, e.g., &quot;cpu&quot; or &quot;cuda&quot;. Defaults to auto-detection.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
@@ -374,12 +387,26 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">mean_baseline</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">background</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>  <span class="c1"># (T, F)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_select_baselines</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">n</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Randomly selects `n` baseline samples from the background dataset.</span>
+
+<span class="sd">        :param np.ndarray x: Input instance for context (unused directly).</span>
+<span class="sd">        :param int n: Number of baselines to sample.</span>
+<span class="sd">        :return np.ndarray: Sampled baseline instances of shape (n, T, F).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">N</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">replace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">background</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>  <span class="c1"># (n, T, F)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_mask_input</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">baseline</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">mask</span><span class="p">:</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Mask x by baseline for categorical, by mean for continuous.</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Applies feature-wise masking to the input sample `x`.</span>
+
+<span class="sd">        If the feature is continuous, replaces with the mean; if categorical/sparse, uses baseline sample.</span>
+
+<span class="sd">        :param np.ndarray x: Original input of shape (T, F).</span>
+<span class="sd">        :param np.ndarray baseline: Baseline sample used for masking.</span>
+<span class="sd">        :param list mask: List of (t, f) tuples indicating which positions to mask.</span>
+<span class="sd">        :return np.ndarray: Masked input of shape (T, F).</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">x_masked</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
         <span class="k">for</span> <span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span> <span class="ow">in</span> <span class="n">mask</span><span class="p">:</span>
@@ -390,9 +417,13 @@
         <span class="k">return</span> <span class="n">x_masked</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_full_mask</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Returns fully-masked version of x (for normalization).</span>
-<span class="sd">        Uses mean for mean-masked features, random baseline for adaptive.</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns a fully-masked version of the input `x` for normalization purposes.</span>
+
+<span class="sd">        Continuous features are mean-masked, sparse features use a single baseline sample.</span>
+
+<span class="sd">        :param np.ndarray x: Input to be masked, of shape (T, F).</span>
+<span class="sd">        :return np.ndarray: Fully-masked version of `x`.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">x_masked</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
         <span class="n">baseline</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_select_baselines</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
@@ -413,8 +444,22 @@
         <span class="n">random_seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">42</span><span class="p">,</span>
         <span class="o">**</span><span class="n">kwargs</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Compute SHAP values for X (single or batch).</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Estimates SHAP values for the given input `X` using the ABSHAP algorithm.</span>
+
+<span class="sd">        For each feature (t, f), estimates its marginal contribution by comparing model</span>
+<span class="sd">        outputs with and without the feature masked, averaging over sampled coalitions and baselines.</span>
+
+<span class="sd">        .. math::</span>
+<span class="sd">            \phi_{i} = \mathbb{E}_{S \subseteq N \setminus \{i\}} \left[ f(x_{S \cup \{i\}}) - f(x_S) \right]</span>
+
+<span class="sd">        The attributions are then normalized to match the output difference between the original and</span>
+<span class="sd">        fully-masked prediction.</span>
+
+<span class="sd">        :param Union[np.ndarray, torch.Tensor] X: Input samples, shape (B, T, F) or (T, F).</span>
+<span class="sd">        :param int nsamples: Number of masking combinations per feature. Default is 100.</span>
+<span class="sd">        :param int random_seed: Seed for reproducibility. Default is 42.</span>
+<span class="sd">        :return np.ndarray: SHAP values of shape (T, F) or (B, T, F).</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="n">random_seed</span><span class="p">)</span>
         <span class="n">X</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span> <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="s2">&quot;detach&quot;</span><span class="p">)</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>

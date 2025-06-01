@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../genindex.html" /><link rel="search" title="Search" href="../../../search.html" />
 
     <!-- Generated with Sphinx 8.2.3 and Furo 2024.08.06 -->
-        <title>shap_enhanced.tools.comparison - Enhanced SHAP documentation</title>
+        <title>shap_enhanced.tools.timer - Enhanced SHAP documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=354aac6f" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?v=302659d7" />
@@ -271,106 +271,87 @@
           </label>
         </div>
         <article role="main" id="furo-main-content">
-          <h1>Source code for shap_enhanced.tools.comparison</h1><div class="highlight"><pre>
+          <h1>Source code for shap_enhanced.tools.timer</h1><div class="highlight"><pre>
 <span></span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">Attribution Comparison Utility for SHAP Explainers</span>
-<span class="sd">==================================================</span>
+<span class="sd">Timing Utility for Code Execution</span>
+<span class="sd">=================================</span>
 
 <span class="sd">Overview</span>
 <span class="sd">--------</span>
 
-<span class="sd">This module provides a utility class for quantitatively comparing SHAP attributions  </span>
-<span class="sd">from multiple explainers against a reference ground truth. It is intended for use in benchmarking  </span>
-<span class="sd">or evaluating new SHAP-based methods by computing standard performance metrics.</span>
+<span class="sd">This module provides a lightweight utility class `Timer` for measuring the execution time  </span>
+<span class="sd">of arbitrary blocks of Python code using a context manager (`with` block). It is intended  </span>
+<span class="sd">for profiling and monitoring performance during development, benchmarking, or debugging.</span>
 
-<span class="sd">Currently supported evaluation metrics include:</span>
+<span class="sd">Features</span>
+<span class="sd">^^^^^^^^</span>
 
-<span class="sd">- **Mean Squared Error (MSE)**: Measures the squared deviation between predicted and ground-truth attributions.</span>
-<span class="sd">- **Pearson Correlation**: Measures the linear correlation between flattened attribution arrays.</span>
+<span class="sd">- **Context Manager Interface**:  </span>
+<span class="sd">  Use `with Timer(&quot;label&quot;):` to automatically time a code block.</span>
 
-<span class="sd">Key Components</span>
-<span class="sd">^^^^^^^^^^^^^^</span>
+<span class="sd">- **Human-Readable Output**:  </span>
+<span class="sd">  Prints the elapsed time in seconds with 4-digit precision.</span>
 
-<span class="sd">- **Comparison Class**:</span>
-<span class="sd">  - Accepts ground-truth SHAP values and a dictionary of predicted attribution maps.</span>
-<span class="sd">  - Computes MSE and Pearson correlation for each explainer.</span>
-<span class="sd">  - Handles flattened comparison over all timesteps and features.</span>
+<span class="sd">- **Silent Mode**:  </span>
+<span class="sd">  Set `verbose=False` to suppress output and access `.elapsed` manually.</span>
 
 <span class="sd">Use Case</span>
 <span class="sd">--------</span>
 
-<span class="sd">This utility is ideal for:</span>
-<span class="sd">- Benchmarking SHAP-style explainers on synthetic datasets with known ground truth.</span>
-<span class="sd">- Evaluating the effect of surrogate or approximation methods.</span>
-<span class="sd">- Comparing different explainer strategies in attribution consistency.</span>
-
-<span class="sd">Example</span>
-<span class="sd">-------</span>
-
-<span class="sd">.. code-block:: python</span>
-
-<span class="sd">    gt = np.random.rand(10, 5)  # Ground truth SHAP values</span>
-<span class="sd">    pred1 = gt + np.random.normal(0, 0.1, size=gt.shape)</span>
-<span class="sd">    pred2 = gt + np.random.normal(0, 0.2, size=gt.shape)</span>
-
-<span class="sd">    comp = Comparison(ground_truth=gt, shap_models={&quot;ExplainerA&quot;: pred1, &quot;ExplainerB&quot;: pred2})</span>
-<span class="sd">    mse_scores, pearson_scores = comp.calculate_kpis()</span>
+<span class="sd">Useful for timing:</span>
+<span class="sd">- Model training loops.</span>
+<span class="sd">- Data loading or preprocessing steps.</span>
+<span class="sd">- Custom algorithm profiling or benchmarking.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
+<span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
 
-<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.stats</span><span class="w"> </span><span class="kn">import</span> <span class="n">pearsonr</span>
 
-<div class="viewcode-block" id="Comparison">
-<a class="viewcode-back" href="../../../generated/shap_enhanced.tools.comparison.html#shap_enhanced.tools.comparison.Comparison">[docs]</a>
-<span class="k">class</span><span class="w"> </span><span class="nc">Comparison</span><span class="p">:</span>
+<div class="viewcode-block" id="Timer">
+<a class="viewcode-back" href="../../../generated/shap_enhanced.tools.timer.html#shap_enhanced.tools.timer.Timer">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Timer</span><span class="p">:</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Comparison: SHAP Attribution Evaluation Utility</span>
+<span class="sd">    Timing context manager for profiling code execution.</span>
 
-<span class="sd">    Provides evaluation metrics for comparing predicted SHAP attributions against a ground truth reference.</span>
-<span class="sd">    Designed for benchmarking SHAP-based explainers using quantitative metrics.</span>
+<span class="sd">    This utility measures wall-clock time (in seconds) for any code block wrapped in a `with` statement.  </span>
+<span class="sd">    It prints the elapsed time with a label, or stores it for later access via the `.elapsed` attribute.</span>
 
-<span class="sd">    Supported Metrics</span>
-<span class="sd">    -----------------</span>
-<span class="sd">    - **Mean Squared Error (MSE)**: Measures squared deviation between predicted and true SHAP values.</span>
-<span class="sd">    - **Pearson Correlation**: Measures linear correlation between flattened attribution vectors.</span>
+<span class="sd">    Example</span>
+<span class="sd">    -------</span>
+<span class="sd">    .. code-block:: python</span>
 
-<span class="sd">    :param np.ndarray ground_truth: Ground-truth SHAP values of shape (T, F).</span>
-<span class="sd">    :param dict shap_models: Dictionary mapping explainer names to their SHAP attribution arrays.</span>
+<span class="sd">        with Timer(&quot;Sleeping 1s...&quot;):</span>
+<span class="sd">            time.sleep(1)</span>
+
+<span class="sd">    :param str label: Optional label to describe the timed block.</span>
+<span class="sd">    :param bool verbose: If True, prints elapsed time on exit. Otherwise, stores in `.elapsed`.</span>
+
+<span class="sd">    :ivar float elapsed: Time in seconds between context entry and exit.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ground_truth</span><span class="p">,</span> <span class="n">shap_models</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">ground_truth</span> <span class="o">=</span> <span class="n">ground_truth</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">shap_models</span> <span class="o">=</span> <span class="n">shap_models</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">results</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">pearson_results</span> <span class="o">=</span> <span class="p">{}</span>
-
-<div class="viewcode-block" id="Comparison.calculate_kpis">
-<a class="viewcode-back" href="../../../generated/shap_enhanced.tools.comparison.html#shap_enhanced.tools.comparison.Comparison.calculate_kpis">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">calculate_kpis</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Compute evaluation metrics (MSE and Pearson correlation) for each SHAP explainer.</span>
-
-<span class="sd">        .. note::</span>
-<span class="sd">            Flattened comparisons are used for both MSE and correlation.</span>
-
-<span class="sd">        :return: Tuple of dictionaries:</span>
-<span class="sd">            - MSE values for each explainer.</span>
-<span class="sd">            - Pearson correlation values for each explainer.</span>
-<span class="sd">        :rtype: (dict[str, float], dict[str, float])</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :param str label: Description to print with the timing result.</span>
+<span class="sd">        :param bool verbose: Whether to print elapsed time automatically.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">arr</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">shap_models</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="n">mse</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">((</span><span class="n">arr</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">ground_truth</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
-            <span class="n">gt_flat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ground_truth</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
-            <span class="n">arr_flat</span> <span class="o">=</span> <span class="n">arr</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
-            <span class="k">try</span><span class="p">:</span>
-                <span class="n">pearson</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">pearsonr</span><span class="p">(</span><span class="n">gt_flat</span><span class="p">,</span> <span class="n">arr_flat</span><span class="p">)</span>
-            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
-                <span class="n">pearson</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">mse</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">pearson_results</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">pearson</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">pearson_results</span></div>
-</div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">label</span> <span class="o">=</span> <span class="n">label</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span> <span class="o">=</span> <span class="n">verbose</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_start</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">elapsed</span> <span class="o">=</span> <span class="kc">None</span>
 
+    <span class="k">def</span><span class="w"> </span><span class="fm">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exc_type</span><span class="p">,</span> <span class="n">exc_val</span><span class="p">,</span> <span class="n">exc_tb</span><span class="p">):</span>
+        <span class="n">end</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">elapsed</span> <span class="o">=</span> <span class="n">end</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_start</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[Timer] </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">label</span><span class="si">}</span><span class="s2"> took </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">elapsed</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2"> seconds&quot;</span><span class="p">)</span></div>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="k">with</span> <span class="n">Timer</span><span class="p">(</span><span class="s2">&quot;Simulated work&quot;</span><span class="p">):</span>
+        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">1.5</span><span class="p">)</span>
 </pre></div>
         </article>
       </div>

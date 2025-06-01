@@ -6,7 +6,7 @@
 <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="shap_enhanced.explainers.TimeSHAP" href="shap_enhanced.explainers.TimeSHAP.html" /><link rel="prev" title="shap_enhanced.explainers.SPSHAP" href="shap_enhanced.explainers.SPSHAP.html" />
 
     <!-- Generated with Sphinx 8.2.3 and Furo 2024.08.06 -->
-        <title>shap_enhanced.explainers.SurroSHAP - shap_enhanced documentation</title>
+        <title>shap_enhanced.explainers.SurroSHAP - Enhanced SHAP documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=354aac6f" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=302659d7" />
@@ -166,7 +166,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../index.html"><div class="brand">shap_enhanced  documentation</div></a>
+      <a href="../index.html"><div class="brand">Enhanced SHAP  documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -194,7 +194,7 @@
     <img class="sidebar-logo only-dark" src="../_static/fau_wiso_dark.png" alt="Dark Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">shap_enhanced  documentation</span>
+  <span class="sidebar-brand-text">Enhanced SHAP  documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -280,48 +280,91 @@
         <article role="main" id="furo-main-content">
           <section id="module-shap_enhanced.explainers.SurroSHAP">
 <span id="shap-enhanced-explainers-surroshap"></span><h1>shap_enhanced.explainers.SurroSHAP<a class="headerlink" href="#module-shap_enhanced.explainers.SurroSHAP" title="Link to this heading">¶</a></h1>
-<p>Surrogate Model SHAP (SurroSHAP) Explainer</p>
-<p>## Theoretical Explanation</p>
-<p>SurroSHAP is a surrogate-based SHAP explainer that trains a regression model to predict SHAP attributions, using pseudo-ground-truth from a base SHAP-style explainer. This approach enables fast, approximate SHAP value computation for new samples after the surrogate is trained, making it practical for large datasets or expensive models.</p>
-<p>### Key Concepts</p>
+<section id="surroshap-surrogate-model-shap-explainer">
+<h2>SurroSHAP: Surrogate Model SHAP Explainer<a class="headerlink" href="#surroshap-surrogate-model-shap-explainer" title="Link to this heading">¶</a></h2>
+<section id="theoretical-explanation">
+<h3>Theoretical Explanation<a class="headerlink" href="#theoretical-explanation" title="Link to this heading">¶</a></h3>
+<p><strong>SurroSHAP</strong> is a surrogate modeling approach to SHAP that accelerates feature attribution
+by training a regression model to <strong>mimic SHAP values</strong> produced by a base explainer.
+Once trained, the surrogate regressor can produce fast, approximate SHAP values for new inputs,
+bypassing the computational expense of re-running the base SHAP explainer.</p>
+<p>This method is particularly useful for large datasets, expensive black-box models, or scenarios
+where near-real-time interpretability is needed.</p>
+<section id="key-concepts">
+<h4>Key Concepts<a class="headerlink" href="#key-concepts" title="Link to this heading">¶</a></h4>
 <ul class="simple">
-<li><p><strong>Surrogate Regression:</strong> A regression model (e.g., Random Forest, Kernel Ridge) is trained to map input features to SHAP attributions, using attributions computed by a base explainer as targets.</p></li>
-<li><p><strong>Base Explainer:</strong> Any SHAP-style explainer (e.g., DeepExplainer, KernelExplainer) can be used to generate the pseudo-ground-truth attributions for training.</p></li>
-<li><p><strong>Input/Output Scaling:</strong> Optionally standardizes inputs and/or attributions to improve surrogate learning.</p></li>
-<li><p><strong>Fast Inference:</strong> Once trained, the surrogate regressor can rapidly predict SHAP values for new samples without running the base explainer.</p></li>
+<li><dl class="simple">
+<dt><strong>Surrogate Regression</strong>:</dt><dd><p>A regression model (e.g., Random Forest, Kernel Ridge, MLP) is trained to predict SHAP attributions
+using inputs as features and base SHAP values as targets.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><strong>Base SHAP Explainer</strong>:</dt><dd><p>Any standard SHAP-style explainer (e.g., <cite>DeepExplainer</cite>, <cite>GradientExplainer</cite>, <cite>KernelExplainer</cite>)
+can be used to generate training labels (pseudo-ground-truth SHAP values).</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><strong>Optional Scaling</strong>:</dt><dd><p>Input features and/or SHAP attributions can be standardized to improve the surrogate’s learning performance.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><strong>Fast Inference</strong>:</dt><dd><p>Once trained, the surrogate model can rapidly produce SHAP attributions for unseen inputs
+without invoking the base SHAP explainer again.</p>
+</dd>
+</dl>
+</li>
 </ul>
-<p>## Algorithm</p>
+</section>
+</section>
+<section id="algorithm">
+<h3>Algorithm<a class="headerlink" href="#algorithm" title="Link to this heading">¶</a></h3>
 <ol class="arabic simple">
 <li><dl class="simple">
-<dt><strong>Initialization:</strong></dt><dd><ul class="simple">
-<li><p>Accepts a model, background data, base explainer, regressor class, regressor kwargs, number of samples for base explainer, scaling options, and device.</p></li>
+<dt><strong>Initialization</strong>:</dt><dd><ul class="simple">
+<li><dl class="simple">
+<dt>Accepts the following:</dt><dd><ul>
+<li><p>A predictive model to explain.</p></li>
+<li><p>Background dataset for base SHAP explainer.</p></li>
+<li><p>SHAP-style base explainer class.</p></li>
+<li><p>Surrogate regressor class (e.g., <cite>sklearn.ensemble.RandomForestRegressor</cite>).</p></li>
+<li><p>Number of training samples for surrogate fitting.</p></li>
+<li><p>Options for input/output scaling.</p></li>
+<li><p>Device context (if applicable).</p></li>
+</ul>
+</dd>
+</dl>
+</li>
 </ul>
 </dd>
 </dl>
 </li>
 <li><dl class="simple">
-<dt><strong>Surrogate Training:</strong></dt><dd><ul class="simple">
+<dt><strong>Surrogate Training</strong>:</dt><dd><ul class="simple">
+<li><p>Sample training points from the background dataset.</p></li>
 <li><dl class="simple">
-<dt>For each background sample:</dt><dd><ul>
-<li><p>Compute SHAP attributions using the base explainer.</p></li>
-<li><p>Flatten and collect attributions as regression targets.</p></li>
+<dt>For each sample:</dt><dd><ul>
+<li><p>Compute SHAP values using the base explainer.</p></li>
+<li><p>Flatten the input and corresponding SHAP vector.</p></li>
 </ul>
 </dd>
 </dl>
 </li>
-<li><p>Optionally scale inputs and/or outputs.</p></li>
-<li><p>Train the surrogate regressor on (input, attribution) pairs.</p></li>
+<li><p>Optionally scale both inputs and targets.</p></li>
+<li><p>Fit the surrogate regressor on the collected (input, attribution) pairs.</p></li>
 </ul>
 </dd>
 </dl>
 </li>
 <li><dl class="simple">
-<dt><strong>SHAP Value Prediction:</strong></dt><dd><ul class="simple">
+<dt><strong>SHAP Value Prediction</strong>:</dt><dd><ul class="simple">
 <li><dl class="simple">
-<dt>For new samples:</dt><dd><ul>
-<li><p>Flatten and scale inputs as needed.</p></li>
-<li><p>Predict attributions using the surrogate regressor.</p></li>
-<li><p>Optionally inverse-transform outputs and reshape to original dimensions.</p></li>
+<dt>For a new sample:</dt><dd><ul>
+<li><p>Flatten and optionally scale the input.</p></li>
+<li><p>Predict SHAP attributions using the surrogate model.</p></li>
+<li><p>Inverse-transform and reshape predictions to original attribution shape if needed.</p></li>
 </ul>
 </dd>
 </dl>
@@ -331,15 +374,28 @@
 </dl>
 </li>
 </ol>
+</section>
+<section id="use-case">
+<h3>Use Case<a class="headerlink" href="#use-case" title="Link to this heading">¶</a></h3>
+<dl class="simple">
+<dt>SurroSHAP is best suited for:</dt><dd><ul class="simple">
+<li><p>Large-scale datasets requiring rapid SHAP value generation.</p></li>
+<li><p>Scenarios where base SHAP computation is slow or expensive.</p></li>
+<li><p>Situations where approximate explanations are acceptable in exchange for speed.</p></li>
+</ul>
+</dd>
+</dl>
+</section>
+</section>
 <p class="rubric">Functions</p>
 <div class="table-wrapper autosummary longtable docutils container">
 <table class="autosummary longtable docutils align-default">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#shap_enhanced.explainers.SurroSHAP.ensure_shap_input" title="shap_enhanced.explainers.SurroSHAP.ensure_shap_input"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ensure_shap_input</span></code></a>(x, explainer[, device])</p></td>
-<td><p></p></td>
+<td><p>Ensure compatibility of input format with the SHAP explainer type.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#shap_enhanced.explainers.SurroSHAP.shap_values_with_nsamples" title="shap_enhanced.explainers.SurroSHAP.shap_values_with_nsamples"><code class="xref py py-obj docutils literal notranslate"><span class="pre">shap_values_with_nsamples</span></code></a>(base_explainer, x, ...)</p></td>
-<td><p></p></td>
+<td><p>Safely compute SHAP values with optional support for <cite>nsamples</cite> argument.</p></td>
 </tr>
 </tbody>
 </table>
@@ -349,60 +405,94 @@
 <table class="autosummary longtable docutils align-default">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#shap_enhanced.explainers.SurroSHAP.SurrogateSHAPExplainer" title="shap_enhanced.explainers.SurroSHAP.SurrogateSHAPExplainer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SurrogateSHAPExplainer</span></code></a>(model, background, ...)</p></td>
-<td><p>Surrogate Model SHAP (SurroSHAP) Explainer.</p></td>
+<td><p>SurrogateSHAPExplainer: Fast SHAP Approximation via Supervised Regression</p></td>
 </tr>
 </tbody>
 </table>
 </div>
 <dl class="py class">
 <dt class="sig sig-object py" id="shap_enhanced.explainers.SurroSHAP.SurrogateSHAPExplainer">
-<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">shap_enhanced.explainers.SurroSHAP.</span></span><span class="sig-name descname"><span class="pre">SurrogateSHAPExplainer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model:</span> <span class="pre">~typing.Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">background:</span> <span class="pre">~numpy.ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">base_explainer:</span> <span class="pre">~typing.Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">regressor_class=&lt;class</span> <span class="pre">'sklearn.ensemble._forest.RandomForestRegressor'&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">regressor_kwargs=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nsamples_base=100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale_inputs=True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale_outputs=False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device=None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/shap_enhanced/explainers/SurroSHAP.html#SurrogateSHAPExplainer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#shap_enhanced.explainers.SurroSHAP.SurrogateSHAPExplainer" title="Link to this definition">¶</a></dt>
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">shap_enhanced.explainers.SurroSHAP.</span></span><span class="sig-name descname"><span class="pre">SurrogateSHAPExplainer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">background</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">base_explainer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">regressor_class=&lt;class</span> <span class="pre">'sklearn.ensemble._forest.RandomForestRegressor'&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">regressor_kwargs=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nsamples_base=100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale_inputs=True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale_outputs=False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device=None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/shap_enhanced/explainers/SurroSHAP.html#SurrogateSHAPExplainer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#shap_enhanced.explainers.SurroSHAP.SurrogateSHAPExplainer" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="shap_enhanced.base_explainer.html#shap_enhanced.base_explainer.BaseExplainer" title="shap_enhanced.base_explainer.BaseExplainer"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseExplainer</span></code></a></p>
-<p>Surrogate Model SHAP (SurroSHAP) Explainer.</p>
+<p>SurrogateSHAPExplainer: Fast SHAP Approximation via Supervised Regression</p>
+<p>SurroSHAP accelerates SHAP attribution by training a surrogate regression model that maps
+input features to SHAP attributions. This is useful when repeated SHAP computation is too
+costly or when near-instant explanations are needed for deployment.</p>
+<p>The surrogate model is trained on a background dataset where “true” SHAP values are first computed
+using a base explainer (e.g., <cite>DeepExplainer</cite>, <cite>KernelExplainer</cite>), and then used as regression targets.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Any sklearn-style regressor can be used (e.g., <cite>RandomForestRegressor</cite>, <cite>KernelRidge</cite>, etc.).</p>
+</div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>model</strong> (<em>Any</em>) – The model to be explained.</p></li>
-<li><p><strong>background</strong> (<em>np.ndarray</em>) – Background/training data (N, T, F).</p></li>
-<li><p><strong>base_explainer</strong> (<em>Any</em>) – SHAP-style explainer to provide attributions.</p></li>
-<li><p><strong>regressor_class</strong> (<em>class</em><em> (</em><em>default: RandomForestRegressor</em><em>)</em>) – Any sklearn-style regressor for multi-output regression.</p></li>
-<li><p><strong>regressor_kwargs</strong> (<em>dict</em>) – Arguments to regressor_class.</p></li>
-<li><p><strong>nsamples_base</strong> (<em>int</em>) – Number of samples to use for base explainer attributions (if supported).</p></li>
-<li><p><strong>scale_inputs</strong> (<em>bool</em>) – Whether to standardize inputs for the surrogate regressor.</p></li>
-<li><p><strong>scale_outputs</strong> (<em>bool</em>) – Whether to standardize attributions for surrogate learning.</p></li>
-<li><p><strong>device</strong> (<em>str</em><em> or </em><em>torch.device</em>) – Torch device.</p></li>
+<li><p><strong>model</strong> (<em>Any</em>) – Predictive model to be explained.</p></li>
+<li><p><strong>background</strong> (<em>np.ndarray</em>) – Background dataset for training surrogate and computing SHAP targets. Shape: (N, T, F).</p></li>
+<li><p><strong>base_explainer</strong> (<em>Any</em>) – A SHAP-style explainer instance (already constructed).</p></li>
+<li><p><strong>regressor_class</strong> (<em>type</em>) – Regressor class implementing fit/predict API. Defaults to RandomForestRegressor.</p></li>
+<li><p><strong>regressor_kwargs</strong> (<em>dict</em>) – Optional keyword arguments for the regressor.</p></li>
+<li><p><strong>nsamples_base</strong> (<em>int</em>) – Number of SHAP samples used for each background point.</p></li>
+<li><p><strong>scale_inputs</strong> (<em>bool</em>) – Whether to standardize input features during training.</p></li>
+<li><p><strong>scale_outputs</strong> (<em>bool</em>) – Whether to standardize SHAP values during training.</p></li>
+<li><p><strong>device</strong> (<em>str</em><em> or </em><em>torch.device</em>) – Torch device (e.g., ‘cpu’ or ‘cuda’).</p></li>
 </ul>
 </dd>
 </dl>
 <dl class="py property">
 <dt class="sig sig-object py" id="shap_enhanced.explainers.SurroSHAP.SurrogateSHAPExplainer.expected_value">
 <em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">expected_value</span></span><a class="headerlink" href="#shap_enhanced.explainers.SurroSHAP.SurrogateSHAPExplainer.expected_value" title="Link to this definition">¶</a></dt>
-<dd><p>(Optional) Return the expected value of the model output on the background dataset.</p>
+<dd><p>Optional property returning the expected model output on the background dataset.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Expected value if defined by the subclass, else None.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>float or None</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="shap_enhanced.explainers.SurroSHAP.SurrogateSHAPExplainer.explain">
-<span class="sig-name descname"><span class="pre">explain</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">torch.Tensor</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span></span></span><a class="headerlink" href="#shap_enhanced.explainers.SurroSHAP.SurrogateSHAPExplainer.explain" title="Link to this definition">¶</a></dt>
-<dd><p>Alias for shap_values, for compatibility and future flexibility.</p>
+<span class="sig-name descname"><span class="pre">explain</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#shap_enhanced.explainers.SurroSHAP.SurrogateSHAPExplainer.explain" title="Link to this definition">¶</a></dt>
+<dd><p>Alias to <cite>shap_values</cite> for flexibility and API compatibility.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>X</strong> (<em>Union</em><em>[</em><em>np.ndarray</em><em>, </em><em>torch.Tensor</em><em>, </em><em>list</em><em>]</em>) – Input samples to explain.</p></li>
+<li><p><strong>kwargs</strong> – Additional arguments.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>SHAP values.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Union[np.ndarray, list]</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="shap_enhanced.explainers.SurroSHAP.SurrogateSHAPExplainer.shap_values">
-<span class="sig-name descname"><span class="pre">shap_values</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="reference internal" href="../_modules/shap_enhanced/explainers/SurroSHAP.html#SurrogateSHAPExplainer.shap_values"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#shap_enhanced.explainers.SurroSHAP.SurrogateSHAPExplainer.shap_values" title="Link to this definition">¶</a></dt>
-<dd><p>Compute SHAP values for the input data.</p>
+<span class="sig-name descname"><span class="pre">shap_values</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/shap_enhanced/explainers/SurroSHAP.html#SurrogateSHAPExplainer.shap_values"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#shap_enhanced.explainers.SurroSHAP.SurrogateSHAPExplainer.shap_values" title="Link to this definition">¶</a></dt>
+<dd><p>Predict SHAP attributions for new inputs using the trained surrogate model.</p>
+<p>The input is reshaped and (optionally) standardized to match the format used
+during surrogate training, and the predicted SHAP values are inverse-transformed
+(if scaling was applied).</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This bypasses SHAP computation entirely and relies on the surrogate regressor.</p>
+</div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>X</strong> (<em>np.ndarray</em><em> or </em><em>torch.Tensor</em><em> or </em><em>list</em>) – Input samples for which to compute SHAP values.</p></li>
-<li><p><strong>check_additivity</strong> (<em>bool</em>) – Whether to verify that SHAP values sum to model output difference.</p></li>
-<li><p><strong>kwargs</strong> (<em>dict</em>) – Additional arguments for derived explainers.</p></li>
-</ul>
+<dd class="field-odd"><p><strong>X</strong> (<em>np.ndarray</em><em> or </em><em>torch.Tensor</em>) – Input instance or batch, shape (T, F) or (B, T, F).</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>shap_values</strong> – The computed SHAP values, shape matches input X.</p>
+<dd class="field-even"><p>Approximated SHAP attributions, same shape as input.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>np.ndarray or list of np.ndarray</p>
+<dd class="field-odd"><p>np.ndarray</p>
 </dd>
 </dl>
 </dd></dl>
@@ -412,12 +502,60 @@
 <dl class="py function">
 <dt class="sig sig-object py" id="shap_enhanced.explainers.SurroSHAP.ensure_shap_input">
 <span class="sig-prename descclassname"><span class="pre">shap_enhanced.explainers.SurroSHAP.</span></span><span class="sig-name descname"><span class="pre">ensure_shap_input</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">explainer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'cpu'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/shap_enhanced/explainers/SurroSHAP.html#ensure_shap_input"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#shap_enhanced.explainers.SurroSHAP.ensure_shap_input" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Ensure compatibility of input format with the SHAP explainer type.</p>
+<p>This function inspects the explainer type (e.g., DeepExplainer, KernelExplainer)
+and converts the input <cite>x</cite> into the appropriate format—either a NumPy array or a
+PyTorch tensor—based on the explainer’s requirements.</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Deep/Gradient explainers require <cite>torch.Tensor</cite> input.</p></li>
+<li><p>Kernel/Partition explainers require <cite>np.ndarray</cite> input.</p></li>
+</ul>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<em>np.ndarray</em><em> or </em><em>torch.Tensor</em>) – Input sample to format, shape (T, F) or (1, T, F).</p></li>
+<li><p><strong>explainer</strong> (<em>Any</em>) – Instantiated SHAP explainer object.</p></li>
+<li><p><strong>device</strong> (<em>str</em>) – Target torch device (‘cpu’ or ‘cuda’).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Properly formatted input for SHAP explainer.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray or torch.Tensor</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>TypeError</strong> – If the input type is unsupported.</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="shap_enhanced.explainers.SurroSHAP.shap_values_with_nsamples">
 <span class="sig-prename descclassname"><span class="pre">shap_enhanced.explainers.SurroSHAP.</span></span><span class="sig-name descname"><span class="pre">shap_values_with_nsamples</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">base_explainer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nsamples</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/shap_enhanced/explainers/SurroSHAP.html#shap_values_with_nsamples"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#shap_enhanced.explainers.SurroSHAP.shap_values_with_nsamples" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Safely compute SHAP values with optional support for <cite>nsamples</cite> argument.</p>
+<p>This utility inspects the signature of the <cite>shap_values</cite> method and attempts
+to call it with <cite>nsamples</cite>, <cite>check_additivity</cite>, and any additional kwargs.
+It includes fallback logic for older SHAP versions that may not support these parameters.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>base_explainer</strong> (<em>Any</em>) – SHAP explainer instance.</p></li>
+<li><p><strong>x</strong> (<em>np.ndarray</em><em> or </em><em>torch.Tensor</em>) – Input to explain (already formatted for the explainer).</p></li>
+<li><p><strong>nsamples</strong> (<em>int</em>) – Number of samples to use for SHAP estimation.</p></li>
+<li><p><strong>kwargs</strong> – Additional keyword arguments for <cite>shap_values</cite>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>SHAP attributions for the input.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray or list</p>
+</dd>
+</dl>
+</dd></dl>
 
 </section>
 
@@ -477,6 +615,15 @@
           <div class="toc-tree">
             <ul>
 <li><a class="reference internal" href="#">shap_enhanced.explainers.SurroSHAP</a><ul>
+<li><a class="reference internal" href="#surroshap-surrogate-model-shap-explainer">SurroSHAP: Surrogate Model SHAP Explainer</a><ul>
+<li><a class="reference internal" href="#theoretical-explanation">Theoretical Explanation</a><ul>
+<li><a class="reference internal" href="#key-concepts">Key Concepts</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#algorithm">Algorithm</a></li>
+<li><a class="reference internal" href="#use-case">Use Case</a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#shap_enhanced.explainers.SurroSHAP.SurrogateSHAPExplainer"><code class="docutils literal notranslate"><span class="pre">SurrogateSHAPExplainer</span></code></a><ul>
 <li><a class="reference internal" href="#shap_enhanced.explainers.SurroSHAP.SurrogateSHAPExplainer.expected_value"><code class="docutils literal notranslate"><span class="pre">SurrogateSHAPExplainer.expected_value</span></code></a></li>
 <li><a class="reference internal" href="#shap_enhanced.explainers.SurroSHAP.SurrogateSHAPExplainer.explain"><code class="docutils literal notranslate"><span class="pre">SurrogateSHAPExplainer.explain()</span></code></a></li>

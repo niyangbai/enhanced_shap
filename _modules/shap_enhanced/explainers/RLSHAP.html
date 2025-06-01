@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../genindex.html" /><link rel="search" title="Search" href="../../../search.html" />
 
     <!-- Generated with Sphinx 8.2.3 and Furo 2024.08.06 -->
-        <title>shap_enhanced.explainers.RLSHAP - shap_enhanced documentation</title>
+        <title>shap_enhanced.explainers.RLSHAP - Enhanced SHAP documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=354aac6f" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?v=302659d7" />
@@ -165,7 +165,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../../index.html"><div class="brand">shap_enhanced  documentation</div></a>
+      <a href="../../../index.html"><div class="brand">Enhanced SHAP  documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -193,7 +193,7 @@
     <img class="sidebar-logo only-dark" src="../../../_static/fau_wiso_dark.png" alt="Dark Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">shap_enhanced  documentation</span>
+  <span class="sidebar-brand-text">Enhanced SHAP  documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -274,37 +274,76 @@
           <h1>Source code for shap_enhanced.explainers.RLSHAP</h1><div class="highlight"><pre>
 <span></span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">RL-SHAP: Reinforcement Learning SHAP Explainer</span>
+<span class="sd">==============================================</span>
 
-<span class="sd">## Theoretical Explanation</span>
+<span class="sd">Theoretical Explanation</span>
+<span class="sd">-----------------------</span>
 
-<span class="sd">RL-SHAP is a feature attribution method that learns a masking policy for selecting input feature–time subsets using a policy network trained with reinforcement learning (policy gradients). The policy network generates masks over the input, and the reward is the change in model output due to the selected mask. This approach enables the explainer to learn which subsets of features are most important for the model&#39;s prediction, rather than relying on random or exhaustive coalition sampling. RL-SHAP uses the Gumbel-Softmax trick for differentiable subset selection, allowing efficient training of the masking policy.</span>
+<span class="sd">RL-SHAP introduces a reinforcement learning–based approach to Shapley value estimation by learning  </span>
+<span class="sd">a **masking policy** that selectively reveals feature–time pairs in an input sequence.  </span>
+<span class="sd">Instead of enumerating random coalitions (as in classical SHAP), RL-SHAP trains a policy network  </span>
+<span class="sd">to generate informative coalitions—those that most impact the model output when masked or revealed.</span>
 
-<span class="sd">### Key Concepts</span>
+<span class="sd">The policy is optimized using **policy gradient reinforcement learning**, where the reward  </span>
+<span class="sd">is derived from the change in model prediction caused by a particular mask.  </span>
+<span class="sd">By using the **Gumbel-Softmax trick**, RL-SHAP enables differentiable and efficient sampling  </span>
+<span class="sd">of binary masks, making it feasible to train masking policies via gradient-based optimization.</span>
 
-<span class="sd">- **Masking Policy Network:** A neural network learns to generate masks over the input features/timesteps, selecting which features to keep or mask.</span>
-<span class="sd">- **Reinforcement Learning:** The policy is trained using policy gradients, with the reward being the change in model output caused by masking.</span>
-<span class="sd">- **Gumbel-Softmax Sampling:** Enables differentiable sampling of binary masks, making the policy network trainable via gradient descent.</span>
-<span class="sd">- **Mean Imputation:** Masked features are replaced with the mean value from the background data.</span>
-<span class="sd">- **Attribution Estimation:** After training, the policy is used to estimate the marginal contribution of each feature by measuring the effect of masking/unmasking it.</span>
+<span class="sd">Key Concepts</span>
+<span class="sd">^^^^^^^^^^^^</span>
 
-<span class="sd">## Algorithm</span>
+<span class="sd">- **Masking Policy Network**:  </span>
+<span class="sd">    A neural network that learns to generate binary masks over the input features and time steps.  </span>
+<span class="sd">    The masks decide which features to keep and which to replace with a baseline (e.g., mean).</span>
 
-<span class="sd">1. **Initialization:**</span>
-<span class="sd">    - Accepts a model, background data, device, and policy network parameters.</span>
-<span class="sd">2. **Policy Training:**</span>
-<span class="sd">    - For each batch of background samples:</span>
-<span class="sd">        - The policy network generates mask logits.</span>
-<span class="sd">        - Gumbel-Softmax is used to sample soft/hard masks.</span>
-<span class="sd">        - Masked inputs are created by replacing masked features with the background mean.</span>
-<span class="sd">        - The model is evaluated on both original and masked inputs.</span>
-<span class="sd">        - The reward is the absolute change in model output.</span>
-<span class="sd">        - The policy is updated via policy gradient to maximize the reward.</span>
-<span class="sd">3. **SHAP Value Estimation:**</span>
-<span class="sd">    - For each input and each feature:</span>
-<span class="sd">        - Sample masks using the trained policy.</span>
-<span class="sd">        - For each mask, compute the model output with and without the feature unmasked.</span>
-<span class="sd">        - The average difference estimates the SHAP value for that feature.</span>
+<span class="sd">- **Reinforcement Learning Objective**:  </span>
+<span class="sd">    The policy network is trained to maximize the reward signal, defined as the absolute change  </span>
+<span class="sd">    in model output caused by masking.</span>
+
+<span class="sd">- **Gumbel-Softmax Sampling**:  </span>
+<span class="sd">    Enables differentiable approximation of discrete binary masking, allowing gradient descent  </span>
+<span class="sd">    to be used for training the policy network.</span>
+
+<span class="sd">- **Mean Imputation**:  </span>
+<span class="sd">    Masked features are imputed with their mean values, derived from a background dataset.</span>
+
+<span class="sd">- **Attribution Estimation**:  </span>
+<span class="sd">    After training, the policy is used to evaluate the marginal contribution of each feature  </span>
+<span class="sd">    by comparing model predictions with and without the feature unmasked across various policy-generated masks.</span>
+
+<span class="sd">Algorithm</span>
+<span class="sd">---------</span>
+
+<span class="sd">1. **Initialization**:</span>
+<span class="sd">    - Accepts the model to be explained, background dataset for mean imputation, device context,  </span>
+<span class="sd">        and policy network architecture or hyperparameters.</span>
+
+<span class="sd">2. **Policy Training**:</span>
+<span class="sd">    - For each training iteration:</span>
+<span class="sd">        - Sample a batch of background inputs.</span>
+<span class="sd">        - The policy network outputs logits for feature-wise masks.</span>
+<span class="sd">        - Apply Gumbel-Softmax sampling to obtain soft (differentiable) or hard (binary) masks.</span>
+<span class="sd">        - Construct masked inputs by replacing selected features with their background mean.</span>
+<span class="sd">        - Compute model outputs on both original and masked inputs.</span>
+<span class="sd">        - Calculate rewards as the absolute change in output.</span>
+<span class="sd">        - Update the policy using policy gradient optimization to maximize expected reward.</span>
+
+<span class="sd">3. **SHAP Value Estimation**:</span>
+<span class="sd">    - For each input sample and each feature:</span>
+<span class="sd">        - Sample multiple masks from the trained policy.</span>
+<span class="sd">        - For each mask:</span>
+<span class="sd">            - Evaluate model outputs with the feature masked vs. unmasked.</span>
+<span class="sd">        - Estimate the SHAP value as the average difference in outputs due to unmasking the feature.</span>
+
+<span class="sd">Use Case</span>
+<span class="sd">--------</span>
+
+<span class="sd">RL-SHAP is particularly beneficial when:</span>
+<span class="sd">    - Exhaustive or random sampling of coalitions is infeasible due to input dimensionality.</span>
+<span class="sd">    - The model is highly sensitive to feature interactions.</span>
+<span class="sd">    - A learned masking strategy can offer better efficiency or accuracy than brute-force approaches.</span>
 <span class="sd">&quot;&quot;&quot;</span>
+
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nn</span>
@@ -315,8 +354,20 @@
 <div class="viewcode-block" id="MaskingPolicy">
 <a class="viewcode-back" href="../../../generated/shap_enhanced.explainers.RLSHAP.html#shap_enhanced.explainers.RLSHAP.MaskingPolicy">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">MaskingPolicy</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Policy network for generating mask logits over (T, F).</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    MaskingPolicy: Neural Mask Generator for Feature-Time Grids</span>
+
+<span class="sd">    A simple fully connected neural network that produces logits for binary masks over a (T, F) input space.</span>
+<span class="sd">    Designed to be used in RL-SHAP for learning masking policies via policy gradient methods.</span>
+
+<span class="sd">    Architecture:</span>
+<span class="sd">    - Input: Flattened (T, F) input sequence.</span>
+<span class="sd">    - 2-layer MLP with ReLU activation.</span>
+<span class="sd">    - Output reshaped to (B, T, F) for mask logits.</span>
+
+<span class="sd">    :param int T: Number of time steps in the input.</span>
+<span class="sd">    :param int F: Number of features per time step.</span>
+<span class="sd">    :param int hidden_dim: Hidden layer size for MLP.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">F</span><span class="p">,</span> <span class="n">hidden_dim</span><span class="o">=</span><span class="mi">64</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
@@ -327,7 +378,14 @@
 <div class="viewcode-block" id="MaskingPolicy.forward">
 <a class="viewcode-back" href="../../../generated/shap_enhanced.explainers.RLSHAP.html#shap_enhanced.explainers.RLSHAP.MaskingPolicy.forward">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
-        <span class="c1"># x: (B, T, F)</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Forward pass to produce mask logits over each (t, f) entry.</span>
+
+<span class="sd">        :param x: Input tensor of shape (B, T, F).</span>
+<span class="sd">        :type x: torch.Tensor</span>
+<span class="sd">        :return: Logits for masking, shape (B, T, F).</span>
+<span class="sd">        :rtype: torch.Tensor</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">x_flat</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
         <span class="n">logits</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fc2</span><span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">relu</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fc1</span><span class="p">(</span><span class="n">x_flat</span><span class="p">)))</span>  <span class="c1"># (B, T*F)</span>
         <span class="k">return</span> <span class="n">logits</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">F</span><span class="p">)</span>  <span class="c1"># (B, T, F)</span></div>
@@ -337,17 +395,25 @@
 <div class="viewcode-block" id="RLShapExplainer">
 <a class="viewcode-back" href="../../../generated/shap_enhanced.explainers.RLSHAP.html#shap_enhanced.explainers.RLSHAP.RLShapExplainer">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">RLShapExplainer</span><span class="p">(</span><span class="n">BaseExplainer</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    RL-SHAP: Masking Policy Gradient Explainer</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    RLShapExplainer: Reinforcement Learning–based SHAP Explainer</span>
 
-<span class="sd">    Parameters</span>
-<span class="sd">    ----------</span>
-<span class="sd">    model : Any</span>
-<span class="sd">        Model to be explained.</span>
-<span class="sd">    background : np.ndarray or torch.Tensor</span>
-<span class="sd">        Background data for training.</span>
-<span class="sd">    device : &#39;cpu&#39; or &#39;cuda&#39;</span>
-<span class="sd">        Torch device.</span>
+<span class="sd">    This explainer uses a policy network trained via reinforcement learning to </span>
+<span class="sd">    learn feature–time masking strategies that optimize attribution signal strength. </span>
+<span class="sd">    Instead of enumerating coalitions randomly, it learns where to mask for maximal </span>
+<span class="sd">    model impact and uses those masks to approximate SHAP values.</span>
+
+<span class="sd">    .. math::</span>
+<span class="sd">        \text{SHAP}(i) \approx \mathbb{E}_{\pi} \left[</span>
+<span class="sd">            f(x \setminus i) - f(x)</span>
+<span class="sd">        \right]</span>
+
+<span class="sd">    :param model: The predictive model to be explained.</span>
+<span class="sd">    :type model: torch.nn.Module</span>
+<span class="sd">    :param background: Background dataset used for mean imputation.</span>
+<span class="sd">    :type background: np.ndarray or torch.Tensor</span>
+<span class="sd">    :param str device: Torch device, either &#39;cpu&#39; or &#39;cuda&#39;.</span>
+<span class="sd">    :param int policy_hidden: Hidden layer size for the masking policy network.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">background</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">policy_hidden</span><span class="o">=</span><span class="mi">64</span><span class="p">):</span>
@@ -361,7 +427,22 @@
 <div class="viewcode-block" id="RLShapExplainer.gumbel_sample">
 <a class="viewcode-back" href="../../../generated/shap_enhanced.explainers.RLSHAP.html#shap_enhanced.explainers.RLSHAP.RLShapExplainer.gumbel_sample">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">gumbel_sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">logits</span><span class="p">,</span> <span class="n">tau</span><span class="o">=</span><span class="mf">0.5</span><span class="p">):</span>
-        <span class="c1"># logits: (B, T, F)</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Perform Gumbel-Softmax sampling over logits to generate differentiable binary-like masks.</span>
+
+<span class="sd">        Adds Gumbel noise to logits and applies a sigmoid activation with temperature scaling</span>
+<span class="sd">        to approximate binary sampling in a differentiable way.</span>
+
+<span class="sd">        .. math::</span>
+<span class="sd">            y = \sigma\left(\frac{\logits + G}{\tau}\right), \quad </span>
+<span class="sd">            G \sim \text{Gumbel}(0,1)</span>
+
+<span class="sd">        :param logits: Raw logits over the (T, F) feature mask space.</span>
+<span class="sd">        :type logits: torch.Tensor</span>
+<span class="sd">        :param float tau: Temperature parameter controlling sharpness of output (lower = harder mask).</span>
+<span class="sd">        :return: Differentiable soft mask tensor in [0, 1], same shape as logits.</span>
+<span class="sd">        :rtype: torch.Tensor</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">gumbel_noise</span> <span class="o">=</span> <span class="o">-</span><span class="n">torch</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="o">-</span><span class="n">torch</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">rand_like</span><span class="p">(</span><span class="n">logits</span><span class="p">)</span> <span class="o">+</span> <span class="mf">1e-10</span><span class="p">)</span> <span class="o">+</span> <span class="mf">1e-10</span><span class="p">)</span>
         <span class="n">y</span> <span class="o">=</span> <span class="n">logits</span> <span class="o">+</span> <span class="n">gumbel_noise</span>
         <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">sigmoid</span><span class="p">(</span><span class="n">y</span> <span class="o">/</span> <span class="n">tau</span><span class="p">)</span></div>
@@ -370,6 +451,19 @@
 <div class="viewcode-block" id="RLShapExplainer.train_policy">
 <a class="viewcode-back" href="../../../generated/shap_enhanced.explainers.RLSHAP.html#shap_enhanced.explainers.RLSHAP.RLShapExplainer.train_policy">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">train_policy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_steps</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span> <span class="n">mask_frac</span><span class="o">=</span><span class="mf">0.3</span><span class="p">):</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Train the masking policy network using policy gradient optimization.</span>
+
+<span class="sd">        The network is optimized to generate masks that maximize the absolute </span>
+<span class="sd">        change in the model&#39;s prediction when masking certain input features.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            Gumbel-Softmax is used to approximate discrete mask sampling for differentiability.</span>
+
+<span class="sd">        :param int n_steps: Number of training iterations.</span>
+<span class="sd">        :param int batch_size: Batch size sampled from the background at each step.</span>
+<span class="sd">        :param float mask_frac: Fraction of features to mask in each sampled coalition.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;[RL-SHAP] Training masking policy...&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">train</span><span class="p">()</span>
         <span class="n">background</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">background</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
@@ -423,9 +517,25 @@
 <div class="viewcode-block" id="RLShapExplainer.shap_values">
 <a class="viewcode-back" href="../../../generated/shap_enhanced.explainers.RLSHAP.html#shap_enhanced.explainers.RLSHAP.RLShapExplainer.shap_values">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">shap_values</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">nsamples</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">mask_frac</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span> <span class="n">tau</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Estimate SHAP values using learned masking policy.</span>
-<span class="sd">        For each (t, f), sample maskings and measure expected output change.</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Estimate SHAP values for input `X` using the trained masking policy.</span>
+
+<span class="sd">        For each feature (t, f), multiple masks are sampled with the feature masked and unmasked. </span>
+<span class="sd">        The expected difference in model outputs estimates the marginal contribution of the feature.</span>
+
+<span class="sd">        .. math::</span>
+<span class="sd">            \phi_{t,f} = \mathbb{E}_{m \sim \pi} \left[</span>
+<span class="sd">                f(x_{m \cup \{(t,f)\}}) - f(x_m)</span>
+<span class="sd">            \right]</span>
+
+<span class="sd">        :param X: Input to explain, shape (T, F) or (B, T, F).</span>
+<span class="sd">        :type X: np.ndarray or torch.Tensor</span>
+<span class="sd">        :param int nsamples: Number of mask samples to average over.</span>
+<span class="sd">        :param float mask_frac: Fraction of features masked per sample.</span>
+<span class="sd">        :param float tau: Gumbel-Softmax temperature.</span>
+<span class="sd">        :param kwargs: Additional keyword arguments (not used).</span>
+<span class="sd">        :return: Estimated SHAP values with same shape as input.</span>
+<span class="sd">        :rtype: np.ndarray</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
         <span class="n">is_torch</span> <span class="o">=</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="s1">&#39;detach&#39;</span><span class="p">)</span>

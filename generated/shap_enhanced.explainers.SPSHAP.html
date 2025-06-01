@@ -6,7 +6,7 @@
 <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="shap_enhanced.explainers.SurroSHAP" href="shap_enhanced.explainers.SurroSHAP.html" /><link rel="prev" title="shap_enhanced.explainers.SCSHAP" href="shap_enhanced.explainers.SCSHAP.html" />
 
     <!-- Generated with Sphinx 8.2.3 and Furo 2024.08.06 -->
-        <title>shap_enhanced.explainers.SPSHAP - shap_enhanced documentation</title>
+        <title>shap_enhanced.explainers.SPSHAP - Enhanced SHAP documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=354aac6f" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=302659d7" />
@@ -166,7 +166,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../index.html"><div class="brand">shap_enhanced  documentation</div></a>
+      <a href="../index.html"><div class="brand">Enhanced SHAP  documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -194,7 +194,7 @@
     <img class="sidebar-logo only-dark" src="../_static/fau_wiso_dark.png" alt="Dark Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">shap_enhanced  documentation</span>
+  <span class="sidebar-brand-text">Enhanced SHAP  documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -280,59 +280,127 @@
         <article role="main" id="furo-main-content">
           <section id="module-shap_enhanced.explainers.SPSHAP">
 <span id="shap-enhanced-explainers-spshap"></span><h1>shap_enhanced.explainers.SPSHAP<a class="headerlink" href="#module-shap_enhanced.explainers.SPSHAP" title="Link to this heading">¶</a></h1>
-<p>Support-Preserving SHAP Explainer</p>
-<p>## Theoretical Explanation</p>
-<p>Support-Preserving SHAP is a feature attribution method designed for sparse or structured discrete data (e.g., one-hot or binary encodings). For each coalition (subset of features to mask), the perturbed instance is replaced by a real sample from the dataset that matches the resulting support pattern. This ensures that all perturbed samples are valid and observed in the data, avoiding unrealistic or out-of-distribution patterns. If no such sample exists, the coalition is skipped or flagged. For non-sparse data, the method falls back to classic mean-masking SHAP.</p>
-<p>### Key Concepts</p>
+<section id="support-preserving-shap-explainer">
+<h2>Support-Preserving SHAP Explainer<a class="headerlink" href="#support-preserving-shap-explainer" title="Link to this heading">¶</a></h2>
+<section id="theoretical-explanation">
+<h3>Theoretical Explanation<a class="headerlink" href="#theoretical-explanation" title="Link to this heading">¶</a></h3>
+<p>Support-Preserving SHAP is a specialized feature attribution method tailored for <strong>sparse</strong> or <strong>structured discrete data</strong>,
+such as one-hot encodings or binary presence/absence features. Unlike traditional SHAP variants that create
+synthetic masked inputs (often resulting in out-of-distribution samples), this explainer <strong>only evaluates inputs that have
+been observed in the dataset</strong> and match the support pattern induced by masking.</p>
+<p>For each coalition (subset of features to mask), the method attempts to find a real background sample
+with the <strong>same binary support</strong> (nonzero positions) as the masked instance. If no such sample exists, the coalition
+is skipped or flagged—ensuring that only valid, realistic inputs are used for estimating SHAP values.</p>
+<p>For continuous or dense data, the method gracefully falls back to <strong>mean-masking</strong> (standard SHAP behavior).</p>
+<section id="key-concepts">
+<h4>Key Concepts<a class="headerlink" href="#key-concepts" title="Link to this heading">¶</a></h4>
 <ul class="simple">
-<li><p><strong>Support Pattern Matching:</strong> For each masked coalition, find a real background sample with the same support (nonzero pattern) as the masked instance.</p></li>
-<li><p><strong>One-Hot/Binary Support:</strong> Especially suited for one-hot or binary sparse data, ensuring only valid patterns are used for model evaluation.</p></li>
-<li><p><strong>Fallback to Mean Masking:</strong> If the data is not truly one-hot or binary, falls back to mean-masking (classic SHAP).</p></li>
-<li><p><strong>Additivity Normalization:</strong> Attributions are normalized so their sum matches the model output difference between the original and fully-masked input.</p></li>
+<li><dl class="simple">
+<dt><strong>Support Pattern Matching</strong>:</dt><dd><p>Masked inputs are replaced with real background examples that match the nonzero pattern (support)
+of the masked input. This maintains validity and avoids generating unrealistic inputs.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><strong>One-Hot / Binary Support</strong>:</dt><dd><p>Especially effective for categorical features encoded as one-hot vectors or binary indicators.
+Masking respects group structures and ensures feasible combinations.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><strong>Graceful Fallback</strong>:</dt><dd><p>When applied to continuous or dense data, the explainer defaults to mean-masking to retain applicability.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><strong>Additivity Normalization</strong>:</dt><dd><p>Final attributions are scaled such that their total equals the model output difference between
+the original and fully-masked inputs.</p>
+</dd>
+</dl>
+</li>
 </ul>
-<p>## Algorithm</p>
+</section>
+</section>
+<section id="algorithm">
+<h3>Algorithm<a class="headerlink" href="#algorithm" title="Link to this heading">¶</a></h3>
 <ol class="arabic simple">
 <li><dl class="simple">
-<dt><strong>Initialization:</strong></dt><dd><ul class="simple">
-<li><p>Accepts a model, background data, skip-unmatched flag, and device.</p></li>
+<dt><strong>Initialization</strong>:</dt><dd><ul class="simple">
+<li><p>Accepts a model, background dataset, device context, and configuration for skipping or flagging unmatched patterns.</p></li>
 </ul>
 </dd>
 </dl>
 </li>
 <li><dl class="simple">
-<dt><strong>Support-Preserving Masking:</strong></dt><dd><ul class="simple">
-<li><p>For each coalition, mask the selected features and find a background sample with the same support pattern.</p></li>
-<li><p>If no match is found, skip the coalition or raise an error.</p></li>
-<li><p>For non-sparse data, use mean-masking for each feature.</p></li>
+<dt><strong>Support-Preserving Masking</strong>:</dt><dd><ul class="simple">
+<li><dl class="simple">
+<dt>For each sampled coalition of masked features:</dt><dd><ul>
+<li><p>Create a masked version of the input.</p></li>
+<li><p>Find a background example with the same binary support (nonzero positions).</p></li>
+<li><p>If no match is found, either skip or raise an exception based on configuration.</p></li>
+<li><p>For non-sparse (dense) inputs, fallback to mean-masking.</p></li>
+</ul>
+</dd>
+</dl>
+</li>
 </ul>
 </dd>
 </dl>
 </li>
 <li><dl class="simple">
-<dt><strong>SHAP Value Estimation:</strong></dt><dd><ul class="simple">
+<dt><strong>SHAP Value Estimation</strong>:</dt><dd><ul class="simple">
 <li><dl class="simple">
-<dt>For each feature, repeatedly:</dt><dd><ul>
-<li><p>Sample random coalitions of other features.</p></li>
+<dt>For each feature:</dt><dd><ul>
+<li><p>Repeatedly sample coalitions of other features.</p></li>
+<li><dl class="simple">
+<dt>For each:</dt><dd><ul>
 <li><p>Mask the coalition and find a matching background sample.</p></li>
-<li><p>Mask the coalition plus the feature of interest and find a matching sample.</p></li>
+<li><p>Mask the coalition plus the feature of interest and find another match.</p></li>
 <li><p>Compute the model output difference.</p></li>
-<li><p>Average these differences to estimate the marginal contribution of the feature.</p></li>
 </ul>
 </dd>
 </dl>
 </li>
-<li><p>Normalize attributions so their sum matches the difference between the original and fully-masked model output.</p></li>
+<li><p>Average these differences to estimate the feature’s marginal contribution.</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><strong>Normalization</strong>:</dt><dd><ul class="simple">
+<li><dl class="simple">
+<dt>Scale the final attributions so their sum matches the model output difference</dt><dd><p>between the unmasked and fully-masked input.</p>
+</dd>
+</dl>
+</li>
 </ul>
 </dd>
 </dl>
 </li>
 </ol>
+</section>
+<section id="use-case">
+<h3>Use Case<a class="headerlink" href="#use-case" title="Link to this heading">¶</a></h3>
+<dl class="simple">
+<dt>Ideal for:</dt><dd><ul class="simple">
+<li><p>One-hot encoded categorical features.</p></li>
+<li><p>Binary indicators (presence/absence).</p></li>
+<li><p>Sparse high-dimensional data where only valid observed patterns should be used for attribution.</p></li>
+</ul>
+</dd>
+</dl>
+</section>
+</section>
 <p class="rubric">Classes</p>
 <div class="table-wrapper autosummary longtable docutils container">
 <table class="autosummary longtable docutils align-default">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#shap_enhanced.explainers.SPSHAP.SupportPreservingSHAPExplainer" title="shap_enhanced.explainers.SPSHAP.SupportPreservingSHAPExplainer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SupportPreservingSHAPExplainer</span></code></a>(model, background)</p></td>
-<td><p>Support-Preserving SHAP Explainer.</p></td>
+<td><p>SupportPreservingSHAPExplainer: Real-Pattern-Constrained SHAP Estimator</p></td>
 </tr>
 </tbody>
 </table>
@@ -341,48 +409,97 @@
 <dt class="sig sig-object py" id="shap_enhanced.explainers.SPSHAP.SupportPreservingSHAPExplainer">
 <em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">shap_enhanced.explainers.SPSHAP.</span></span><span class="sig-name descname"><span class="pre">SupportPreservingSHAPExplainer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">background</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skip_unmatched</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/shap_enhanced/explainers/SPSHAP.html#SupportPreservingSHAPExplainer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#shap_enhanced.explainers.SPSHAP.SupportPreservingSHAPExplainer" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="shap_enhanced.base_explainer.html#shap_enhanced.base_explainer.BaseExplainer" title="shap_enhanced.base_explainer.BaseExplainer"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseExplainer</span></code></a></p>
-<p>Support-Preserving SHAP Explainer.</p>
-<p>Uses real samples from the background matching the support pattern of the masked instance.
-If the data is not truly one-hot or binary sparse, falls back to mean-masking (SHAP style).</p>
+<p>SupportPreservingSHAPExplainer: Real-Pattern-Constrained SHAP Estimator</p>
+<p>This explainer approximates SHAP values by generating only masked inputs that match real examples
+in the dataset—preserving the discrete or sparse structure of the input space. It avoids
+out-of-distribution perturbations by requiring coalitions (masked variants) to have binary
+support patterns that exist in the original data.</p>
+<p>If the data is not sparse (e.g., continuous), the method falls back to mean-masking,
+akin to standard SHAP explainers.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>model</strong> (<em>Any</em>) – Model to be explained.</p></li>
-<li><p><strong>background</strong> (<em>np.ndarray</em><em> or </em><em>torch.Tensor</em>) – The full dataset (N, T, F) or (N, F).</p></li>
-<li><p><strong>skip_unmatched</strong> (<em>bool</em>) – If True, skip coalitions where no matching sample is found.</p></li>
-<li><p><strong>device</strong> (<em>str</em>) – ‘cpu’ or ‘cuda’.</p></li>
+<li><p><strong>model</strong> (<em>Any</em>) – Predictive model to explain.</p></li>
+<li><p><strong>background</strong> (<em>np.ndarray</em><em> or </em><em>torch.Tensor</em>) – Dataset used to match support patterns (shape: (N, T, F) or (N, F)).</p></li>
+<li><p><strong>skip_unmatched</strong> (<em>bool</em>) – If True, coalitions without support-matching background samples are skipped.</p></li>
+<li><p><strong>device</strong> (<em>str</em>) – Device to evaluate model on (‘cpu’ or ‘cuda’).</p></li>
 </ul>
 </dd>
 </dl>
 <dl class="py property">
 <dt class="sig sig-object py" id="shap_enhanced.explainers.SPSHAP.SupportPreservingSHAPExplainer.expected_value">
 <em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">expected_value</span></span><a class="headerlink" href="#shap_enhanced.explainers.SPSHAP.SupportPreservingSHAPExplainer.expected_value" title="Link to this definition">¶</a></dt>
-<dd><p>(Optional) Return the expected value of the model output on the background dataset.</p>
+<dd><p>Optional property returning the expected model output on the background dataset.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Expected value if defined by the subclass, else None.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>float or None</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="shap_enhanced.explainers.SPSHAP.SupportPreservingSHAPExplainer.explain">
-<span class="sig-name descname"><span class="pre">explain</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">torch.Tensor</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span></span></span><a class="headerlink" href="#shap_enhanced.explainers.SPSHAP.SupportPreservingSHAPExplainer.explain" title="Link to this definition">¶</a></dt>
-<dd><p>Alias for shap_values, for compatibility and future flexibility.</p>
+<span class="sig-name descname"><span class="pre">explain</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#shap_enhanced.explainers.SPSHAP.SupportPreservingSHAPExplainer.explain" title="Link to this definition">¶</a></dt>
+<dd><p>Alias to <cite>shap_values</cite> for flexibility and API compatibility.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>X</strong> (<em>Union</em><em>[</em><em>np.ndarray</em><em>, </em><em>torch.Tensor</em><em>, </em><em>list</em><em>]</em>) – Input samples to explain.</p></li>
+<li><p><strong>kwargs</strong> – Additional arguments.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>SHAP values.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Union[np.ndarray, list]</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="shap_enhanced.explainers.SPSHAP.SupportPreservingSHAPExplainer.shap_values">
 <span class="sig-name descname"><span class="pre">shap_values</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nsamples</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">check_additivity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">random_seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">42</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/shap_enhanced/explainers/SPSHAP.html#SupportPreservingSHAPExplainer.shap_values"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#shap_enhanced.explainers.SPSHAP.SupportPreservingSHAPExplainer.shap_values" title="Link to this definition">¶</a></dt>
-<dd><p>Compute SHAP values for the input data.</p>
+<dd><p>Compute SHAP values by evaluating only valid support-preserving perturbations.</p>
+<p>For sparse inputs (e.g., one-hot or binary):</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>For each feature, sample coalitions of other features.</p></li>
+<li><p>Construct masked inputs and locate matching background samples with same nonzero support.</p></li>
+<li><p>Evaluate model differences with and without the feature of interest.</p></li>
+<li><p>Average differences to estimate SHAP values.</p></li>
+</ul>
+</div></blockquote>
+<p>For dense inputs:
+- Fallback to standard mean-based masking for each feature individually.</p>
+<div class="math-wrapper docutils container">
+<div class="math notranslate nohighlight">
+\[\phi_i = \mathbb{E}_{S \subseteq N \setminus \{i\}} \left[
+    f(x_{S \cup \{i\}}) - f(x_S)
+\right]\]</div>
+</div>
+<p>Final attributions are normalized such that:</p>
+<div class="math-wrapper docutils container">
+<div class="math notranslate nohighlight">
+\[\sum_i \phi_i = f(x) - f(x_{\text{masked}})\]</div>
+</div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>X</strong> (<em>np.ndarray</em><em> or </em><em>torch.Tensor</em><em> or </em><em>list</em>) – Input samples for which to compute SHAP values.</p></li>
-<li><p><strong>check_additivity</strong> (<em>bool</em>) – Whether to verify that SHAP values sum to model output difference.</p></li>
-<li><p><strong>kwargs</strong> (<em>dict</em>) – Additional arguments for derived explainers.</p></li>
+<li><p><strong>X</strong> (<em>np.ndarray</em><em> or </em><em>torch.Tensor</em>) – Input sample or batch of shape (T, F) or (B, T, F).</p></li>
+<li><p><strong>nsamples</strong> (<em>int</em>) – Number of coalition samples per feature.</p></li>
+<li><p><strong>check_additivity</strong> (<em>bool</em>) – If True, prints sum of SHAP vs model output difference.</p></li>
+<li><p><strong>random_seed</strong> (<em>int</em>) – Seed for reproducibility.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>shap_values</strong> – The computed SHAP values, shape matches input X.</p>
+<dd class="field-even"><p>SHAP attributions with same shape as input.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>np.ndarray or list of np.ndarray</p>
+<dd class="field-odd"><p>np.ndarray</p>
 </dd>
 </dl>
 </dd></dl>
@@ -447,6 +564,15 @@ If the data is not truly one-hot or binary sparse, falls back to mean-masking (S
           <div class="toc-tree">
             <ul>
 <li><a class="reference internal" href="#">shap_enhanced.explainers.SPSHAP</a><ul>
+<li><a class="reference internal" href="#support-preserving-shap-explainer">Support-Preserving SHAP Explainer</a><ul>
+<li><a class="reference internal" href="#theoretical-explanation">Theoretical Explanation</a><ul>
+<li><a class="reference internal" href="#key-concepts">Key Concepts</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#algorithm">Algorithm</a></li>
+<li><a class="reference internal" href="#use-case">Use Case</a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#shap_enhanced.explainers.SPSHAP.SupportPreservingSHAPExplainer"><code class="docutils literal notranslate"><span class="pre">SupportPreservingSHAPExplainer</span></code></a><ul>
 <li><a class="reference internal" href="#shap_enhanced.explainers.SPSHAP.SupportPreservingSHAPExplainer.expected_value"><code class="docutils literal notranslate"><span class="pre">SupportPreservingSHAPExplainer.expected_value</span></code></a></li>
 <li><a class="reference internal" href="#shap_enhanced.explainers.SPSHAP.SupportPreservingSHAPExplainer.explain"><code class="docutils literal notranslate"><span class="pre">SupportPreservingSHAPExplainer.explain()</span></code></a></li>
@@ -468,5 +594,6 @@ If the data is not truly one-hot or binary sparse, falls back to mean-masking (S
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/scripts/furo.js?v=5fa4622c"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     </body>
 </html>

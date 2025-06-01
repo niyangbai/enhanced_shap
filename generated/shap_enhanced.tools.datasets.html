@@ -6,7 +6,7 @@
 <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="shap_enhanced.tools.evaluation" href="shap_enhanced.tools.evaluation.html" /><link rel="prev" title="shap_enhanced.tools.comparison" href="shap_enhanced.tools.comparison.html" />
 
     <!-- Generated with Sphinx 8.2.3 and Furo 2024.08.06 -->
-        <title>shap_enhanced.tools.datasets - shap_enhanced documentation</title>
+        <title>shap_enhanced.tools.datasets - Enhanced SHAP documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=354aac6f" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=302659d7" />
@@ -166,7 +166,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../index.html"><div class="brand">shap_enhanced  documentation</div></a>
+      <a href="../index.html"><div class="brand">Enhanced SHAP  documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -194,7 +194,7 @@
     <img class="sidebar-logo only-dark" src="../_static/fau_wiso_dark.png" alt="Dark Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">shap_enhanced  documentation</span>
+  <span class="sidebar-brand-text">Enhanced SHAP  documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -280,15 +280,56 @@
         <article role="main" id="furo-main-content">
           <section id="module-shap_enhanced.tools.datasets">
 <span id="shap-enhanced-tools-datasets"></span><h1>shap_enhanced.tools.datasets<a class="headerlink" href="#module-shap_enhanced.tools.datasets" title="Link to this heading">¶</a></h1>
+<section id="synthetic-data-generators-for-regression-benchmarks">
+<h2>Synthetic Data Generators for Regression Benchmarks<a class="headerlink" href="#synthetic-data-generators-for-regression-benchmarks" title="Link to this heading">¶</a></h2>
+<section id="overview">
+<h3>Overview<a class="headerlink" href="#overview" title="Link to this heading">¶</a></h3>
+<p>This module provides utility functions for generating synthetic datasets
+for benchmarking SHAP and other model explainability techniques in both sequential
+and tabular regression settings.</p>
+<p>Two types of data generators are included:</p>
+<ul class="simple">
+<li><p><strong>Sequential Regression Generator</strong>: Produces multivariate time-series inputs with
+sinusoidal targets based on cumulative temporal signals.</p></li>
+<li><p><strong>Tabular Regression Generator</strong>: Supports sparse or dense tabular inputs, with configurable linear
+or nonlinear target mappings. Also outputs ground-truth feature weights.</p></li>
+</ul>
+<section id="key-functions">
+<h4>Key Functions<a class="headerlink" href="#key-functions" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p><strong>generate_synthetic_seqregression</strong>:
+Creates a synthetic sequence-to-scalar regression dataset using sinusoidal logic.</p></li>
+<li><p><strong>generate_synthetic_tabular</strong>:
+Produces sparse or dense tabular data with a tunable regression function.
+Returns both the dataset and the true underlying feature weights used to generate targets.</p></li>
+</ul>
+</section>
+</section>
+<section id="use-case">
+<h3>Use Case<a class="headerlink" href="#use-case" title="Link to this heading">¶</a></h3>
+<p>These generators are useful for:
+- Testing SHAP explainers on known attribution structures.
+- Evaluating sensitivity to sparsity, nonlinearity, or sequence length.
+- Building reproducible benchmarks for model interpretability.</p>
+<p class="rubric">Example</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Sequence data</span>
+<span class="n">X_seq</span><span class="p">,</span> <span class="n">y_seq</span> <span class="o">=</span> <span class="n">generate_synthetic_seqregression</span><span class="p">(</span><span class="n">seq_len</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span> <span class="n">n_features</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">n_samples</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+
+<span class="c1"># Tabular data with sparsity and nonlinearity</span>
+<span class="n">X_tab</span><span class="p">,</span> <span class="n">y_tab</span><span class="p">,</span> <span class="n">w</span> <span class="o">=</span> <span class="n">generate_synthetic_tabular</span><span class="p">(</span><span class="n">n_samples</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span> <span class="n">n_features</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span> <span class="n">sparse</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">model_type</span><span class="o">=</span><span class="s2">&quot;nonlinear&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
 <p class="rubric">Functions</p>
 <div class="table-wrapper autosummary longtable docutils container">
 <table class="autosummary longtable docutils align-default">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#shap_enhanced.tools.datasets.generate_synthetic_seqregression" title="shap_enhanced.tools.datasets.generate_synthetic_seqregression"><code class="xref py py-obj docutils literal notranslate"><span class="pre">generate_synthetic_seqregression</span></code></a>([seq_len, ...])</p></td>
-<td><p>Generate synthetic data for sequence regression.</p></td>
+<td><p>Generate synthetic multivariate time-series data for sequence-to-scalar regression.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#shap_enhanced.tools.datasets.generate_synthetic_tabular" title="shap_enhanced.tools.datasets.generate_synthetic_tabular"><code class="xref py py-obj docutils literal notranslate"><span class="pre">generate_synthetic_tabular</span></code></a>([n_samples, ...])</p></td>
-<td><p>Generate synthetic tabular data with controllable sparsity.</p></td>
+<td><p>Generate synthetic tabular data with optional sparsity and a configurable regression function.</p></td>
 </tr>
 </tbody>
 </table>
@@ -296,31 +337,59 @@
 <dl class="py function">
 <dt class="sig sig-object py" id="shap_enhanced.tools.datasets.generate_synthetic_seqregression">
 <span class="sig-prename descclassname"><span class="pre">shap_enhanced.tools.datasets.</span></span><span class="sig-name descname"><span class="pre">generate_synthetic_seqregression</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">seq_len</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_features</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_samples</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">200</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/shap_enhanced/tools/datasets.html#generate_synthetic_seqregression"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#shap_enhanced.tools.datasets.generate_synthetic_seqregression" title="Link to this definition">¶</a></dt>
-<dd><p>Generate synthetic data for sequence regression.</p>
+<dd><p>Generate synthetic multivariate time-series data for sequence-to-scalar regression.</p>
+<p>Each target is constructed using a sinusoidal function over the cumulative sum
+of the first feature across timesteps.</p>
+<div class="math-wrapper docutils container">
+<div class="math notranslate nohighlight">
+\[y_i = \sin\left(\sum_{t=1}^T x_{it1}\right) + \epsilon_i,\quad \epsilon_i \sim \mathcal{N}(0, 0.1^2)\]</div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>seq_len</strong> (<em>int</em>) – Length of the time series (T).</p></li>
+<li><p><strong>n_features</strong> (<em>int</em>) – Number of features per timestep (F).</p></li>
+<li><p><strong>n_samples</strong> (<em>int</em>) – Number of sequences to generate (N).</p></li>
+<li><p><strong>seed</strong> (<em>int</em>) – Random seed for reproducibility.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Tuple of input sequences and target values.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>(np.ndarray, np.ndarray)</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="shap_enhanced.tools.datasets.generate_synthetic_tabular">
 <span class="sig-prename descclassname"><span class="pre">shap_enhanced.tools.datasets.</span></span><span class="sig-name descname"><span class="pre">generate_synthetic_tabular</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_samples</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">500</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_features</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sparse</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'nonlinear'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sparsity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.85</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">random_seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">42</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/shap_enhanced/tools/datasets.html#generate_synthetic_tabular"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#shap_enhanced.tools.datasets.generate_synthetic_tabular" title="Link to this definition">¶</a></dt>
-<dd><p>Generate synthetic tabular data with controllable sparsity.</p>
+<dd><p>Generate synthetic tabular data with optional sparsity and a configurable regression function.</p>
+<p>Supports both linear and nonlinear target mappings. Optionally zeroes out random entries to simulate sparsity.</p>
+<div class="math-wrapper docutils container">
+<div class="math notranslate nohighlight">
+\[\begin{split}y = \begin{cases}
+X w &amp; \text{(linear)} \\
+\tanh(X w) + 0.1 (X w)^2 + \mathcal{N}(0, 0.1^2) &amp; \text{(nonlinear)}
+\end{cases}\end{split}\]</div>
+</div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>n_samples</strong> (<em>int</em>) – Number of samples.</p></li>
+<li><p><strong>n_samples</strong> (<em>int</em>) – Number of data samples.</p></li>
 <li><p><strong>n_features</strong> (<em>int</em>) – Number of features.</p></li>
-<li><p><strong>sparse</strong> (<em>bool</em>) – Whether to zero out random entries.</p></li>
-<li><p><strong>model_type</strong> (<em>str</em>) – “linear” or “nonlinear”.</p></li>
-<li><p><strong>sparsity</strong> (<em>float</em>) – Fraction of zeros in X if sparse.</p></li>
-<li><p><strong>random_seed</strong> (<em>int</em>) – For reproducibility.</p></li>
+<li><p><strong>sparse</strong> (<em>bool</em>) – Whether to randomly zero entries to simulate sparsity.</p></li>
+<li><p><strong>model_type</strong> (<em>str</em>) – Type of regression model (“linear” or “nonlinear”).</p></li>
+<li><p><strong>sparsity</strong> (<em>float</em>) – Proportion of elements to set to zero if sparse.</p></li>
+<li><p><strong>random_seed</strong> (<em>int</em>) – Seed for reproducibility.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Feature matrix.
-y (np.ndarray): Target vector.
-true_w (np.ndarray): True weights used.</p>
+<dd class="field-even"><p>Feature matrix, target vector, and true coefficient weights.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>X (np.ndarray)</p>
+<dd class="field-odd"><p>(np.ndarray, np.ndarray, np.ndarray)</p>
 </dd>
 </dl>
 </dd></dl>
@@ -383,6 +452,14 @@ true_w (np.ndarray): True weights used.</p>
           <div class="toc-tree">
             <ul>
 <li><a class="reference internal" href="#">shap_enhanced.tools.datasets</a><ul>
+<li><a class="reference internal" href="#synthetic-data-generators-for-regression-benchmarks">Synthetic Data Generators for Regression Benchmarks</a><ul>
+<li><a class="reference internal" href="#overview">Overview</a><ul>
+<li><a class="reference internal" href="#key-functions">Key Functions</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#use-case">Use Case</a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#shap_enhanced.tools.datasets.generate_synthetic_seqregression"><code class="docutils literal notranslate"><span class="pre">generate_synthetic_seqregression()</span></code></a></li>
 <li><a class="reference internal" href="#shap_enhanced.tools.datasets.generate_synthetic_tabular"><code class="docutils literal notranslate"><span class="pre">generate_synthetic_tabular()</span></code></a></li>
 </ul>
@@ -400,5 +477,6 @@ true_w (np.ndarray): True weights used.</p>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/scripts/furo.js?v=5fa4622c"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     </body>
 </html>

@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../genindex.html" /><link rel="search" title="Search" href="../../../search.html" />
 
     <!-- Generated with Sphinx 8.2.3 and Furo 2024.08.06 -->
-        <title>shap_enhanced.tools.datasets - shap_enhanced documentation</title>
+        <title>shap_enhanced.tools.datasets - Enhanced SHAP documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=354aac6f" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?v=302659d7" />
@@ -165,7 +165,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../../index.html"><div class="brand">shap_enhanced  documentation</div></a>
+      <a href="../../../index.html"><div class="brand">Enhanced SHAP  documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -193,7 +193,7 @@
     <img class="sidebar-logo only-dark" src="../../../_static/fau_wiso_dark.png" alt="Dark Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">shap_enhanced  documentation</span>
+  <span class="sidebar-brand-text">Enhanced SHAP  documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -272,12 +272,77 @@
         </div>
         <article role="main" id="furo-main-content">
           <h1>Source code for shap_enhanced.tools.datasets</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Synthetic Data Generators for Regression Benchmarks</span>
+<span class="sd">===================================================</span>
+
+<span class="sd">Overview</span>
+<span class="sd">--------</span>
+
+<span class="sd">This module provides utility functions for generating synthetic datasets  </span>
+<span class="sd">for benchmarking SHAP and other model explainability techniques in both sequential  </span>
+<span class="sd">and tabular regression settings.</span>
+
+<span class="sd">Two types of data generators are included:</span>
+
+<span class="sd">- **Sequential Regression Generator**: Produces multivariate time-series inputs with  </span>
+<span class="sd">  sinusoidal targets based on cumulative temporal signals.</span>
+<span class="sd">  </span>
+<span class="sd">- **Tabular Regression Generator**: Supports sparse or dense tabular inputs, with configurable linear  </span>
+<span class="sd">  or nonlinear target mappings. Also outputs ground-truth feature weights.</span>
+
+<span class="sd">Key Functions</span>
+<span class="sd">^^^^^^^^^^^^^</span>
+
+<span class="sd">- **generate_synthetic_seqregression**:  </span>
+<span class="sd">  Creates a synthetic sequence-to-scalar regression dataset using sinusoidal logic.</span>
+
+<span class="sd">- **generate_synthetic_tabular**:  </span>
+<span class="sd">  Produces sparse or dense tabular data with a tunable regression function.  </span>
+<span class="sd">  Returns both the dataset and the true underlying feature weights used to generate targets.</span>
+
+<span class="sd">Use Case</span>
+<span class="sd">--------</span>
+
+<span class="sd">These generators are useful for:</span>
+<span class="sd">- Testing SHAP explainers on known attribution structures.</span>
+<span class="sd">- Evaluating sensitivity to sparsity, nonlinearity, or sequence length.</span>
+<span class="sd">- Building reproducible benchmarks for model interpretability.</span>
+
+<span class="sd">Example</span>
+<span class="sd">-------</span>
+
+<span class="sd">.. code-block:: python</span>
+
+<span class="sd">    # Sequence data</span>
+<span class="sd">    X_seq, y_seq = generate_synthetic_seqregression(seq_len=12, n_features=4, n_samples=100)</span>
+
+<span class="sd">    # Tabular data with sparsity and nonlinearity</span>
+<span class="sd">    X_tab, y_tab, w = generate_synthetic_tabular(n_samples=200, n_features=6, sparse=True, model_type=&quot;nonlinear&quot;)</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
 <div class="viewcode-block" id="generate_synthetic_seqregression">
 <a class="viewcode-back" href="../../../generated/shap_enhanced.tools.datasets.html#shap_enhanced.tools.datasets.generate_synthetic_seqregression">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">generate_synthetic_seqregression</span><span class="p">(</span><span class="n">seq_len</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">n_features</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">n_samples</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Generate synthetic data for sequence regression.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generate synthetic multivariate time-series data for sequence-to-scalar regression.</span>
+
+<span class="sd">    Each target is constructed using a sinusoidal function over the cumulative sum  </span>
+<span class="sd">    of the first feature across timesteps.</span>
+
+<span class="sd">    .. math::</span>
+<span class="sd">        y_i = \sin\left(\sum_{t=1}^T x_{it1}\right) + \epsilon_i,\quad \epsilon_i \sim \mathcal{N}(0, 0.1^2)</span>
+
+<span class="sd">    :param int seq_len: Length of the time series (T).</span>
+<span class="sd">    :param int n_features: Number of features per timestep (F).</span>
+<span class="sd">    :param int n_samples: Number of sequences to generate (N).</span>
+<span class="sd">    :param int seed: Random seed for reproducibility.</span>
+<span class="sd">    :return: Tuple of input sequences and target values.</span>
+<span class="sd">    :rtype: (np.ndarray, np.ndarray)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
     <span class="n">X</span> <span class="o">=</span> <span class="n">rng</span><span class="o">.</span><span class="n">standard_normal</span><span class="p">((</span><span class="n">n_samples</span><span class="p">,</span> <span class="n">seq_len</span><span class="p">,</span> <span class="n">n_features</span><span class="p">))</span>
     <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">X</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span> <span class="o">+</span> <span class="mf">0.1</span> <span class="o">*</span> <span class="n">rng</span><span class="o">.</span><span class="n">standard_normal</span><span class="p">(</span><span class="n">n_samples</span><span class="p">)</span>
@@ -294,21 +359,25 @@
     <span class="n">sparsity</span><span class="o">=</span><span class="mf">0.85</span><span class="p">,</span>           <span class="c1"># Default to 85% zeros if sparse</span>
     <span class="n">random_seed</span><span class="o">=</span><span class="mi">42</span>
 <span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Generate synthetic tabular data with controllable sparsity.</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generate synthetic tabular data with optional sparsity and a configurable regression function.</span>
 
-<span class="sd">    Args:</span>
-<span class="sd">        n_samples (int): Number of samples.</span>
-<span class="sd">        n_features (int): Number of features.</span>
-<span class="sd">        sparse (bool): Whether to zero out random entries.</span>
-<span class="sd">        model_type (str): &quot;linear&quot; or &quot;nonlinear&quot;.</span>
-<span class="sd">        sparsity (float): Fraction of zeros in X if sparse.</span>
-<span class="sd">        random_seed (int): For reproducibility.</span>
+<span class="sd">    Supports both linear and nonlinear target mappings. Optionally zeroes out random entries to simulate sparsity.</span>
 
-<span class="sd">    Returns:</span>
-<span class="sd">        X (np.ndarray): Feature matrix.</span>
-<span class="sd">        y (np.ndarray): Target vector.</span>
-<span class="sd">        true_w (np.ndarray): True weights used.</span>
+<span class="sd">    .. math::</span>
+<span class="sd">        y = \begin{cases}</span>
+<span class="sd">        X w &amp; \text{(linear)} \\</span>
+<span class="sd">        \tanh(X w) + 0.1 (X w)^2 + \mathcal{N}(0, 0.1^2) &amp; \text{(nonlinear)}</span>
+<span class="sd">        \end{cases}</span>
+
+<span class="sd">    :param int n_samples: Number of data samples.</span>
+<span class="sd">    :param int n_features: Number of features.</span>
+<span class="sd">    :param bool sparse: Whether to randomly zero entries to simulate sparsity.</span>
+<span class="sd">    :param str model_type: Type of regression model (&quot;linear&quot; or &quot;nonlinear&quot;).</span>
+<span class="sd">    :param float sparsity: Proportion of elements to set to zero if sparse.</span>
+<span class="sd">    :param int random_seed: Seed for reproducibility.</span>
+<span class="sd">    :return: Feature matrix, target vector, and true coefficient weights.</span>
+<span class="sd">    :rtype: (np.ndarray, np.ndarray, np.ndarray)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">(</span><span class="n">random_seed</span><span class="p">)</span>
     <span class="n">X</span> <span class="o">=</span> <span class="n">rng</span><span class="o">.</span><span class="n">standard_normal</span><span class="p">((</span><span class="n">n_samples</span><span class="p">,</span> <span class="n">n_features</span><span class="p">))</span>

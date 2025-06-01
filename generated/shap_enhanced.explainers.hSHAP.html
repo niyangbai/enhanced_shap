@@ -6,7 +6,7 @@
 <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="shap_enhanced.tools" href="shap_enhanced.tools.html" /><link rel="prev" title="shap_enhanced.explainers.TimeSHAP" href="shap_enhanced.explainers.TimeSHAP.html" />
 
     <!-- Generated with Sphinx 8.2.3 and Furo 2024.08.06 -->
-        <title>shap_enhanced.explainers.hSHAP - shap_enhanced documentation</title>
+        <title>shap_enhanced.explainers.hSHAP - Enhanced SHAP documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=354aac6f" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=302659d7" />
@@ -166,7 +166,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../index.html"><div class="brand">shap_enhanced  documentation</div></a>
+      <a href="../index.html"><div class="brand">Enhanced SHAP  documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -194,7 +194,7 @@
     <img class="sidebar-logo only-dark" src="../_static/fau_wiso_dark.png" alt="Dark Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">shap_enhanced  documentation</span>
+  <span class="sidebar-brand-text">Enhanced SHAP  documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -280,32 +280,80 @@
         <article role="main" id="furo-main-content">
           <section id="module-shap_enhanced.explainers.hSHAP">
 <span id="shap-enhanced-explainers-hshap"></span><h1>shap_enhanced.explainers.hSHAP<a class="headerlink" href="#module-shap_enhanced.explainers.hSHAP" title="Link to this heading">¶</a></h1>
-<p>Hierarchical SHAP (h-SHAP) Explainer</p>
-<p>## Theoretical Explanation</p>
-<p>h-SHAP is a hierarchical extension of SHAP that computes feature attributions using structured feature grouping. Instead of treating each feature independently, h-SHAP organizes features (and/or time steps) into groups or blocks, and recursively estimates SHAP values at both group and subgroup levels. This approach enables efficient and interpretable attributions for high-dimensional or structured data, such as time series or grouped features.</p>
-<p>### Key Concepts</p>
+<section id="h-shap-hierarchical-shap-explainer">
+<h2>h-SHAP: Hierarchical SHAP Explainer<a class="headerlink" href="#h-shap-hierarchical-shap-explainer" title="Link to this heading">¶</a></h2>
+<section id="theoretical-explanation">
+<h3>Theoretical Explanation<a class="headerlink" href="#theoretical-explanation" title="Link to this heading">¶</a></h3>
+<p>Hierarchical SHAP (h-SHAP) is an extension of the SHAP framework that enables structured, group-wise attribution
+of features in models operating over high-dimensional or structured input data, such as time series or grouped tabular features.</p>
+<p>Instead of treating each feature independently, h-SHAP introduces a hierarchy of feature groups, allowing recursive
+estimation of SHAP values at multiple levels—first over coarse groups, then over finer subgroups or individual features.
+This promotes interpretability and computational efficiency in contexts where feature dimensions have natural structure.</p>
+<section id="key-concepts">
+<h4>Key Concepts<a class="headerlink" href="#key-concepts" title="Link to this heading">¶</a></h4>
 <ul class="simple">
-<li><p><strong>Hierarchical Grouping:</strong> Features (and/or time steps) are grouped into blocks (e.g., by time, by feature, or both). The hierarchy can be nested, supporting multi-level groupings.</p></li>
-<li><p><strong>Recursive SHAP Estimation:</strong> SHAP values are estimated recursively: first for groups, then for subgroups or individual features within each group.</p></li>
-<li><p><strong>Flexible Masking:</strong> Masked features can be imputed with mean values from the background data or set to zero, depending on the chosen strategy.</p></li>
-<li><p><strong>Additivity Normalization:</strong> Attributions are normalized so their sum matches the model output difference between the original and fully-masked input.</p></li>
+<li><dl class="simple">
+<dt><strong>Hierarchical Grouping</strong>:</dt><dd><p>Features are grouped into blocks (e.g., temporal windows, spatial zones, feature families), possibly in multiple nested levels.
+These groups define the hierarchy over which SHAP values are computed.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><strong>Recursive SHAP Estimation</strong>:</dt><dd><p>SHAP values are estimated first at the group level, and then recursively subdivided among subgroups or features
+within each group. This preserves hierarchical structure in the resulting attribution map.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><strong>Flexible Masking</strong>:</dt><dd><dl class="simple">
+<dt>Features can be masked by:</dt><dd><ul>
+<li><p>Setting them to zero (hard masking).</p></li>
+<li><p>Imputing with background mean values (soft masking), using a provided reference dataset.</p></li>
 </ul>
-<p>## Algorithm</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><strong>Additivity Normalization</strong>:</dt><dd><p>Final attributions are normalized such that their total sum equals the model output difference
+between the original and fully-masked inputs.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</section>
+</section>
+<section id="algorithm">
+<h3>Algorithm<a class="headerlink" href="#algorithm" title="Link to this heading">¶</a></h3>
 <ol class="arabic simple">
 <li><dl class="simple">
-<dt><strong>Initialization:</strong></dt><dd><ul class="simple">
-<li><p>Accepts a model, background data (for mean imputation), a hierarchy of feature groups, masking strategy, and device.</p></li>
+<dt><strong>Initialization</strong>:</dt><dd><ul class="simple">
+<li><dl class="simple">
+<dt>Accepts a model, background dataset for imputation, a user-defined hierarchy of feature groups,</dt><dd><p>masking strategy (<cite>‘zero’</cite> or <cite>‘mean’</cite>), and a device context.</p>
+</dd>
+</dl>
+</li>
 </ul>
 </dd>
 </dl>
 </li>
 <li><dl class="simple">
-<dt><strong>Recursive Attribution:</strong></dt><dd><ul class="simple">
+<dt><strong>Recursive Attribution</strong>:</dt><dd><ul class="simple">
 <li><dl class="simple">
 <dt>For each group in the hierarchy:</dt><dd><ul>
-<li><p>Estimate the marginal contribution of the group by comparing model outputs with and without the group masked, averaging over random coalitions of the remaining features.</p></li>
-<li><p>If the group contains subgroups, recursively estimate attributions for each subgroup.</p></li>
-<li><p>Distribute the group SHAP value equally among its members.</p></li>
+<li><p>Sample coalitions of other groups.</p></li>
+<li><dl class="simple">
+<dt>Estimate the group’s marginal contribution by masking:</dt><dd><ul>
+<li><p>Only the coalition, and</p></li>
+<li><p>The coalition plus the current group.</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><p>Compute the model output difference to get SHAP value.</p></li>
+<li><p>If the group contains subgroups, repeat recursively.</p></li>
+<li><p>If not, distribute the SHAP value equally among group members or subfeatures.</p></li>
 </ul>
 </dd>
 </dl>
@@ -315,19 +363,25 @@
 </dl>
 </li>
 <li><dl class="simple">
-<dt><strong>Normalization:</strong></dt><dd><ul class="simple">
-<li><p>Scale attributions so their sum matches the difference between the original and fully-masked model output.</p></li>
+<dt><strong>Normalization</strong>:</dt><dd><ul class="simple">
+<li><dl class="simple">
+<dt>Rescale all SHAP values so that their sum matches the change in model output</dt><dd><p>between the unmasked input and the fully-masked input.</p>
+</dd>
+</dl>
+</li>
 </ul>
 </dd>
 </dl>
 </li>
 </ol>
+</section>
+</section>
 <p class="rubric">Functions</p>
 <div class="table-wrapper autosummary longtable docutils container">
 <table class="autosummary longtable docutils align-default">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#shap_enhanced.explainers.hSHAP.generate_hierarchical_groups" title="shap_enhanced.explainers.hSHAP.generate_hierarchical_groups"><code class="xref py py-obj docutils literal notranslate"><span class="pre">generate_hierarchical_groups</span></code></a>(T, F[, ...])</p></td>
-<td><p>Dynamically generate a hierarchy for (T, F) data.</p></td>
+<td><p>Generate a hierarchical grouping of features in a (T, F)-shaped input space.</p></td>
 </tr>
 </tbody>
 </table>
@@ -337,7 +391,7 @@
 <table class="autosummary longtable docutils align-default">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#shap_enhanced.explainers.hSHAP.HShapExplainer" title="shap_enhanced.explainers.hSHAP.HShapExplainer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HShapExplainer</span></code></a>(model, background, hierarchy)</p></td>
-<td><p>h-SHAP: Hierarchical SHAP Explainer</p></td>
+<td><p>HShapExplainer: Hierarchical SHAP Explainer</p></td>
 </tr>
 </tbody>
 </table>
@@ -346,36 +400,85 @@
 <dt class="sig sig-object py" id="shap_enhanced.explainers.hSHAP.HShapExplainer">
 <em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">shap_enhanced.explainers.hSHAP.</span></span><span class="sig-name descname"><span class="pre">HShapExplainer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">background</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hierarchy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask_strategy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mean'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/shap_enhanced/explainers/hSHAP.html#HShapExplainer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#shap_enhanced.explainers.hSHAP.HShapExplainer" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="shap_enhanced.base_explainer.html#shap_enhanced.base_explainer.BaseExplainer" title="shap_enhanced.base_explainer.BaseExplainer"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseExplainer</span></code></a></p>
-<p>h-SHAP: Hierarchical SHAP Explainer</p>
+<p>HShapExplainer: Hierarchical SHAP Explainer</p>
+<p>Implements the h-SHAP algorithm, which recursively computes SHAP values over structured
+groups of features using hierarchical masking. Suitable for time-series or block-structured
+feature inputs where interpretability benefits from grouped attributions.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Features can be masked using hard zero-masking or soft imputation via background means.</p>
+</div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>model</strong> (<em>Any</em>) – Model to be explained.</p></li>
-<li><p><strong>background</strong> (<em>np.ndarray</em><em> or </em><em>torch.Tensor</em>) – (N, T, F), for mean imputation.</p></li>
-<li><p><strong>hierarchy</strong> (<em>list</em>) – Feature hierarchy as nested lists of (t, f) tuples (see below).
-Example: [[(0,0), (0,1)], [(1,0), (1,1)], …] for block-of-2 time steps.</p></li>
-<li><p><strong>mask_strategy</strong> (<em>str</em>) – ‘mean’ or ‘zero’ (default: ‘mean’).</p></li>
-<li><p><strong>device</strong> (<em>str</em>) – ‘cpu’ or ‘cuda’.</p></li>
+<li><p><strong>model</strong> – Model to explain.</p></li>
+<li><p><strong>background</strong> (<em>np.ndarray</em><em> or </em><em>torch.Tensor</em>) – Background dataset for mean imputation. Shape: (N, T, F).</p></li>
+<li><p><strong>hierarchy</strong> (<em>list</em>) – Nested list of feature index groups (e.g., [[(t1, f1), (t2, f2)], …]).</p></li>
+<li><p><strong>mask_strategy</strong> (<em>str</em>) – Either “mean” for imputation or “zero” for hard masking.</p></li>
+<li><p><strong>device</strong> (<em>str</em>) – Device context, e.g., “cuda” or “cpu”.</p></li>
 </ul>
 </dd>
 </dl>
 <dl class="py property">
 <dt class="sig sig-object py" id="shap_enhanced.explainers.hSHAP.HShapExplainer.expected_value">
 <em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">expected_value</span></span><a class="headerlink" href="#shap_enhanced.explainers.hSHAP.HShapExplainer.expected_value" title="Link to this definition">¶</a></dt>
-<dd><p>(Optional) Return the expected value of the model output on the background dataset.</p>
+<dd><p>Optional property returning the expected model output on the background dataset.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Expected value if defined by the subclass, else None.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>float or None</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="shap_enhanced.explainers.hSHAP.HShapExplainer.explain">
-<span class="sig-name descname"><span class="pre">explain</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">torch.Tensor</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span></span></span><a class="headerlink" href="#shap_enhanced.explainers.hSHAP.HShapExplainer.explain" title="Link to this definition">¶</a></dt>
-<dd><p>Alias for shap_values, for compatibility and future flexibility.</p>
+<span class="sig-name descname"><span class="pre">explain</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#shap_enhanced.explainers.hSHAP.HShapExplainer.explain" title="Link to this definition">¶</a></dt>
+<dd><p>Alias to <cite>shap_values</cite> for flexibility and API compatibility.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>X</strong> (<em>Union</em><em>[</em><em>np.ndarray</em><em>, </em><em>torch.Tensor</em><em>, </em><em>list</em><em>]</em>) – Input samples to explain.</p></li>
+<li><p><strong>kwargs</strong> – Additional arguments.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>SHAP values.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Union[np.ndarray, list]</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="shap_enhanced.explainers.hSHAP.HShapExplainer.shap_values">
 <span class="sig-name descname"><span class="pre">shap_values</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nsamples</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">check_additivity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">random_seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">42</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/shap_enhanced/explainers/hSHAP.html#HShapExplainer.shap_values"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#shap_enhanced.explainers.hSHAP.HShapExplainer.shap_values" title="Link to this definition">¶</a></dt>
-<dd><p>Hierarchical SHAP: computes SHAP values for each (t, f) via recursive group explanation.
-Returns: (T, F) or (B, T, F)</p>
+<dd><p>Compute hierarchical SHAP values for a batch of inputs.</p>
+<p>The method recursively attributes model output to hierarchical feature groups.
+It also ensures additivity via normalization of final attributions.</p>
+<div class="math-wrapper docutils container">
+<div class="math notranslate nohighlight">
+\[\sum_{i=1}^{TF} \phi_i = f(x) - f(x_{\text{masked}})\]</div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>X</strong> (<em>np.ndarray</em><em> or </em><em>torch.Tensor</em>) – Input batch, shape (B, T, F) or single instance (T, F).</p></li>
+<li><p><strong>nsamples</strong> (<em>int</em>) – Number of Monte Carlo samples per group.</p></li>
+<li><p><strong>check_additivity</strong> (<em>bool</em>) – If True, prints additivity check summary.</p></li>
+<li><p><strong>random_seed</strong> (<em>int</em>) – Seed for reproducible sampling.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>SHAP values, same shape as <cite>X</cite>.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
 </dd></dl>
 
 </dd></dl>
@@ -383,18 +486,29 @@ Returns: (T, F) or (B, T, F)</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="shap_enhanced.explainers.hSHAP.generate_hierarchical_groups">
 <span class="sig-prename descclassname"><span class="pre">shap_enhanced.explainers.hSHAP.</span></span><span class="sig-name descname"><span class="pre">generate_hierarchical_groups</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">T</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">F</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_block</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">feature_block</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nested</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/shap_enhanced/explainers/hSHAP.html#generate_hierarchical_groups"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#shap_enhanced.explainers.hSHAP.generate_hierarchical_groups" title="Link to this definition">¶</a></dt>
-<dd><p>Dynamically generate a hierarchy for (T, F) data.</p>
-<ul class="simple">
-<li><p>time_block: int or None, size of time step blocks (e.g. 2 for groups of 2 time steps)</p></li>
-<li><p>feature_block: int or None, size of feature blocks</p></li>
-<li><p>nested: if True, generates a hierarchy of groupings (list of lists of (t, f))</p></li>
-</ul>
+<dd><p>Generate a hierarchical grouping of features in a (T, F)-shaped input space.</p>
+<p>This utility is useful for constructing hierarchical feature groupings for use with hierarchical SHAP (h-SHAP).
+Depending on the specified block sizes, it partitions time steps, features, or both into groups. If <cite>nested=True</cite>,
+the function returns subgroups within each block.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The output format supports both flat and nested group structures, which are compatible with recursive SHAP attribution.</p>
+</div>
 <dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>list (or nested list) of (t, f) tuples</p>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>T</strong> (<em>int</em>) – Number of time steps (first input dimension).</p></li>
+<li><p><strong>F</strong> (<em>int</em>) – Number of features (second input dimension).</p></li>
+<li><p><strong>time_block</strong> (<em>int</em><em> or </em><em>None</em>) – Size of time blocks (e.g., 2 for groups of 2 time steps). If None, no time blocking.</p></li>
+<li><p><strong>feature_block</strong> (<em>int</em><em> or </em><em>None</em>) – Size of feature blocks. If None, no feature blocking.</p></li>
+<li><p><strong>nested</strong> (<em>bool</em>) – Whether to return nested groups (group → list of singleton subgroups).</p></li>
+</ul>
 </dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>hierarchy</p>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A list of grouped (t, f) indices, either flat or nested depending on <cite>nested</cite>.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list[list[tuple[int, int]]] or list[list[list[tuple[int, int]]]]</p>
 </dd>
 </dl>
 </dd></dl>
@@ -457,6 +571,14 @@ Returns: (T, F) or (B, T, F)</p>
           <div class="toc-tree">
             <ul>
 <li><a class="reference internal" href="#">shap_enhanced.explainers.hSHAP</a><ul>
+<li><a class="reference internal" href="#h-shap-hierarchical-shap-explainer">h-SHAP: Hierarchical SHAP Explainer</a><ul>
+<li><a class="reference internal" href="#theoretical-explanation">Theoretical Explanation</a><ul>
+<li><a class="reference internal" href="#key-concepts">Key Concepts</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#algorithm">Algorithm</a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#shap_enhanced.explainers.hSHAP.HShapExplainer"><code class="docutils literal notranslate"><span class="pre">HShapExplainer</span></code></a><ul>
 <li><a class="reference internal" href="#shap_enhanced.explainers.hSHAP.HShapExplainer.expected_value"><code class="docutils literal notranslate"><span class="pre">HShapExplainer.expected_value</span></code></a></li>
 <li><a class="reference internal" href="#shap_enhanced.explainers.hSHAP.HShapExplainer.explain"><code class="docutils literal notranslate"><span class="pre">HShapExplainer.explain()</span></code></a></li>
@@ -479,5 +601,6 @@ Returns: (T, F) or (B, T, F)</p>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/scripts/furo.js?v=5fa4622c"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     </body>
 </html>

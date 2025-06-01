@@ -6,7 +6,7 @@
 <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="shap_enhanced.explainers.LatentSHAP" href="shap_enhanced.explainers.LatentSHAP.html" /><link rel="prev" title="shap_enhanced.explainers.ERSHAP" href="shap_enhanced.explainers.ERSHAP.html" />
 
     <!-- Generated with Sphinx 8.2.3 and Furo 2024.08.06 -->
-        <title>shap_enhanced.explainers.ESSHAP - shap_enhanced documentation</title>
+        <title>shap_enhanced.explainers.ESSHAP - Enhanced SHAP documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=354aac6f" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=302659d7" />
@@ -166,7 +166,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../index.html"><div class="brand">shap_enhanced  documentation</div></a>
+      <a href="../index.html"><div class="brand">Enhanced SHAP  documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -194,7 +194,7 @@
     <img class="sidebar-logo only-dark" src="../_static/fau_wiso_dark.png" alt="Dark Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">shap_enhanced  documentation</span>
+  <span class="sidebar-brand-text">Enhanced SHAP  documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -280,56 +280,103 @@
         <article role="main" id="furo-main-content">
           <section id="module-shap_enhanced.explainers.ESSHAP">
 <span id="shap-enhanced-explainers-esshap"></span><h1>shap_enhanced.explainers.ESSHAP<a class="headerlink" href="#module-shap_enhanced.explainers.ESSHAP" title="Link to this heading">¶</a></h1>
-<p>EnsembleSHAPWithNoise: Robust Ensemble Wrapper for SHAP/Custom Explainers</p>
-<p>## Theoretical Explanation</p>
-<p>EnsembleSHAPWithNoise is a robust ensemble wrapper for SHAP and custom explainers. It improves attribution stability and robustness by running the chosen explainer multiple times with added Gaussian noise to the input data and/or background samples, then aggregating the results. This approach helps mitigate sensitivity to small perturbations and provides more reliable feature attributions, especially for deep or unstable models.</p>
-<p>### Key Concepts</p>
+<section id="ensembleshapwithnoise-robust-ensemble-wrapper-for-shap-custom-explainers">
+<h2>EnsembleSHAPWithNoise: Robust Ensemble Wrapper for SHAP/Custom Explainers<a class="headerlink" href="#ensembleshapwithnoise-robust-ensemble-wrapper-for-shap-custom-explainers" title="Link to this heading">¶</a></h2>
+<section id="theoretical-explanation">
+<h3>Theoretical Explanation<a class="headerlink" href="#theoretical-explanation" title="Link to this heading">¶</a></h3>
+<p><strong>EnsembleSHAPWithNoise</strong> is a robust ensemble-based enhancement for SHAP and custom explainer methods.
+It addresses instability in feature attributions—especially in deep or highly sensitive models—by
+adding Gaussian noise to the inputs and/or background data across multiple runs of a base explainer,
+then aggregating the resulting attribution maps.</p>
+<p>This technique improves robustness by simulating data perturbations and reduces the variance in
+feature importance estimates, leading to more reliable and stable interpretations.</p>
+<section id="key-concepts">
+<h4>Key Concepts<a class="headerlink" href="#key-concepts" title="Link to this heading">¶</a></h4>
 <ul class="simple">
-<li><p><strong>Ensemble Averaging:</strong> Runs the base explainer multiple times with different noise realizations and aggregates the resulting attributions (mean or median).</p></li>
-<li><p><strong>Noise Injection:</strong> Gaussian noise can be added to the input, background, or both, simulating data variability and improving robustness.</p></li>
-<li><p><strong>Explainer Flexibility:</strong> Supports all official SHAP explainers and custom explainers, automatically handling their input/background requirements.</p></li>
-<li><p><strong>Automatic Type Handling:</strong> Converts data to the required type (NumPy or PyTorch) for the selected explainer.</p></li>
+<li><dl class="simple">
+<dt><strong>Ensemble Averaging</strong>:</dt><dd><p>The explainer is executed multiple times with noisy versions of the input/background.
+Attribution results are aggregated using the specified method (mean or median).</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><strong>Noise Injection</strong>:</dt><dd><dl class="simple">
+<dt>Gaussian noise is applied to:</dt><dd><ul>
+<li><p><strong>Input</strong>: Simulates perturbations in the sample to be explained.</p></li>
+<li><p><strong>Background</strong>: Introduces variability into the reference distribution used for attribution.</p></li>
+<li><p><strong>Both</strong>: Simulates end-to-end variability.</p></li>
 </ul>
-<p>## Algorithm</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><strong>Explainer Flexibility</strong>:</dt><dd><p>Compatible with all SHAP explainers (e.g., <cite>DeepExplainer</cite>, <cite>KernelExplainer</cite>) and custom user-defined explainers.
+Automatically adapts inputs to the required format (NumPy or PyTorch).</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><strong>Type Safety and Compatibility</strong>:</dt><dd><p>Automatically handles conversions between NumPy arrays and PyTorch tensors, depending on the explainer’s requirements.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</section>
+</section>
+<section id="algorithm">
+<h3>Algorithm<a class="headerlink" href="#algorithm" title="Link to this heading">¶</a></h3>
 <ol class="arabic simple">
 <li><dl class="simple">
-<dt><strong>Initialization:</strong></dt><dd><ul class="simple">
-<li><p>Accepts a model, background data, explainer class (default: <cite>shap.DeepExplainer</cite>), explainer kwargs, number of runs, noise level, noise target, aggregation method, and device.</p></li>
+<dt><strong>Initialization</strong>:</dt><dd><ul class="simple">
+<li><dl class="simple">
+<dt>Accepts a model, background data, explainer class (default: <cite>shap.DeepExplainer</cite>), number of runs,</dt><dd><p>noise level (<cite>float</cite>), target for noise injection (<cite>‘input’</cite>, <cite>‘background’</cite>, or <cite>‘both’</cite>),
+aggregation method (<cite>‘mean’</cite> or <cite>‘median’</cite>), explainer kwargs, and device context.</p>
+</dd>
+</dl>
+</li>
 </ul>
 </dd>
 </dl>
 </li>
 <li><dl class="simple">
-<dt><strong>Ensemble Loop:</strong></dt><dd><ul class="simple">
+<dt><strong>Ensemble Loop</strong>:</dt><dd><ul class="simple">
 <li><dl class="simple">
-<dt>For each run:</dt><dd><ul>
-<li><p>Add Gaussian noise to the input and/or background as specified.</p></li>
-<li><p>Convert data to the required type for the explainer.</p></li>
-<li><p>Instantiate the explainer with the noisy background.</p></li>
-<li><p>Compute SHAP values for the noisy input.</p></li>
+<dt>For each of the specified number of runs:</dt><dd><ul>
+<li><p>Inject Gaussian noise into the background and/or input, as specified.</p></li>
+<li><p>Convert noisy data into the appropriate type (NumPy or PyTorch).</p></li>
+<li><p>Instantiate the explainer using the noisy background.</p></li>
+<li><p>Compute SHAP values on the noisy input.</p></li>
+<li><p>Store the resulting attributions.</p></li>
 </ul>
 </dd>
 </dl>
 </li>
-<li><p>Collect all attribution results.</p></li>
 </ul>
 </dd>
 </dl>
 </li>
 <li><dl class="simple">
-<dt><strong>Aggregation:</strong></dt><dd><ul class="simple">
-<li><p>Aggregate the attributions across runs using the specified method (mean or median).</p></li>
+<dt><strong>Aggregation</strong>:</dt><dd><ul class="simple">
+<li><dl class="simple">
+<dt>Combine all attribution maps using the specified aggregation method (mean or median)</dt><dd><p>to produce the final, noise-robust attribution result.</p>
+</dd>
+</dl>
+</li>
 </ul>
 </dd>
 </dl>
 </li>
 </ol>
+</section>
+</section>
 <p class="rubric">Classes</p>
 <div class="table-wrapper autosummary longtable docutils container">
 <table class="autosummary longtable docutils align-default">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#shap_enhanced.explainers.ESSHAP.EnsembleSHAPWithNoise" title="shap_enhanced.explainers.ESSHAP.EnsembleSHAPWithNoise"><code class="xref py py-obj docutils literal notranslate"><span class="pre">EnsembleSHAPWithNoise</span></code></a>(model[, background, ...])</p></td>
-<td><p></p></td>
+<td><p>EnsembleSHAPWithNoise: Robust Ensemble Wrapper for SHAP/Custom Explainers</p></td>
 </tr>
 </tbody>
 </table>
@@ -338,35 +385,91 @@
 <dt class="sig sig-object py" id="shap_enhanced.explainers.ESSHAP.EnsembleSHAPWithNoise">
 <em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">shap_enhanced.explainers.ESSHAP.</span></span><span class="sig-name descname"><span class="pre">EnsembleSHAPWithNoise</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">background</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">explainer_class</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">explainer_kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_runs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">noise_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">noise_target</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'input'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aggregation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mean'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/shap_enhanced/explainers/ESSHAP.html#EnsembleSHAPWithNoise"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#shap_enhanced.explainers.ESSHAP.EnsembleSHAPWithNoise" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="shap_enhanced.base_explainer.html#shap_enhanced.base_explainer.BaseExplainer" title="shap_enhanced.base_explainer.BaseExplainer"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseExplainer</span></code></a></p>
+<p>EnsembleSHAPWithNoise: Robust Ensemble Wrapper for SHAP/Custom Explainers</p>
+<p>This class enhances the stability of SHAP (SHapley Additive exPlanations) values by performing multiple runs
+with Gaussian noise applied to inputs and/or background data, and aggregating the results. It wraps around
+standard SHAP explainers or custom user-defined ones, making them more robust in the presence of
+sensitivity or instability.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This class automatically handles input conversion between NumPy and PyTorch, depending on the explainer type.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model</strong> – The model to explain.</p></li>
+<li><p><strong>background</strong> – Background data used for SHAP attribution (can be None if not required).</p></li>
+<li><p><strong>explainer_class</strong> – The SHAP or custom explainer class to wrap. Defaults to <cite>shap.DeepExplainer</cite>.</p></li>
+<li><p><strong>explainer_kwargs</strong> – Dictionary of keyword arguments to pass to the explainer during instantiation.</p></li>
+<li><p><strong>n_runs</strong> (<em>int</em>) – Number of noisy runs to perform for ensemble aggregation.</p></li>
+<li><p><strong>noise_level</strong> (<em>float</em>) – Standard deviation of Gaussian noise to inject.</p></li>
+<li><p><strong>noise_target</strong> (<em>str</em>) – Target for noise injection: “input”, “background”, or “both”.</p></li>
+<li><p><strong>aggregation</strong> (<em>str</em>) – Aggregation method across runs: “mean” or “median”.</p></li>
+<li><p><strong>device</strong> – Device context (e.g., ‘cpu’, ‘cuda’) for tensor-based explainers. Defaults to available GPU or CPU.</p></li>
+</ul>
+</dd>
+</dl>
 <dl class="py property">
 <dt class="sig sig-object py" id="shap_enhanced.explainers.ESSHAP.EnsembleSHAPWithNoise.expected_value">
 <em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">expected_value</span></span><a class="headerlink" href="#shap_enhanced.explainers.ESSHAP.EnsembleSHAPWithNoise.expected_value" title="Link to this definition">¶</a></dt>
-<dd><p>(Optional) Return the expected value of the model output on the background dataset.</p>
+<dd><p>Optional property returning the expected model output on the background dataset.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Expected value if defined by the subclass, else None.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>float or None</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="shap_enhanced.explainers.ESSHAP.EnsembleSHAPWithNoise.explain">
-<span class="sig-name descname"><span class="pre">explain</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">torch.Tensor</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span></span></span><a class="headerlink" href="#shap_enhanced.explainers.ESSHAP.EnsembleSHAPWithNoise.explain" title="Link to this definition">¶</a></dt>
-<dd><p>Alias for shap_values, for compatibility and future flexibility.</p>
+<span class="sig-name descname"><span class="pre">explain</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#shap_enhanced.explainers.ESSHAP.EnsembleSHAPWithNoise.explain" title="Link to this definition">¶</a></dt>
+<dd><p>Alias to <cite>shap_values</cite> for flexibility and API compatibility.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>X</strong> (<em>Union</em><em>[</em><em>np.ndarray</em><em>, </em><em>torch.Tensor</em><em>, </em><em>list</em><em>]</em>) – Input samples to explain.</p></li>
+<li><p><strong>kwargs</strong> – Additional arguments.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>SHAP values.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Union[np.ndarray, list]</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="shap_enhanced.explainers.ESSHAP.EnsembleSHAPWithNoise.shap_values">
 <span class="sig-name descname"><span class="pre">shap_values</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/shap_enhanced/explainers/ESSHAP.html#EnsembleSHAPWithNoise.shap_values"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#shap_enhanced.explainers.ESSHAP.EnsembleSHAPWithNoise.shap_values" title="Link to this definition">¶</a></dt>
-<dd><p>Compute SHAP values for the input data.</p>
+<dd><p>Compute noise-robust SHAP values via ensemble averaging over multiple noisy runs.</p>
+<p>For each run, Gaussian noise is added to the input and/or background (as configured),
+then the SHAP explainer is applied to compute attribution values. These are aggregated
+(mean or median) to produce a stable final output.</p>
+<div class="math-wrapper docutils container">
+<div class="math notranslate nohighlight">
+\[\begin{split}\text{Attribution}_{final}(i) =
+\begin{cases}
+    \frac{1}{N} \sum_{j=1}^N \text{SHAP}_j(i) &amp; \text{if aggregation = mean} \\
+    \text{median}\{\text{SHAP}_1(i), \ldots, \text{SHAP}_N(i)\} &amp; \text{if aggregation = median}
+\end{cases}\end{split}\]</div>
+</div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>X</strong> (<em>np.ndarray</em><em> or </em><em>torch.Tensor</em><em> or </em><em>list</em>) – Input samples for which to compute SHAP values.</p></li>
-<li><p><strong>check_additivity</strong> (<em>bool</em>) – Whether to verify that SHAP values sum to model output difference.</p></li>
-<li><p><strong>kwargs</strong> (<em>dict</em>) – Additional arguments for derived explainers.</p></li>
+<li><p><strong>X</strong> (<em>np.ndarray</em><em> or </em><em>torch.Tensor</em>) – Input sample(s) to explain (NumPy array or torch.Tensor).</p></li>
+<li><p><strong>kwargs</strong> – Additional keyword arguments passed to the underlying explainer’s <cite>shap_values</cite> method.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>shap_values</strong> – The computed SHAP values, shape matches input X.</p>
+<dd class="field-even"><p>Aggregated attribution values across ensemble runs.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>np.ndarray or list of np.ndarray</p>
+<dd class="field-odd"><p>np.ndarray</p>
 </dd>
 </dl>
 </dd></dl>
@@ -431,6 +534,14 @@
           <div class="toc-tree">
             <ul>
 <li><a class="reference internal" href="#">shap_enhanced.explainers.ESSHAP</a><ul>
+<li><a class="reference internal" href="#ensembleshapwithnoise-robust-ensemble-wrapper-for-shap-custom-explainers">EnsembleSHAPWithNoise: Robust Ensemble Wrapper for SHAP/Custom Explainers</a><ul>
+<li><a class="reference internal" href="#theoretical-explanation">Theoretical Explanation</a><ul>
+<li><a class="reference internal" href="#key-concepts">Key Concepts</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#algorithm">Algorithm</a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#shap_enhanced.explainers.ESSHAP.EnsembleSHAPWithNoise"><code class="docutils literal notranslate"><span class="pre">EnsembleSHAPWithNoise</span></code></a><ul>
 <li><a class="reference internal" href="#shap_enhanced.explainers.ESSHAP.EnsembleSHAPWithNoise.expected_value"><code class="docutils literal notranslate"><span class="pre">EnsembleSHAPWithNoise.expected_value</span></code></a></li>
 <li><a class="reference internal" href="#shap_enhanced.explainers.ESSHAP.EnsembleSHAPWithNoise.explain"><code class="docutils literal notranslate"><span class="pre">EnsembleSHAPWithNoise.explain()</span></code></a></li>
@@ -452,5 +563,6 @@
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/scripts/furo.js?v=5fa4622c"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     </body>
 </html>

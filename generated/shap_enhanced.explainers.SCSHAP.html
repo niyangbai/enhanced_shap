@@ -6,7 +6,7 @@
 <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="shap_enhanced.explainers.SPSHAP" href="shap_enhanced.explainers.SPSHAP.html" /><link rel="prev" title="shap_enhanced.explainers.RLSHAP" href="shap_enhanced.explainers.RLSHAP.html" />
 
     <!-- Generated with Sphinx 8.2.3 and Furo 2024.08.06 -->
-        <title>shap_enhanced.explainers.SCSHAP - shap_enhanced documentation</title>
+        <title>shap_enhanced.explainers.SCSHAP - Enhanced SHAP documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=354aac6f" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=302659d7" />
@@ -166,7 +166,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../index.html"><div class="brand">shap_enhanced  documentation</div></a>
+      <a href="../index.html"><div class="brand">Enhanced SHAP  documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -194,7 +194,7 @@
     <img class="sidebar-logo only-dark" src="../_static/fau_wiso_dark.png" alt="Dark Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">shap_enhanced  documentation</span>
+  <span class="sidebar-brand-text">Enhanced SHAP  documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -280,57 +280,136 @@
         <article role="main" id="furo-main-content">
           <section id="module-shap_enhanced.explainers.SCSHAP">
 <span id="shap-enhanced-explainers-scshap"></span><h1>shap_enhanced.explainers.SCSHAP<a class="headerlink" href="#module-shap_enhanced.explainers.SCSHAP" title="Link to this heading">¶</a></h1>
-<p>Sparse Coalition SHAP Explainer</p>
-<p>## Theoretical Explanation</p>
-<p>Sparse Coalition SHAP is a feature attribution method tailored for sparse or structured discrete data, such as one-hot encodings or binary features. It only forms coalitions (feature subsets to mask) that produce valid sparse patterns. For one-hot sets, masking means setting the entire group to zero (no class selected), never producing invalid or fractional vectors. This ensures that all perturbed samples remain within the valid data manifold, avoiding unrealistic or out-of-distribution patterns.</p>
-<p>### Key Concepts</p>
+<section id="sparse-coalition-shap-explainer">
+<h2>Sparse Coalition SHAP Explainer<a class="headerlink" href="#sparse-coalition-shap-explainer" title="Link to this heading">¶</a></h2>
+<section id="theoretical-explanation">
+<h3>Theoretical Explanation<a class="headerlink" href="#theoretical-explanation" title="Link to this heading">¶</a></h3>
+<p>Sparse Coalition SHAP is a feature attribution method specifically designed for sparse, discrete,
+or structured inputs—such as one-hot encodings and binary feature sets.
+Unlike standard SHAP approaches that may generate invalid or unrealistic feature perturbations,
+Sparse Coalition SHAP only considers <strong>valid coalitions</strong> that preserve the sparsity and logical structure
+of the input space.</p>
+<p>For one-hot encoded groups, masking a group zeroes out the entire set—representing “no selection”—without producing
+fractional or ambiguous class encodings. For binary features, masking is performed element-wise while maintaining
+input validity.</p>
+<p>This approach ensures all perturbed inputs remain on-manifold, improving both interpretability and the validity
+of model attributions in discrete domains.</p>
+<section id="key-concepts">
+<h4>Key Concepts<a class="headerlink" href="#key-concepts" title="Link to this heading">¶</a></h4>
 <ul class="simple">
-<li><p><strong>Valid Sparse Coalitions:</strong> Only masks feature groups in ways that preserve valid one-hot or binary patterns.</p></li>
-<li><p><strong>One-Hot Group Support:</strong> For one-hot encoded features, masking a group sets all features in the group to zero, representing “no class.”</p></li>
-<li><p><strong>General Binary Support:</strong> For general binary features, masking is performed per (t, f) position.</p></li>
-<li><p><strong>Flexible Masking Strategy:</strong> Supports zero-masking (default) and can be extended to observed-pattern masking.</p></li>
-<li><p><strong>Additivity Normalization:</strong> Attributions are normalized so their sum matches the model output difference between the original and fully-masked input.</p></li>
+<li><dl class="simple">
+<dt><strong>Valid Sparse Coalitions</strong>:</dt><dd><p>Coalitions are restricted to those that produce syntactically valid inputs under the sparsity constraints.
+This avoids creating feature patterns that would never occur naturally.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><strong>One-Hot Group Support</strong>:</dt><dd><p>Groups of mutually exclusive features (e.g., one-hot encodings) are masked by setting the entire group to zero,
+simulating “no class selected.”</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><strong>Binary Feature Support</strong>:</dt><dd><p>Element-wise masking is applied to binary features, allowing localized coalitions across time and features.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><strong>Flexible Masking Strategies</strong>:</dt><dd><ul>
+<li><p>Default: zero-masking.</p></li>
+<li><p>Extensible to other strategies (e.g., pattern sampling from background data).</p></li>
 </ul>
-<p>## Algorithm</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><strong>Additivity Normalization</strong>:</dt><dd><p>Final attributions are normalized so their total matches the difference between the model outputs
+of the original and fully-masked inputs.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</section>
+</section>
+<section id="algorithm">
+<h3>Algorithm<a class="headerlink" href="#algorithm" title="Link to this heading">¶</a></h3>
 <ol class="arabic simple">
 <li><dl class="simple">
-<dt><strong>Initialization:</strong></dt><dd><ul class="simple">
-<li><p>Accepts a model, background data, one-hot group definitions, masking strategy, and device.</p></li>
+<dt><strong>Initialization</strong>:</dt><dd><ul class="simple">
+<li><dl class="simple">
+<dt>Accepts the target model, background dataset, one-hot group definitions, masking strategy (default: zero),</dt><dd><p>and device configuration.</p>
+</dd>
+</dl>
+</li>
 </ul>
 </dd>
 </dl>
 </li>
 <li><dl class="simple">
-<dt><strong>Coalition Sampling:</strong></dt><dd><ul class="simple">
+<dt><strong>Coalition Sampling</strong>:</dt><dd><ul class="simple">
 <li><dl class="simple">
-<dt>For each group (one-hot) or feature (binary), repeatedly:</dt><dd><ul>
-<li><p>Sample random subsets of other groups/features to mask.</p></li>
-<li><p>Mask the coalition and compute the model output.</p></li>
-<li><p>Mask the coalition plus the group/feature of interest and compute the model output.</p></li>
-<li><p>Record the difference.</p></li>
+<dt>For each one-hot group or binary feature:</dt><dd><ul>
+<li><p>Randomly sample subsets of other groups/features to form coalitions.</p></li>
+<li><dl class="simple">
+<dt>For each coalition:</dt><dd><ul>
+<li><p>Mask the selected features/groups in the input.</p></li>
+<li><p>Mask the coalition plus the current target group/feature.</p></li>
+<li><p>Compute the model outputs for both variants.</p></li>
+<li><p>Record the output difference.</p></li>
 </ul>
 </dd>
 </dl>
 </li>
-<li><p>Average these differences to estimate the marginal contribution of each group/feature.</p></li>
+</ul>
+</dd>
+</dl>
+</li>
 </ul>
 </dd>
 </dl>
 </li>
 <li><dl class="simple">
-<dt><strong>Normalization:</strong></dt><dd><ul class="simple">
-<li><p>Scale attributions so their sum matches the difference between the original and fully-masked model output.</p></li>
+<dt><strong>SHAP Value Estimation</strong>:</dt><dd><ul class="simple">
+<li><dl class="simple">
+<dt>Average the output differences over many sampled coalitions to approximate the Shapley value</dt><dd><p>(i.e., the marginal contribution) of each group/feature.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><strong>Normalization</strong>:</dt><dd><ul class="simple">
+<li><dl class="simple">
+<dt>Scale all attributions so their sum equals the model output difference between</dt><dd><p>the original and fully-masked inputs.</p>
+</dd>
+</dl>
+</li>
 </ul>
 </dd>
 </dl>
 </li>
 </ol>
+</section>
+<section id="use-case">
+<h3>Use Case<a class="headerlink" href="#use-case" title="Link to this heading">¶</a></h3>
+<dl class="simple">
+<dt>Ideal for models operating on:</dt><dd><ul class="simple">
+<li><p>Categorical variables represented via one-hot encoding.</p></li>
+<li><p>Structured binary inputs (e.g., presence/absence features).</p></li>
+<li><p>Sparse input spaces where validity and interpretability are critical.</p></li>
+</ul>
+</dd>
+</dl>
+</section>
+</section>
 <p class="rubric">Classes</p>
 <div class="table-wrapper autosummary longtable docutils container">
 <table class="autosummary longtable docutils align-default">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#shap_enhanced.explainers.SCSHAP.SparseCoalitionSHAPExplainer" title="shap_enhanced.explainers.SCSHAP.SparseCoalitionSHAPExplainer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SparseCoalitionSHAPExplainer</span></code></a>(model, background)</p></td>
-<td><p>Sparse Coalition SHAP Explainer</p></td>
+<td><p>SparseCoalitionSHAPExplainer: Valid SHAP for Structured Sparse Inputs</p></td>
 </tr>
 </tbody>
 </table>
@@ -339,37 +418,96 @@
 <dt class="sig sig-object py" id="shap_enhanced.explainers.SCSHAP.SparseCoalitionSHAPExplainer">
 <em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">shap_enhanced.explainers.SCSHAP.</span></span><span class="sig-name descname"><span class="pre">SparseCoalitionSHAPExplainer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">background</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">onehot_groups</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask_strategy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'zero'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/shap_enhanced/explainers/SCSHAP.html#SparseCoalitionSHAPExplainer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#shap_enhanced.explainers.SCSHAP.SparseCoalitionSHAPExplainer" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="shap_enhanced.base_explainer.html#shap_enhanced.base_explainer.BaseExplainer" title="shap_enhanced.base_explainer.BaseExplainer"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseExplainer</span></code></a></p>
-<p>Sparse Coalition SHAP Explainer</p>
-<p>Only forms coalitions (feature subsets to mask) that produce valid sparse patterns,
-such as one-hot encodings or binary support. For one-hot sets, masking means setting
-the entire group to zero (no class selected), never producing invalid or fractional vectors.</p>
+<p>SparseCoalitionSHAPExplainer: Valid SHAP for Structured Sparse Inputs</p>
+<p>This explainer approximates Shapley values by sampling valid sparse coalitions of features.
+It ensures that perturbed inputs remain syntactically valid, especially for inputs with
+structured sparsity such as one-hot encodings or binary indicator features.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>One-hot groups are masked as entire sets to simulate “no class selected”.
+General binary features are masked element-wise.</p>
+</div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>model</strong> (<em>Any</em>) – Model to be explained.</p></li>
-<li><p><strong>background</strong> (<em>np.ndarray</em><em> or </em><em>torch.Tensor</em>) – Background for optional mean/mode imputation (not used for masking).</p></li>
-<li><p><strong>onehot_groups</strong> (<em>list</em><em> of </em><em>lists</em>) – For one-hot data, each sublist contains feature indices of a one-hot set, e.g. [[0,1,2],[3,4,5],…].</p></li>
-<li><p><strong>mask_strategy</strong> (<em>str</em>) – ‘zero’ (default): mask sets features to zero (no class).</p></li>
-<li><p><strong>device</strong> (<em>str</em>) – ‘cpu’ or ‘cuda’.</p></li>
+<li><p><strong>model</strong> (<em>Any</em>) – Predictive model to explain.</p></li>
+<li><p><strong>background</strong> (<em>np.ndarray</em><em> or </em><em>torch.Tensor</em>) – Background data (not directly used but required for base class).</p></li>
+<li><p><strong>onehot_groups</strong> (<em>list</em><em>[</em><em>list</em><em>[</em><em>int</em><em>]</em><em>] or </em><em>None</em>) – List of one-hot index groups, e.g., [[0,1,2], [3,4]].</p></li>
+<li><p><strong>mask_strategy</strong> (<em>str</em>) – Currently supports only “zero” masking.</p></li>
+<li><p><strong>device</strong> (<em>str</em>) – Device context for evaluation (e.g., ‘cuda’ or ‘cpu’).</p></li>
 </ul>
 </dd>
 </dl>
 <dl class="py property">
 <dt class="sig sig-object py" id="shap_enhanced.explainers.SCSHAP.SparseCoalitionSHAPExplainer.expected_value">
 <em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">expected_value</span></span><a class="headerlink" href="#shap_enhanced.explainers.SCSHAP.SparseCoalitionSHAPExplainer.expected_value" title="Link to this definition">¶</a></dt>
-<dd><p>(Optional) Return the expected value of the model output on the background dataset.</p>
+<dd><p>Optional property returning the expected model output on the background dataset.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Expected value if defined by the subclass, else None.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>float or None</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="shap_enhanced.explainers.SCSHAP.SparseCoalitionSHAPExplainer.explain">
-<span class="sig-name descname"><span class="pre">explain</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">torch.Tensor</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span></span></span><a class="headerlink" href="#shap_enhanced.explainers.SCSHAP.SparseCoalitionSHAPExplainer.explain" title="Link to this definition">¶</a></dt>
-<dd><p>Alias for shap_values, for compatibility and future flexibility.</p>
+<span class="sig-name descname"><span class="pre">explain</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#shap_enhanced.explainers.SCSHAP.SparseCoalitionSHAPExplainer.explain" title="Link to this definition">¶</a></dt>
+<dd><p>Alias to <cite>shap_values</cite> for flexibility and API compatibility.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>X</strong> (<em>Union</em><em>[</em><em>np.ndarray</em><em>, </em><em>torch.Tensor</em><em>, </em><em>list</em><em>]</em>) – Input samples to explain.</p></li>
+<li><p><strong>kwargs</strong> – Additional arguments.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>SHAP values.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Union[np.ndarray, list]</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="shap_enhanced.explainers.SCSHAP.SparseCoalitionSHAPExplainer.shap_values">
 <span class="sig-name descname"><span class="pre">shap_values</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nsamples</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">check_additivity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">random_seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">42</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/shap_enhanced/explainers/SCSHAP.html#SparseCoalitionSHAPExplainer.shap_values"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#shap_enhanced.explainers.SCSHAP.SparseCoalitionSHAPExplainer.shap_values" title="Link to this definition">¶</a></dt>
-<dd><p>SHAP with valid sparse coalitions: (B, T, F) or (T, F)</p>
+<dd><p>Estimate SHAP values using sparse-valid coalitions.</p>
+<p>For each input sample:
+- Iterates over all features (or one-hot groups).
+- Randomly samples subsets of other features/groups to form coalitions.
+- Computes model output difference when adding the current feature/group to the coalition.
+- Averages these differences to estimate the Shapley value.</p>
+<div class="math-wrapper docutils container">
+<div class="math notranslate nohighlight">
+\[\phi_i = \mathbb{E}_{S \subseteq N \setminus \{i\}} \left[
+    f(S \cup \{i\}) - f(S)
+\right]\]</div>
+</div>
+<p>Final attributions are normalized such that:</p>
+<div class="math-wrapper docutils container">
+<div class="math notranslate nohighlight">
+\[\sum_i \phi_i = f(x) - f(x_{\text{masked}})\]</div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>X</strong> (<em>np.ndarray</em><em> or </em><em>torch.Tensor</em>) – Input instance(s), shape (T, F) or (B, T, F).</p></li>
+<li><p><strong>nsamples</strong> (<em>int</em>) – Number of coalition samples per feature/group.</p></li>
+<li><p><strong>check_additivity</strong> (<em>bool</em>) – If True, prints the additivity check.</p></li>
+<li><p><strong>random_seed</strong> (<em>int</em>) – Seed for reproducible sampling.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>SHAP attribution values, same shape as input.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
 </dd></dl>
 
 </dd></dl>
@@ -432,6 +570,15 @@ the entire group to zero (no class selected), never producing invalid or fractio
           <div class="toc-tree">
             <ul>
 <li><a class="reference internal" href="#">shap_enhanced.explainers.SCSHAP</a><ul>
+<li><a class="reference internal" href="#sparse-coalition-shap-explainer">Sparse Coalition SHAP Explainer</a><ul>
+<li><a class="reference internal" href="#theoretical-explanation">Theoretical Explanation</a><ul>
+<li><a class="reference internal" href="#key-concepts">Key Concepts</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#algorithm">Algorithm</a></li>
+<li><a class="reference internal" href="#use-case">Use Case</a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#shap_enhanced.explainers.SCSHAP.SparseCoalitionSHAPExplainer"><code class="docutils literal notranslate"><span class="pre">SparseCoalitionSHAPExplainer</span></code></a><ul>
 <li><a class="reference internal" href="#shap_enhanced.explainers.SCSHAP.SparseCoalitionSHAPExplainer.expected_value"><code class="docutils literal notranslate"><span class="pre">SparseCoalitionSHAPExplainer.expected_value</span></code></a></li>
 <li><a class="reference internal" href="#shap_enhanced.explainers.SCSHAP.SparseCoalitionSHAPExplainer.explain"><code class="docutils literal notranslate"><span class="pre">SparseCoalitionSHAPExplainer.explain()</span></code></a></li>
@@ -453,5 +600,6 @@ the entire group to zero (no class selected), never producing invalid or fractio
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/scripts/furo.js?v=5fa4622c"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     </body>
 </html>

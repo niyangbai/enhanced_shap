@@ -6,7 +6,7 @@
 <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="shap_enhanced.tools.comparison" href="shap_enhanced.tools.comparison.html" /><link rel="prev" title="shap_enhanced.explainers.hSHAP" href="shap_enhanced.explainers.hSHAP.html" />
 
     <!-- Generated with Sphinx 8.2.3 and Furo 2024.08.06 -->
-        <title>shap_enhanced.tools - shap_enhanced documentation</title>
+        <title>shap_enhanced.tools - Enhanced SHAP documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=354aac6f" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=302659d7" />
@@ -166,7 +166,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../index.html"><div class="brand">shap_enhanced  documentation</div></a>
+      <a href="../index.html"><div class="brand">Enhanced SHAP  documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -178,7 +178,7 @@
           <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
         </button>
       </div>
-      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
         <div class="visually-hidden">Toggle table of contents sidebar</div>
         <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
       </label>
@@ -194,7 +194,7 @@
     <img class="sidebar-logo only-dark" src="../_static/fau_wiso_dark.png" alt="Dark Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">shap_enhanced  documentation</span>
+  <span class="sidebar-brand-text">Enhanced SHAP  documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -272,7 +272,7 @@
               <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
             </button>
           </div>
-          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
             <div class="visually-hidden">Toggle table of contents sidebar</div>
             <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
           </label>
@@ -280,30 +280,51 @@
         <article role="main" id="furo-main-content">
           <section id="module-shap_enhanced.tools">
 <span id="shap-enhanced-tools"></span><h1>shap_enhanced.tools<a class="headerlink" href="#module-shap_enhanced.tools" title="Link to this heading">¶</a></h1>
-<p>The tools module provides utilities for model evaluation and visualization.
-It contains submodules for model valuation and plotting, facilitating enhanced
-interpretation and presentation of machine learning model outputs.</p>
+<section id="tools-module">
+<h2>Tools Module<a class="headerlink" href="#tools-module" title="Link to this heading">¶</a></h2>
+<p>The tools module provides utilities for model evaluation, visualization, benchmarking,
+and synthetic data generation. These tools are designed to support SHAP explainer development,
+interpretability experiments, and reproducible performance analysis.</p>
+<section id="included-utilities">
+<h3>Included Utilities<a class="headerlink" href="#included-utilities" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p><strong>Evaluation and Comparison</strong>:
+- Compute quantitative metrics (MSE, Pearson) between SHAP attributions and ground truth.
+- Compare different explainers systematically.</p></li>
+<li><p><strong>Visualization</strong>:
+- High-quality plotting of SHAP attributions (1D/tabular and 2D/time-series).
+- 3D surfaces and bar plots for presentation or publication.</p></li>
+<li><p><strong>Data Generators</strong>:
+- Create synthetic datasets for benchmarking SHAP methods.
+- Tabular and sequential settings supported.</p></li>
+<li><p><strong>Timing Utility</strong>:
+- Context-managed block timer for profiling code.</p></li>
+<li><p><strong>Model Definitions</strong>:
+- Reference models for both tabular and sequential inputs (e.g., LSTM, MLP).</p></li>
+</ul>
+</section>
+</section>
 <p class="rubric">Modules</p>
 <div class="table-wrapper autosummary longtable docutils container">
 <table class="autosummary longtable docutils align-default">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="shap_enhanced.tools.comparison.html#module-shap_enhanced.tools.comparison" title="shap_enhanced.tools.comparison"><code class="xref py py-obj docutils literal notranslate"><span class="pre">comparison</span></code></a></p></td>
-<td><p></p></td>
+<td><p>Attribution Comparison Utility for SHAP Explainers</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="shap_enhanced.tools.datasets.html#module-shap_enhanced.tools.datasets" title="shap_enhanced.tools.datasets"><code class="xref py py-obj docutils literal notranslate"><span class="pre">datasets</span></code></a></p></td>
-<td><p></p></td>
+<td><p>Synthetic Data Generators for Regression Benchmarks</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="shap_enhanced.tools.evaluation.html#module-shap_enhanced.tools.evaluation" title="shap_enhanced.tools.evaluation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">evaluation</span></code></a></p></td>
-<td><p></p></td>
+<td><p>Ground-Truth Shapley Value Estimation via Monte Carlo</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="shap_enhanced.tools.predefined_models.html#module-shap_enhanced.tools.predefined_models" title="shap_enhanced.tools.predefined_models"><code class="xref py py-obj docutils literal notranslate"><span class="pre">predefined_models</span></code></a></p></td>
-<td><p></p></td>
+<td><p>Neural Network Models for Tabular and Sequential Data</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="shap_enhanced.tools.timer.html#module-shap_enhanced.tools.timer" title="shap_enhanced.tools.timer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">timer</span></code></a></p></td>
-<td><p></p></td>
+<td><p>Timing Utility for Code Execution</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="shap_enhanced.tools.visulization.html#module-shap_enhanced.tools.visulization" title="shap_enhanced.tools.visulization"><code class="xref py py-obj docutils literal notranslate"><span class="pre">visulization</span></code></a></p></td>
-<td><p></p></td>
+<td><p>SHAP Visualization Utilities</p></td>
 </tr>
 </tbody>
 </table>
@@ -353,8 +374,30 @@ interpretation and presentation of machine learning model outputs.</p>
         
       </footer>
     </div>
-    <aside class="toc-drawer no-toc">
+    <aside class="toc-drawer">
       
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">shap_enhanced.tools</a><ul>
+<li><a class="reference internal" href="#tools-module">Tools Module</a><ul>
+<li><a class="reference internal" href="#included-utilities">Included Utilities</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
       
       
     </aside>

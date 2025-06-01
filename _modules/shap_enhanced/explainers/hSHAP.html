@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../genindex.html" /><link rel="search" title="Search" href="../../../search.html" />
 
     <!-- Generated with Sphinx 8.2.3 and Furo 2024.08.06 -->
-        <title>shap_enhanced.explainers.hSHAP - shap_enhanced documentation</title>
+        <title>shap_enhanced.explainers.hSHAP - Enhanced SHAP documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=354aac6f" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?v=302659d7" />
@@ -165,7 +165,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../../index.html"><div class="brand">shap_enhanced  documentation</div></a>
+      <a href="../../../index.html"><div class="brand">Enhanced SHAP  documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -193,7 +193,7 @@
     <img class="sidebar-logo only-dark" src="../../../_static/fau_wiso_dark.png" alt="Dark Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">shap_enhanced  documentation</span>
+  <span class="sidebar-brand-text">Enhanced SHAP  documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -273,31 +273,61 @@
         <article role="main" id="furo-main-content">
           <h1>Source code for shap_enhanced.explainers.hSHAP</h1><div class="highlight"><pre>
 <span></span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">Hierarchical SHAP (h-SHAP) Explainer</span>
+<span class="sd">h-SHAP: Hierarchical SHAP Explainer</span>
+<span class="sd">===================================</span>
 
-<span class="sd">## Theoretical Explanation</span>
+<span class="sd">Theoretical Explanation</span>
+<span class="sd">-----------------------</span>
 
-<span class="sd">h-SHAP is a hierarchical extension of SHAP that computes feature attributions using structured feature grouping. Instead of treating each feature independently, h-SHAP organizes features (and/or time steps) into groups or blocks, and recursively estimates SHAP values at both group and subgroup levels. This approach enables efficient and interpretable attributions for high-dimensional or structured data, such as time series or grouped features.</span>
+<span class="sd">Hierarchical SHAP (h-SHAP) is an extension of the SHAP framework that enables structured, group-wise attribution  </span>
+<span class="sd">of features in models operating over high-dimensional or structured input data, such as time series or grouped tabular features.</span>
 
-<span class="sd">### Key Concepts</span>
+<span class="sd">Instead of treating each feature independently, h-SHAP introduces a hierarchy of feature groups, allowing recursive  </span>
+<span class="sd">estimation of SHAP values at multiple levels—first over coarse groups, then over finer subgroups or individual features.  </span>
+<span class="sd">This promotes interpretability and computational efficiency in contexts where feature dimensions have natural structure.</span>
 
-<span class="sd">- **Hierarchical Grouping:** Features (and/or time steps) are grouped into blocks (e.g., by time, by feature, or both). The hierarchy can be nested, supporting multi-level groupings.</span>
-<span class="sd">- **Recursive SHAP Estimation:** SHAP values are estimated recursively: first for groups, then for subgroups or individual features within each group.</span>
-<span class="sd">- **Flexible Masking:** Masked features can be imputed with mean values from the background data or set to zero, depending on the chosen strategy.</span>
-<span class="sd">- **Additivity Normalization:** Attributions are normalized so their sum matches the model output difference between the original and fully-masked input.</span>
+<span class="sd">Key Concepts</span>
+<span class="sd">^^^^^^^^^^^^</span>
 
-<span class="sd">## Algorithm</span>
+<span class="sd">- **Hierarchical Grouping**:  </span>
+<span class="sd">    Features are grouped into blocks (e.g., temporal windows, spatial zones, feature families), possibly in multiple nested levels.  </span>
+<span class="sd">    These groups define the hierarchy over which SHAP values are computed.</span>
 
-<span class="sd">1. **Initialization:**</span>
-<span class="sd">    - Accepts a model, background data (for mean imputation), a hierarchy of feature groups, masking strategy, and device.</span>
-<span class="sd">2. **Recursive Attribution:**</span>
+<span class="sd">- **Recursive SHAP Estimation**:  </span>
+<span class="sd">    SHAP values are estimated first at the group level, and then recursively subdivided among subgroups or features  </span>
+<span class="sd">    within each group. This preserves hierarchical structure in the resulting attribution map.</span>
+
+<span class="sd">- **Flexible Masking**:  </span>
+<span class="sd">    Features can be masked by:</span>
+<span class="sd">        - Setting them to zero (hard masking).</span>
+<span class="sd">        - Imputing with background mean values (soft masking), using a provided reference dataset.</span>
+
+<span class="sd">- **Additivity Normalization**:  </span>
+<span class="sd">    Final attributions are normalized such that their total sum equals the model output difference  </span>
+<span class="sd">    between the original and fully-masked inputs.</span>
+
+<span class="sd">Algorithm</span>
+<span class="sd">---------</span>
+
+<span class="sd">1. **Initialization**:</span>
+<span class="sd">    - Accepts a model, background dataset for imputation, a user-defined hierarchy of feature groups,  </span>
+<span class="sd">        masking strategy (`&#39;zero&#39;` or `&#39;mean&#39;`), and a device context.</span>
+
+<span class="sd">2. **Recursive Attribution**:</span>
 <span class="sd">    - For each group in the hierarchy:</span>
-<span class="sd">        - Estimate the marginal contribution of the group by comparing model outputs with and without the group masked, averaging over random coalitions of the remaining features.</span>
-<span class="sd">        - If the group contains subgroups, recursively estimate attributions for each subgroup.</span>
-<span class="sd">        - Distribute the group SHAP value equally among its members.</span>
-<span class="sd">3. **Normalization:**</span>
-<span class="sd">    - Scale attributions so their sum matches the difference between the original and fully-masked model output.</span>
+<span class="sd">        - Sample coalitions of other groups.</span>
+<span class="sd">        - Estimate the group’s marginal contribution by masking:</span>
+<span class="sd">            - Only the coalition, and</span>
+<span class="sd">            - The coalition plus the current group.</span>
+<span class="sd">        - Compute the model output difference to get SHAP value.</span>
+<span class="sd">        - If the group contains subgroups, repeat recursively.</span>
+<span class="sd">        - If not, distribute the SHAP value equally among group members or subfeatures.</span>
+
+<span class="sd">3. **Normalization**:</span>
+<span class="sd">    - Rescale all SHAP values so that their sum matches the change in model output  </span>
+<span class="sd">        between the unmasked input and the fully-masked input.</span>
 <span class="sd">&quot;&quot;&quot;</span>
+
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
@@ -311,15 +341,23 @@
     <span class="n">feature_block</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="n">nested</span><span class="o">=</span><span class="kc">False</span>
 <span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Dynamically generate a hierarchy for (T, F) data.</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generate a hierarchical grouping of features in a (T, F)-shaped input space.</span>
 
-<span class="sd">    - time_block: int or None, size of time step blocks (e.g. 2 for groups of 2 time steps)</span>
-<span class="sd">    - feature_block: int or None, size of feature blocks</span>
-<span class="sd">    - nested: if True, generates a hierarchy of groupings (list of lists of (t, f))</span>
+<span class="sd">    This utility is useful for constructing hierarchical feature groupings for use with hierarchical SHAP (h-SHAP).</span>
+<span class="sd">    Depending on the specified block sizes, it partitions time steps, features, or both into groups. If `nested=True`,</span>
+<span class="sd">    the function returns subgroups within each block.</span>
 
-<span class="sd">    Returns:</span>
-<span class="sd">        hierarchy: list (or nested list) of (t, f) tuples</span>
+<span class="sd">    .. note::</span>
+<span class="sd">        The output format supports both flat and nested group structures, which are compatible with recursive SHAP attribution.</span>
+
+<span class="sd">    :param int T: Number of time steps (first input dimension).</span>
+<span class="sd">    :param int F: Number of features (second input dimension).</span>
+<span class="sd">    :param int or None time_block: Size of time blocks (e.g., 2 for groups of 2 time steps). If None, no time blocking.</span>
+<span class="sd">    :param int or None feature_block: Size of feature blocks. If None, no feature blocking.</span>
+<span class="sd">    :param bool nested: Whether to return nested groups (group → list of singleton subgroups).</span>
+<span class="sd">    :return: A list of grouped (t, f) indices, either flat or nested depending on `nested`.</span>
+<span class="sd">    :rtype: list[list[tuple[int, int]]] or list[list[list[tuple[int, int]]]]</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># Block by time only</span>
     <span class="k">if</span> <span class="n">time_block</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">feature_block</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -361,22 +399,23 @@
 <div class="viewcode-block" id="HShapExplainer">
 <a class="viewcode-back" href="../../../generated/shap_enhanced.explainers.hSHAP.html#shap_enhanced.explainers.hSHAP.HShapExplainer">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">HShapExplainer</span><span class="p">(</span><span class="n">BaseExplainer</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    h-SHAP: Hierarchical SHAP Explainer</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    HShapExplainer: Hierarchical SHAP Explainer</span>
 
-<span class="sd">    Parameters</span>
-<span class="sd">    ----------</span>
-<span class="sd">    model : Any</span>
-<span class="sd">        Model to be explained.</span>
-<span class="sd">    background : np.ndarray or torch.Tensor</span>
-<span class="sd">        (N, T, F), for mean imputation.</span>
-<span class="sd">    hierarchy : list</span>
-<span class="sd">        Feature hierarchy as nested lists of (t, f) tuples (see below).</span>
-<span class="sd">        Example: [[(0,0), (0,1)], [(1,0), (1,1)], ...] for block-of-2 time steps.</span>
-<span class="sd">    mask_strategy : str</span>
-<span class="sd">        &#39;mean&#39; or &#39;zero&#39; (default: &#39;mean&#39;).</span>
-<span class="sd">    device : str</span>
-<span class="sd">        &#39;cpu&#39; or &#39;cuda&#39;.</span>
+<span class="sd">    Implements the h-SHAP algorithm, which recursively computes SHAP values over structured </span>
+<span class="sd">    groups of features using hierarchical masking. Suitable for time-series or block-structured </span>
+<span class="sd">    feature inputs where interpretability benefits from grouped attributions.</span>
+
+<span class="sd">    .. note::</span>
+<span class="sd">        Features can be masked using hard zero-masking or soft imputation via background means.</span>
+
+<span class="sd">    :param model: Model to explain.</span>
+<span class="sd">    :param background: Background dataset for mean imputation. Shape: (N, T, F).</span>
+<span class="sd">    :type background: np.ndarray or torch.Tensor</span>
+<span class="sd">    :param hierarchy: Nested list of feature index groups (e.g., [[(t1, f1), (t2, f2)], ...]).</span>
+<span class="sd">    :type hierarchy: list</span>
+<span class="sd">    :param str mask_strategy: Either &quot;mean&quot; for imputation or &quot;zero&quot; for hard masking.</span>
+<span class="sd">    :param str device: Device context, e.g., &quot;cuda&quot; or &quot;cpu&quot;.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -396,6 +435,16 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_mean</span> <span class="o">=</span> <span class="kc">None</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_impute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">idxs</span><span class="p">):</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Mask or impute features in `X` at the given (t, f) indices according to the configured strategy.</span>
+
+<span class="sd">        :param X: Input sample to be modified.</span>
+<span class="sd">        :type X: np.ndarray</span>
+<span class="sd">        :param idxs: List of (t, f) indices to mask.</span>
+<span class="sd">        :type idxs: list of tuples</span>
+<span class="sd">        :return: Modified input sample with masked/imputed values.</span>
+<span class="sd">        :rtype: np.ndarray</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">X_imp</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
         <span class="k">for</span> <span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span> <span class="ow">in</span> <span class="n">idxs</span><span class="p">:</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mask_strategy</span> <span class="o">==</span> <span class="s2">&quot;zero&quot;</span><span class="p">:</span>
@@ -407,7 +456,25 @@
         <span class="k">return</span> <span class="n">X_imp</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_shap_group</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">group_idxs</span><span class="p">,</span> <span class="n">rest_idxs</span><span class="p">,</span> <span class="n">nsamples</span><span class="o">=</span><span class="mi">50</span><span class="p">):</span>
-        <span class="c1"># Estimate marginal contribution of &#39;group&#39; vs. &#39;rest&#39;</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Estimate the SHAP value of a feature group by computing its marginal contribution </span>
+<span class="sd">        compared to sampled subsets of other groups.</span>
+
+<span class="sd">        .. math::</span>
+<span class="sd">            \phi(S) = \mathbb{E}_{R \subseteq \text{rest}} \left[</span>
+<span class="sd">                f(x_{\text{rest}}) - f(x_{\text{rest} \cup S})</span>
+<span class="sd">            \right]</span>
+
+<span class="sd">        :param x: Input sample (T, F).</span>
+<span class="sd">        :type x: np.ndarray</span>
+<span class="sd">        :param group_idxs: Indices of the current group.</span>
+<span class="sd">        :type group_idxs: list of tuples</span>
+<span class="sd">        :param rest_idxs: Indices of all other groups.</span>
+<span class="sd">        :type rest_idxs: list of tuples</span>
+<span class="sd">        :param int nsamples: Number of random coalitions to sample for marginal estimation.</span>
+<span class="sd">        :return: Estimated SHAP value for the group.</span>
+<span class="sd">        :rtype: float</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">contribs</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">all_idxs</span> <span class="o">=</span> <span class="n">group_idxs</span> <span class="o">+</span> <span class="n">rest_idxs</span>
         <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nsamples</span><span class="p">):</span>
@@ -428,10 +495,21 @@
 
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_explain_recursive</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">groups</span><span class="p">,</span> <span class="n">nsamples</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">attributions</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Recursively explain at group and subgroup levels.</span>
-<span class="sd">        groups: list of lists or tuples</span>
-<span class="sd">        Returns: attribution dict {(t, f): value}</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Recursively apply SHAP attribution over a hierarchical structure of groups.</span>
+
+<span class="sd">        If subgroups exist, the SHAP value is divided equally among sub-elements. </span>
+<span class="sd">        Accumulates attributions for each (t, f) index.</span>
+
+<span class="sd">        :param x: Input instance to explain.</span>
+<span class="sd">        :type x: np.ndarray</span>
+<span class="sd">        :param groups: List of groups (can be nested).</span>
+<span class="sd">        :type groups: list</span>
+<span class="sd">        :param int nsamples: Number of samples per group SHAP estimation.</span>
+<span class="sd">        :param attributions: Dictionary to accumulate attributions.</span>
+<span class="sd">        :type attributions: dict or None</span>
+<span class="sd">        :return: Dictionary mapping (t, f) indices to SHAP values.</span>
+<span class="sd">        :rtype: dict</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">attributions</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">attributions</span> <span class="o">=</span> <span class="p">{}</span>
@@ -468,9 +546,22 @@
         <span class="n">random_seed</span><span class="o">=</span><span class="mi">42</span><span class="p">,</span>
         <span class="o">**</span><span class="n">kwargs</span>
     <span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Hierarchical SHAP: computes SHAP values for each (t, f) via recursive group explanation.</span>
-<span class="sd">        Returns: (T, F) or (B, T, F)</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute hierarchical SHAP values for a batch of inputs.</span>
+
+<span class="sd">        The method recursively attributes model output to hierarchical feature groups. </span>
+<span class="sd">        It also ensures additivity via normalization of final attributions.</span>
+
+<span class="sd">        .. math::</span>
+<span class="sd">            \sum_{i=1}^{TF} \phi_i = f(x) - f(x_{\text{masked}})</span>
+
+<span class="sd">        :param X: Input batch, shape (B, T, F) or single instance (T, F).</span>
+<span class="sd">        :type X: np.ndarray or torch.Tensor</span>
+<span class="sd">        :param int nsamples: Number of Monte Carlo samples per group.</span>
+<span class="sd">        :param bool check_additivity: If True, prints additivity check summary.</span>
+<span class="sd">        :param int random_seed: Seed for reproducible sampling.</span>
+<span class="sd">        :return: SHAP values, same shape as `X`.</span>
+<span class="sd">        :rtype: np.ndarray</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="n">random_seed</span><span class="p">)</span>
         <span class="n">is_torch</span> <span class="o">=</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="s1">&#39;detach&#39;</span><span class="p">)</span>

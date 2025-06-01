@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../genindex.html" /><link rel="search" title="Search" href="../../../search.html" />
 
     <!-- Generated with Sphinx 8.2.3 and Furo 2024.08.06 -->
-        <title>shap_enhanced.explainers.ESSHAP - shap_enhanced documentation</title>
+        <title>shap_enhanced.explainers.ESSHAP - Enhanced SHAP documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=354aac6f" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?v=302659d7" />
@@ -165,7 +165,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../../index.html"><div class="brand">shap_enhanced  documentation</div></a>
+      <a href="../../../index.html"><div class="brand">Enhanced SHAP  documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -193,7 +193,7 @@
     <img class="sidebar-logo only-dark" src="../../../_static/fau_wiso_dark.png" alt="Dark Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">shap_enhanced  documentation</span>
+  <span class="sidebar-brand-text">Enhanced SHAP  documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -274,32 +274,60 @@
           <h1>Source code for shap_enhanced.explainers.ESSHAP</h1><div class="highlight"><pre>
 <span></span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">EnsembleSHAPWithNoise: Robust Ensemble Wrapper for SHAP/Custom Explainers</span>
+<span class="sd">=========================================================================</span>
 
-<span class="sd">## Theoretical Explanation</span>
+<span class="sd">Theoretical Explanation</span>
+<span class="sd">-----------------------</span>
 
-<span class="sd">EnsembleSHAPWithNoise is a robust ensemble wrapper for SHAP and custom explainers. It improves attribution stability and robustness by running the chosen explainer multiple times with added Gaussian noise to the input data and/or background samples, then aggregating the results. This approach helps mitigate sensitivity to small perturbations and provides more reliable feature attributions, especially for deep or unstable models.</span>
+<span class="sd">**EnsembleSHAPWithNoise** is a robust ensemble-based enhancement for SHAP and custom explainer methods.  </span>
+<span class="sd">It addresses instability in feature attributions—especially in deep or highly sensitive models—by  </span>
+<span class="sd">adding Gaussian noise to the inputs and/or background data across multiple runs of a base explainer,  </span>
+<span class="sd">then aggregating the resulting attribution maps.</span>
 
-<span class="sd">### Key Concepts</span>
+<span class="sd">This technique improves robustness by simulating data perturbations and reduces the variance in  </span>
+<span class="sd">feature importance estimates, leading to more reliable and stable interpretations.</span>
 
-<span class="sd">- **Ensemble Averaging:** Runs the base explainer multiple times with different noise realizations and aggregates the resulting attributions (mean or median).</span>
-<span class="sd">- **Noise Injection:** Gaussian noise can be added to the input, background, or both, simulating data variability and improving robustness.</span>
-<span class="sd">- **Explainer Flexibility:** Supports all official SHAP explainers and custom explainers, automatically handling their input/background requirements.</span>
-<span class="sd">- **Automatic Type Handling:** Converts data to the required type (NumPy or PyTorch) for the selected explainer.</span>
+<span class="sd">Key Concepts</span>
+<span class="sd">^^^^^^^^^^^^</span>
 
-<span class="sd">## Algorithm</span>
+<span class="sd">- **Ensemble Averaging**:  </span>
+<span class="sd">    The explainer is executed multiple times with noisy versions of the input/background.  </span>
+<span class="sd">    Attribution results are aggregated using the specified method (mean or median).</span>
 
-<span class="sd">1. **Initialization:**</span>
-<span class="sd">    - Accepts a model, background data, explainer class (default: `shap.DeepExplainer`), explainer kwargs, number of runs, noise level, noise target, aggregation method, and device.</span>
-<span class="sd">2. **Ensemble Loop:**</span>
-<span class="sd">    - For each run:</span>
-<span class="sd">        - Add Gaussian noise to the input and/or background as specified.</span>
-<span class="sd">        - Convert data to the required type for the explainer.</span>
-<span class="sd">        - Instantiate the explainer with the noisy background.</span>
-<span class="sd">        - Compute SHAP values for the noisy input.</span>
-<span class="sd">    - Collect all attribution results.</span>
-<span class="sd">3. **Aggregation:**</span>
-<span class="sd">    - Aggregate the attributions across runs using the specified method (mean or median).</span>
+<span class="sd">- **Noise Injection**:  </span>
+<span class="sd">    Gaussian noise is applied to:</span>
+<span class="sd">        - **Input**: Simulates perturbations in the sample to be explained.</span>
+<span class="sd">        - **Background**: Introduces variability into the reference distribution used for attribution.</span>
+<span class="sd">        - **Both**: Simulates end-to-end variability.</span>
+
+<span class="sd">- **Explainer Flexibility**:  </span>
+<span class="sd">    Compatible with all SHAP explainers (e.g., `DeepExplainer`, `KernelExplainer`) and custom user-defined explainers.  </span>
+<span class="sd">    Automatically adapts inputs to the required format (NumPy or PyTorch).</span>
+
+<span class="sd">- **Type Safety and Compatibility**:  </span>
+<span class="sd">    Automatically handles conversions between NumPy arrays and PyTorch tensors, depending on the explainer&#39;s requirements.</span>
+
+<span class="sd">Algorithm</span>
+<span class="sd">---------</span>
+
+<span class="sd">1. **Initialization**:</span>
+<span class="sd">    - Accepts a model, background data, explainer class (default: `shap.DeepExplainer`), number of runs,  </span>
+<span class="sd">        noise level (`float`), target for noise injection (`&#39;input&#39;`, `&#39;background&#39;`, or `&#39;both&#39;`),  </span>
+<span class="sd">        aggregation method (`&#39;mean&#39;` or `&#39;median&#39;`), explainer kwargs, and device context.</span>
+
+<span class="sd">2. **Ensemble Loop**:</span>
+<span class="sd">    - For each of the specified number of runs:</span>
+<span class="sd">        - Inject Gaussian noise into the background and/or input, as specified.</span>
+<span class="sd">        - Convert noisy data into the appropriate type (NumPy or PyTorch).</span>
+<span class="sd">        - Instantiate the explainer using the noisy background.</span>
+<span class="sd">        - Compute SHAP values on the noisy input.</span>
+<span class="sd">        - Store the resulting attributions.</span>
+
+<span class="sd">3. **Aggregation**:</span>
+<span class="sd">    - Combine all attribution maps using the specified aggregation method (mean or median)  </span>
+<span class="sd">        to produce the final, noise-robust attribution result.</span>
 <span class="sd">&quot;&quot;&quot;</span>
+
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
@@ -351,6 +379,27 @@
 <div class="viewcode-block" id="EnsembleSHAPWithNoise">
 <a class="viewcode-back" href="../../../generated/shap_enhanced.explainers.ESSHAP.html#shap_enhanced.explainers.ESSHAP.EnsembleSHAPWithNoise">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">EnsembleSHAPWithNoise</span><span class="p">(</span><span class="n">BaseExplainer</span><span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    EnsembleSHAPWithNoise: Robust Ensemble Wrapper for SHAP/Custom Explainers</span>
+
+<span class="sd">    This class enhances the stability of SHAP (SHapley Additive exPlanations) values by performing multiple runs</span>
+<span class="sd">    with Gaussian noise applied to inputs and/or background data, and aggregating the results. It wraps around</span>
+<span class="sd">    standard SHAP explainers or custom user-defined ones, making them more robust in the presence of</span>
+<span class="sd">    sensitivity or instability.</span>
+
+<span class="sd">    .. note::</span>
+<span class="sd">        This class automatically handles input conversion between NumPy and PyTorch, depending on the explainer type.</span>
+
+<span class="sd">    :param model: The model to explain.</span>
+<span class="sd">    :param background: Background data used for SHAP attribution (can be None if not required).</span>
+<span class="sd">    :param explainer_class: The SHAP or custom explainer class to wrap. Defaults to `shap.DeepExplainer`.</span>
+<span class="sd">    :param explainer_kwargs: Dictionary of keyword arguments to pass to the explainer during instantiation.</span>
+<span class="sd">    :param int n_runs: Number of noisy runs to perform for ensemble aggregation.</span>
+<span class="sd">    :param float noise_level: Standard deviation of Gaussian noise to inject.</span>
+<span class="sd">    :param str noise_target: Target for noise injection: &quot;input&quot;, &quot;background&quot;, or &quot;both&quot;.</span>
+<span class="sd">    :param str aggregation: Aggregation method across runs: &quot;mean&quot; or &quot;median&quot;.</span>
+<span class="sd">    :param device: Device context (e.g., &#39;cpu&#39;, &#39;cuda&#39;) for tensor-based explainers. Defaults to available GPU or CPU.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">model</span><span class="p">,</span>
@@ -377,6 +426,26 @@
 <div class="viewcode-block" id="EnsembleSHAPWithNoise.shap_values">
 <a class="viewcode-back" href="../../../generated/shap_enhanced.explainers.ESSHAP.html#shap_enhanced.explainers.ESSHAP.EnsembleSHAPWithNoise.shap_values">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">shap_values</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute noise-robust SHAP values via ensemble averaging over multiple noisy runs.</span>
+
+<span class="sd">        For each run, Gaussian noise is added to the input and/or background (as configured), </span>
+<span class="sd">        then the SHAP explainer is applied to compute attribution values. These are aggregated </span>
+<span class="sd">        (mean or median) to produce a stable final output.</span>
+
+<span class="sd">        .. math::</span>
+<span class="sd">            \text{Attribution}_{final}(i) = </span>
+<span class="sd">            \begin{cases}</span>
+<span class="sd">                \frac{1}{N} \sum_{j=1}^N \text{SHAP}_j(i) &amp; \text{if aggregation = mean} \\</span>
+<span class="sd">                \text{median}\{\text{SHAP}_1(i), \ldots, \text{SHAP}_N(i)\} &amp; \text{if aggregation = median}</span>
+<span class="sd">            \end{cases}</span>
+
+<span class="sd">        :param X: Input sample(s) to explain (NumPy array or torch.Tensor).</span>
+<span class="sd">        :type X: np.ndarray or torch.Tensor</span>
+<span class="sd">        :param kwargs: Additional keyword arguments passed to the underlying explainer&#39;s `shap_values` method.</span>
+<span class="sd">        :return: Aggregated attribution values across ensemble runs.</span>
+<span class="sd">        :rtype: np.ndarray</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">attributions</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">run</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_runs</span><span class="p">):</span>
             <span class="c1"># Decide type for this explainer run</span>

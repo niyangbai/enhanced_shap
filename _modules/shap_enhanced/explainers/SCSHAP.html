@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../genindex.html" /><link rel="search" title="Search" href="../../../search.html" />
 
     <!-- Generated with Sphinx 8.2.3 and Furo 2024.08.06 -->
-        <title>shap_enhanced.explainers.SCSHAP - shap_enhanced documentation</title>
+        <title>shap_enhanced.explainers.SCSHAP - Enhanced SHAP documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=354aac6f" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?v=302659d7" />
@@ -165,7 +165,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../../index.html"><div class="brand">shap_enhanced  documentation</div></a>
+      <a href="../../../index.html"><div class="brand">Enhanced SHAP  documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -193,7 +193,7 @@
     <img class="sidebar-logo only-dark" src="../../../_static/fau_wiso_dark.png" alt="Dark Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">shap_enhanced  documentation</span>
+  <span class="sidebar-brand-text">Enhanced SHAP  documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -274,32 +274,77 @@
           <h1>Source code for shap_enhanced.explainers.SCSHAP</h1><div class="highlight"><pre>
 <span></span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">Sparse Coalition SHAP Explainer</span>
+<span class="sd">===============================</span>
 
-<span class="sd">## Theoretical Explanation</span>
+<span class="sd">Theoretical Explanation</span>
+<span class="sd">-----------------------</span>
 
-<span class="sd">Sparse Coalition SHAP is a feature attribution method tailored for sparse or structured discrete data, such as one-hot encodings or binary features. It only forms coalitions (feature subsets to mask) that produce valid sparse patterns. For one-hot sets, masking means setting the entire group to zero (no class selected), never producing invalid or fractional vectors. This ensures that all perturbed samples remain within the valid data manifold, avoiding unrealistic or out-of-distribution patterns.</span>
+<span class="sd">Sparse Coalition SHAP is a feature attribution method specifically designed for sparse, discrete,  </span>
+<span class="sd">or structured inputs—such as one-hot encodings and binary feature sets.  </span>
+<span class="sd">Unlike standard SHAP approaches that may generate invalid or unrealistic feature perturbations,  </span>
+<span class="sd">Sparse Coalition SHAP only considers **valid coalitions** that preserve the sparsity and logical structure  </span>
+<span class="sd">of the input space.</span>
 
-<span class="sd">### Key Concepts</span>
+<span class="sd">For one-hot encoded groups, masking a group zeroes out the entire set—representing &quot;no selection&quot;—without producing  </span>
+<span class="sd">fractional or ambiguous class encodings. For binary features, masking is performed element-wise while maintaining  </span>
+<span class="sd">input validity.</span>
 
-<span class="sd">- **Valid Sparse Coalitions:** Only masks feature groups in ways that preserve valid one-hot or binary patterns.</span>
-<span class="sd">- **One-Hot Group Support:** For one-hot encoded features, masking a group sets all features in the group to zero, representing &quot;no class.&quot;</span>
-<span class="sd">- **General Binary Support:** For general binary features, masking is performed per (t, f) position.</span>
-<span class="sd">- **Flexible Masking Strategy:** Supports zero-masking (default) and can be extended to observed-pattern masking.</span>
-<span class="sd">- **Additivity Normalization:** Attributions are normalized so their sum matches the model output difference between the original and fully-masked input.</span>
+<span class="sd">This approach ensures all perturbed inputs remain on-manifold, improving both interpretability and the validity  </span>
+<span class="sd">of model attributions in discrete domains.</span>
 
-<span class="sd">## Algorithm</span>
+<span class="sd">Key Concepts</span>
+<span class="sd">^^^^^^^^^^^^</span>
 
-<span class="sd">1. **Initialization:**</span>
-<span class="sd">    - Accepts a model, background data, one-hot group definitions, masking strategy, and device.</span>
-<span class="sd">2. **Coalition Sampling:**</span>
-<span class="sd">    - For each group (one-hot) or feature (binary), repeatedly:</span>
-<span class="sd">        - Sample random subsets of other groups/features to mask.</span>
-<span class="sd">        - Mask the coalition and compute the model output.</span>
-<span class="sd">        - Mask the coalition plus the group/feature of interest and compute the model output.</span>
-<span class="sd">        - Record the difference.</span>
-<span class="sd">    - Average these differences to estimate the marginal contribution of each group/feature.</span>
-<span class="sd">3. **Normalization:**</span>
-<span class="sd">    - Scale attributions so their sum matches the difference between the original and fully-masked model output.</span>
+<span class="sd">- **Valid Sparse Coalitions**:  </span>
+<span class="sd">    Coalitions are restricted to those that produce syntactically valid inputs under the sparsity constraints.  </span>
+<span class="sd">    This avoids creating feature patterns that would never occur naturally.</span>
+
+<span class="sd">- **One-Hot Group Support**:  </span>
+<span class="sd">    Groups of mutually exclusive features (e.g., one-hot encodings) are masked by setting the entire group to zero,  </span>
+<span class="sd">    simulating &quot;no class selected.&quot;</span>
+
+<span class="sd">- **Binary Feature Support**:  </span>
+<span class="sd">    Element-wise masking is applied to binary features, allowing localized coalitions across time and features.</span>
+
+<span class="sd">- **Flexible Masking Strategies**:  </span>
+<span class="sd">    - Default: zero-masking.</span>
+<span class="sd">    - Extensible to other strategies (e.g., pattern sampling from background data).</span>
+
+<span class="sd">- **Additivity Normalization**:  </span>
+<span class="sd">    Final attributions are normalized so their total matches the difference between the model outputs  </span>
+<span class="sd">    of the original and fully-masked inputs.</span>
+
+<span class="sd">Algorithm</span>
+<span class="sd">---------</span>
+
+<span class="sd">1. **Initialization**:</span>
+<span class="sd">    - Accepts the target model, background dataset, one-hot group definitions, masking strategy (default: zero),  </span>
+<span class="sd">        and device configuration.</span>
+
+<span class="sd">2. **Coalition Sampling**:</span>
+<span class="sd">    - For each one-hot group or binary feature:</span>
+<span class="sd">        - Randomly sample subsets of other groups/features to form coalitions.</span>
+<span class="sd">        - For each coalition:</span>
+<span class="sd">            - Mask the selected features/groups in the input.</span>
+<span class="sd">            - Mask the coalition plus the current target group/feature.</span>
+<span class="sd">            - Compute the model outputs for both variants.</span>
+<span class="sd">            - Record the output difference.</span>
+
+<span class="sd">3. **SHAP Value Estimation**:</span>
+<span class="sd">    - Average the output differences over many sampled coalitions to approximate the Shapley value  </span>
+<span class="sd">        (i.e., the marginal contribution) of each group/feature.</span>
+
+<span class="sd">4. **Normalization**:</span>
+<span class="sd">    - Scale all attributions so their sum equals the model output difference between  </span>
+<span class="sd">        the original and fully-masked inputs.</span>
+
+<span class="sd">Use Case</span>
+<span class="sd">--------</span>
+
+<span class="sd">Ideal for models operating on:</span>
+<span class="sd">    - Categorical variables represented via one-hot encoding.</span>
+<span class="sd">    - Structured binary inputs (e.g., presence/absence features).</span>
+<span class="sd">    - Sparse input spaces where validity and interpretability are critical.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
 
@@ -310,25 +355,27 @@
 <div class="viewcode-block" id="SparseCoalitionSHAPExplainer">
 <a class="viewcode-back" href="../../../generated/shap_enhanced.explainers.SCSHAP.html#shap_enhanced.explainers.SCSHAP.SparseCoalitionSHAPExplainer">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">SparseCoalitionSHAPExplainer</span><span class="p">(</span><span class="n">BaseExplainer</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Sparse Coalition SHAP Explainer</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    SparseCoalitionSHAPExplainer: Valid SHAP for Structured Sparse Inputs</span>
 
-<span class="sd">    Only forms coalitions (feature subsets to mask) that produce valid sparse patterns,</span>
-<span class="sd">    such as one-hot encodings or binary support. For one-hot sets, masking means setting</span>
-<span class="sd">    the entire group to zero (no class selected), never producing invalid or fractional vectors.</span>
+<span class="sd">    This explainer approximates Shapley values by sampling valid sparse coalitions of features. </span>
+<span class="sd">    It ensures that perturbed inputs remain syntactically valid, especially for inputs with </span>
+<span class="sd">    structured sparsity such as one-hot encodings or binary indicator features.</span>
 
-<span class="sd">    Parameters</span>
-<span class="sd">    ----------</span>
-<span class="sd">    model : Any</span>
-<span class="sd">        Model to be explained.</span>
-<span class="sd">    background : np.ndarray or torch.Tensor</span>
-<span class="sd">        Background for optional mean/mode imputation (not used for masking).</span>
-<span class="sd">    onehot_groups : list of lists</span>
-<span class="sd">        For one-hot data, each sublist contains feature indices of a one-hot set, e.g. [[0,1,2],[3,4,5],...].</span>
-<span class="sd">    mask_strategy : str</span>
-<span class="sd">        &#39;zero&#39; (default): mask sets features to zero (no class).</span>
-<span class="sd">    device : str</span>
-<span class="sd">        &#39;cpu&#39; or &#39;cuda&#39;.</span>
+<span class="sd">    .. note::</span>
+<span class="sd">        One-hot groups are masked as entire sets to simulate &quot;no class selected&quot;.</span>
+<span class="sd">        General binary features are masked element-wise.</span>
+
+<span class="sd">    :param model: Predictive model to explain.</span>
+<span class="sd">    :type model: Any</span>
+<span class="sd">    :param background: Background data (not directly used but required for base class).</span>
+<span class="sd">    :type background: np.ndarray or torch.Tensor</span>
+<span class="sd">    :param onehot_groups: List of one-hot index groups, e.g., [[0,1,2], [3,4]].</span>
+<span class="sd">    :type onehot_groups: list[list[int]] or None</span>
+<span class="sd">    :param mask_strategy: Currently supports only &quot;zero&quot; masking.</span>
+<span class="sd">    :type mask_strategy: str</span>
+<span class="sd">    :param device: Device context for evaluation (e.g., &#39;cuda&#39; or &#39;cpu&#39;).</span>
+<span class="sd">    :type device: str</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -367,8 +414,32 @@
         <span class="n">random_seed</span><span class="o">=</span><span class="mi">42</span><span class="p">,</span>
         <span class="o">**</span><span class="n">kwargs</span>
     <span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        SHAP with valid sparse coalitions: (B, T, F) or (T, F)</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Estimate SHAP values using sparse-valid coalitions.</span>
+
+<span class="sd">        For each input sample:</span>
+<span class="sd">        - Iterates over all features (or one-hot groups).</span>
+<span class="sd">        - Randomly samples subsets of other features/groups to form coalitions.</span>
+<span class="sd">        - Computes model output difference when adding the current feature/group to the coalition.</span>
+<span class="sd">        - Averages these differences to estimate the Shapley value.</span>
+
+<span class="sd">        .. math::</span>
+<span class="sd">            \phi_i = \mathbb{E}_{S \subseteq N \setminus \{i\}} \left[</span>
+<span class="sd">                f(S \cup \{i\}) - f(S)</span>
+<span class="sd">            \right]</span>
+
+<span class="sd">        Final attributions are normalized such that:</span>
+
+<span class="sd">        .. math::</span>
+<span class="sd">            \sum_i \phi_i = f(x) - f(x_{\text{masked}})</span>
+
+<span class="sd">        :param X: Input instance(s), shape (T, F) or (B, T, F).</span>
+<span class="sd">        :type X: np.ndarray or torch.Tensor</span>
+<span class="sd">        :param int nsamples: Number of coalition samples per feature/group.</span>
+<span class="sd">        :param bool check_additivity: If True, prints the additivity check.</span>
+<span class="sd">        :param int random_seed: Seed for reproducible sampling.</span>
+<span class="sd">        :return: SHAP attribution values, same shape as input.</span>
+<span class="sd">        :rtype: np.ndarray</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="n">random_seed</span><span class="p">)</span>
         <span class="n">is_torch</span> <span class="o">=</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="s1">&#39;detach&#39;</span><span class="p">)</span>

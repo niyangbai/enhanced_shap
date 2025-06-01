@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../genindex.html" /><link rel="search" title="Search" href="../../../search.html" />
 
     <!-- Generated with Sphinx 8.2.3 and Furo 2024.08.06 -->
-        <title>shap_enhanced.explainers.CMSHAP - shap_enhanced documentation</title>
+        <title>shap_enhanced.explainers.CMSHAP - Enhanced SHAP documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=354aac6f" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?v=302659d7" />
@@ -165,7 +165,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../../index.html"><div class="brand">shap_enhanced  documentation</div></a>
+      <a href="../../../index.html"><div class="brand">Enhanced SHAP  documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -193,7 +193,7 @@
     <img class="sidebar-logo only-dark" src="../../../_static/fau_wiso_dark.png" alt="Dark Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">shap_enhanced  documentation</span>
+  <span class="sidebar-brand-text">Enhanced SHAP  documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -274,30 +274,40 @@
           <h1>Source code for shap_enhanced.explainers.CMSHAP</h1><div class="highlight"><pre>
 <span></span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">Contextual Masking SHAP (CM-SHAP) Explainer for Sequential Models</span>
+<span class="sd">=================================================================</span>
 
-<span class="sd">## Theoretical Explanation</span>
+<span class="sd">Theoretical Explanation</span>
+<span class="sd">-----------------------</span>
 
-<span class="sd">CM-SHAP is a SHAP-style feature attribution method designed for sequential (time series) models. Instead of masking features with zeros or mean values, CM-SHAP uses context-aware imputation: masked values are replaced by interpolating between their immediate temporal neighbors (forward/backward average). This preserves the temporal structure and context, leading to more realistic and faithful perturbations for sequential data.</span>
+<span class="sd">CM-SHAP is a SHAP-style feature attribution method designed for sequential (time series) models.</span>
+<span class="sd">Instead of masking features with zeros or mean values, CM-SHAP uses context-aware imputation:</span>
+<span class="sd">masked values are replaced by interpolating between their immediate temporal neighbors (forward/backward average).</span>
+<span class="sd">This preserves the temporal structure and context, leading to more realistic and faithful perturbations for sequential data.</span>
 
-<span class="sd">### Key Concepts</span>
+<span class="sd">Key Concepts</span>
+<span class="sd">^^^^^^^^^^^^</span>
 
-<span class="sd">- **Contextual Masking:** When masking a feature at time t, its value is replaced by the average of its neighboring time steps (t-1 and t+1). For boundary cases (first or last time step), only the available neighbor is used.</span>
-<span class="sd">- **Coalition Sampling:** For each feature-time position (t, f), random coalitions (subsets of all other positions) are sampled. The marginal contribution of (t, f) is estimated by measuring the change in model output when (t, f) is added to the coalition.</span>
-<span class="sd">- **Additivity Normalization:** Attributions are normalized so their sum matches the model output difference between the original and fully-masked input.</span>
+<span class="sd">- **Contextual Masking**: When masking a feature at time ``t``, its value is replaced by the average of its neighboring time steps (``t-1`` and ``t+1``). For boundary cases (first or last time step), only the available neighbor is used.</span>
+<span class="sd">- **Coalition Sampling**: For each feature-time position ``(t, f)``, random coalitions (subsets of all other positions) are sampled. The marginal contribution of ``(t, f)`` is estimated by measuring the change in model output when ``(t, f)`` is added to the coalition.</span>
+<span class="sd">- **Additivity Normalization**: Attributions are normalized so their sum matches the model output difference between the original and fully-masked input.</span>
 
-<span class="sd">## Algorithm</span>
+<span class="sd">Algorithm</span>
+<span class="sd">---------</span>
 
-<span class="sd">1. **Initialization:**</span>
+<span class="sd">1. **Initialization**:</span>
 <span class="sd">    - Accepts a model and device.</span>
-<span class="sd">2. **Contextual Masking:**</span>
+<span class="sd">    </span>
+<span class="sd">2. **Contextual Masking**:</span>
 <span class="sd">    - For each coalition (subset of features to mask), masked positions are replaced by the average of their immediate temporal neighbors.</span>
-<span class="sd">3. **SHAP Value Estimation:**</span>
-<span class="sd">    - For each feature-time position (t, f), repeatedly:</span>
+<span class="sd">    </span>
+<span class="sd">3. **SHAP Value Estimation**:</span>
+<span class="sd">    - For each feature-time position ``(t, f)``, repeatedly:</span>
 <span class="sd">        - Sample a random coalition of other positions.</span>
 <span class="sd">        - Mask the coalition using contextual interpolation.</span>
-<span class="sd">        - Mask the coalition plus (t, f) using contextual interpolation.</span>
+<span class="sd">        - Mask the coalition plus ``(t, f)`` using contextual interpolation.</span>
 <span class="sd">        - Compute the model output difference.</span>
-<span class="sd">        - Average these differences to estimate the marginal contribution of (t, f).</span>
+<span class="sd">        - Average these differences to estimate the marginal contribution of ``(t, f)``.</span>
+<span class="sd">        </span>
 <span class="sd">    - Normalize attributions so their sum matches the difference between the original and fully-masked model output.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
@@ -310,18 +320,17 @@
 <div class="viewcode-block" id="ContextualMaskingSHAPExplainer">
 <a class="viewcode-back" href="../../../generated/shap_enhanced.explainers.CMSHAP.html#shap_enhanced.explainers.CMSHAP.ContextualMaskingSHAPExplainer">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">ContextualMaskingSHAPExplainer</span><span class="p">(</span><span class="n">BaseExplainer</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Contextual Masking SHAP (CM-SHAP) Explainer.</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Contextual Masking SHAP (CM-SHAP) Explainer for Sequential Models</span>
 
-<span class="sd">    Estimates Shapley values for sequential models by masking input positions using local interpolation</span>
-<span class="sd">    (averaging immediate neighbors in time), preserving temporal structure and context.</span>
+<span class="sd">    Estimates SHAP values for sequential inputs by replacing masked feature values with</span>
+<span class="sd">    interpolated values from neighboring time steps. This context-aware masking strategy</span>
+<span class="sd">    preserves temporal coherence and enables more realistic feature perturbation in time-series data.</span>
 
-<span class="sd">    Parameters</span>
-<span class="sd">    ----------</span>
-<span class="sd">    model : Any</span>
-<span class="sd">        The model to be explained.</span>
-<span class="sd">    device : Optional[str]</span>
-<span class="sd">        &#39;cpu&#39; or &#39;cuda&#39; (PyTorch only).</span>
+<span class="sd">    :param model: Model to explain. Must accept NumPy arrays or PyTorch tensors.</span>
+<span class="sd">    :type model: Any</span>
+<span class="sd">    :param device: Device to perform computations on (&#39;cpu&#39; or &#39;cuda&#39;). Defaults to &#39;cuda&#39; if available.</span>
+<span class="sd">    :type device: Optional[str]</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">device</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
@@ -331,8 +340,17 @@
     <span class="nd">@staticmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">_interpolate_mask</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">idxs</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Interpolates masked positions using the average of neighboring time steps.</span>
-<span class="sd">        idxs: list of (t, f) pairs to mask.</span>
+<span class="sd">        Apply contextual interpolation to mask specified time-feature pairs.</span>
+
+<span class="sd">        Replaces each selected feature at time `t` with the average of its adjacent</span>
+<span class="sd">        time steps (t-1 and t+1). Handles edge cases by copying the available neighbor.</span>
+
+<span class="sd">        :param X: Input of shape (T, F)</span>
+<span class="sd">        :type X: np.ndarray or torch.Tensor</span>
+<span class="sd">        :param idxs: List of (t, f) index pairs to interpolate.</span>
+<span class="sd">        :type idxs: list[tuple[int, int]]</span>
+<span class="sd">        :return: Interpolated input with same shape as X.</span>
+<span class="sd">        :rtype: Same as input type</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">X_interp</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="k">else</span> <span class="n">X</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span>
         <span class="n">T</span><span class="p">,</span> <span class="n">F</span> <span class="o">=</span> <span class="n">X_interp</span><span class="o">.</span><span class="n">shape</span>
@@ -346,6 +364,16 @@
         <span class="k">return</span> <span class="n">X_interp</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_get_model_output</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Forward-pass utility to handle input conversion and model inference.</span>
+
+<span class="sd">        Ensures that the input is on the correct device and returned as a NumPy array.</span>
+
+<span class="sd">        :param X: Input array or tensor (T, F) or (B, T, F).</span>
+<span class="sd">        :type X: np.ndarray or torch.Tensor</span>
+<span class="sd">        :return: Model output in NumPy format.</span>
+<span class="sd">        :rtype: np.ndarray or float</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
             <span class="n">X</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">):</span>
@@ -367,24 +395,39 @@
         <span class="n">random_seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">42</span><span class="p">,</span>
         <span class="o">**</span><span class="n">kwargs</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Compute SHAP values by locally interpolating (rather than zero-masking) features.</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Estimate SHAP values using contextual (interpolated) masking.</span>
 
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        X : np.ndarray or torch.Tensor</span>
-<span class="sd">            Input sequence(s), shape (T, F) or (B, T, F).</span>
-<span class="sd">        nsamples : int</span>
-<span class="sd">            Number of coalitions to sample per position.</span>
-<span class="sd">        check_additivity : bool</span>
-<span class="sd">            Whether to rescale for additivity.</span>
-<span class="sd">        random_seed : int</span>
-<span class="sd">            Random seed for reproducibility.</span>
+<span class="sd">        Each feature-time pair (t, f) is evaluated by sampling coalitions of other</span>
+<span class="sd">        positions, applying context-aware masking, and averaging the difference</span>
+<span class="sd">        in model outputs when (t, f) is added to the coalition.</span>
 
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        shap_vals : np.ndarray</span>
-<span class="sd">            Attributions, shape (T, F) or (B, T, F).</span>
+<span class="sd">        Interpolation strategy ensures continuity in time series by replacing masked</span>
+<span class="sd">        values with averages of adjacent time steps:</span>
+
+<span class="sd">        .. math::</span>
+<span class="sd">            x_{t,f}^{masked} = </span>
+<span class="sd">            \begin{cases}</span>
+<span class="sd">                x_{t+1,f}, &amp; \text{if } t = 0 \\</span>
+<span class="sd">                x_{t-1,f}, &amp; \text{if } t = T-1 \\</span>
+<span class="sd">                \frac{x_{t-1,f} + x_{t+1,f}}{2}, &amp; \text{otherwise}</span>
+<span class="sd">            \end{cases}</span>
+
+<span class="sd">        Final attributions are normalized such that:</span>
+
+<span class="sd">        .. math::</span>
+<span class="sd">            \sum_{t=1}^T \sum_{f=1}^F \phi_{t,f} \approx f(x) - f(x_{masked})</span>
+
+<span class="sd">        :param X: Input array of shape (T, F) or (B, T, F)</span>
+<span class="sd">        :type X: np.ndarray or torch.Tensor</span>
+<span class="sd">        :param nsamples: Number of sampled coalitions per position.</span>
+<span class="sd">        :type nsamples: int</span>
+<span class="sd">        :param check_additivity: Whether to normalize SHAP values to match output difference.</span>
+<span class="sd">        :type check_additivity: bool</span>
+<span class="sd">        :param random_seed: Random seed for reproducibility.</span>
+<span class="sd">        :type random_seed: int</span>
+<span class="sd">        :return: SHAP values with same shape as input.</span>
+<span class="sd">        :rtype: np.ndarray</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="n">random_seed</span><span class="p">)</span>
 

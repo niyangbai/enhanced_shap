@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../genindex.html" /><link rel="search" title="Search" href="../../../search.html" />
 
     <!-- Generated with Sphinx 8.2.3 and Furo 2024.08.06 -->
-        <title>shap_enhanced.tools.visulization - shap_enhanced documentation</title>
+        <title>shap_enhanced.tools.visulization - Enhanced SHAP documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=354aac6f" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?v=302659d7" />
@@ -165,7 +165,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../../index.html"><div class="brand">shap_enhanced  documentation</div></a>
+      <a href="../../../index.html"><div class="brand">Enhanced SHAP  documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -193,7 +193,7 @@
     <img class="sidebar-logo only-dark" src="../../../_static/fau_wiso_dark.png" alt="Dark Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">shap_enhanced  documentation</span>
+  <span class="sidebar-brand-text">Enhanced SHAP  documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -272,7 +272,66 @@
         </div>
         <article role="main" id="furo-main-content">
           <h1>Source code for shap_enhanced.tools.visulization</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">SHAP Visualization Utilities</span>
+<span class="sd">============================</span>
+
+<span class="sd">Overview</span>
+<span class="sd">--------</span>
+
+<span class="sd">This module provides a set of clean, publication-ready visualization utilities for comparing  </span>
+<span class="sd">SHAP attributions against ground-truth or across multiple explainers. The visualizations support  </span>
+<span class="sd">both **sequential** (2D) and **tabular** (1D) input formats and offer multiple views such as bar plots,  </span>
+<span class="sd">3D surface plots, and 3D bar plots.</span>
+
+<span class="sd">The focus is on **clarity**, **aesthetics**, and **comparability**, making the tools well-suited  </span>
+<span class="sd">for research papers, presentations, and internal model audits.</span>
+
+<span class="sd">Key Functions</span>
+<span class="sd">^^^^^^^^^^^^^</span>
+
+<span class="sd">- **plot_mse_pearson**:  </span>
+<span class="sd">  Bar chart comparing MSE and Pearson correlation of each explainer vs ground-truth SHAP.</span>
+
+<span class="sd">- **plot_3d_surface**:  </span>
+<span class="sd">  Side-by-side 3D surface plots for ground-truth and predicted SHAP values over time and features.</span>
+
+<span class="sd">- **plot_3d_bars**:  </span>
+<span class="sd">  Paired 3D bar plots for SHAP values, visually appealing and easy to compare height/direction.</span>
+
+<span class="sd">- **plot_feature_comparison**:  </span>
+<span class="sd">  Side-by-side bar plots for SHAP values from different explainers (1D/tabular inputs only).</span>
+
+<span class="sd">Customization</span>
+<span class="sd">-------------</span>
+
+<span class="sd">- **Color maps**: Most functions support custom colormaps via `cmap` (default: `&#39;viridis&#39;`).</span>
+<span class="sd">- **Saving**: All plots can be saved using the `save` argument (PDF/PNG via `matplotlib`).</span>
+<span class="sd">- **Interactivity**: Plots are shown by default, but this can be toggled with `show=False`.</span>
+
+<span class="sd">Use Case</span>
+<span class="sd">--------</span>
+
+<span class="sd">These tools are especially useful for:</span>
+<span class="sd">- Benchmarking explainers on synthetic datasets.</span>
+<span class="sd">- Visualizing time-series explanations (e.g., SHAP over `(T, F)` inputs).</span>
+<span class="sd">- Comparing surrogate vs exact SHAP explainers.</span>
+<span class="sd">- Producing clean visuals for publications and reports.</span>
+
+<span class="sd">Example</span>
+<span class="sd">-------</span>
+
+<span class="sd">.. code-block:: python</span>
+
+<span class="sd">    plot_mse_pearson(mse_dict, pearson_dict, save=&quot;comparison.pdf&quot;)</span>
+
+<span class="sd">    plot_3d_surface(gt_shap, shap_outputs, seq_len=10, n_features=5)</span>
+
+<span class="sd">    plot_feature_comparison(gt_tab, shap_dict_tabular)</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">mpl_toolkits.mplot3d</span><span class="w"> </span><span class="kn">import</span> <span class="n">Axes3D</span>  <span class="c1"># noqa: F401</span>
 
@@ -289,9 +348,17 @@
     <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;viridis&quot;</span><span class="p">,</span>
     <span class="n">show</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
 <span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Plot MSE and Pearson correlation for SHAP explainers vs ground truth.</span>
-<span class="sd">    No colorbar, clean plot, minimal white margin when saving as pdf/png.</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Plot comparison of Mean Squared Error and Pearson Correlation across SHAP explainers.</span>
+
+<span class="sd">    Generates side-by-side bar charts to compare each explainer&#39;s SHAP attributions to ground-truth values.</span>
+
+<span class="sd">    :param dict results: Dictionary mapping explainer names to MSE values.</span>
+<span class="sd">    :param dict pearson_results: Dictionary mapping explainer names to Pearson correlation scores.</span>
+<span class="sd">    :param str save: Optional filename to save the figure (PDF/PNG).</span>
+<span class="sd">    :param int bar_threshold: Orientation switches to horizontal if number of bars exceeds this threshold.</span>
+<span class="sd">    :param str cmap: Colormap name for value encoding (default: &quot;viridis&quot;).</span>
+<span class="sd">    :param bool show: Whether to display the plot.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">plt</span><span class="o">.</span><span class="n">style</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="s2">&quot;seaborn-v0_8-whitegrid&quot;</span><span class="p">)</span>
     <span class="n">n_bars</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">results</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">pearson_results</span><span class="p">))</span>
@@ -374,9 +441,19 @@
     <span class="n">vlim</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="n">show</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
 <span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Plot ground truth and explainer SHAP values as paired 3D surface plots.</span>
-<span class="sd">    Handles 1D/2D/3D input arrays for SHAP.</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generate side-by-side 3D surface plots for SHAP values from ground-truth and explainers.</span>
+
+<span class="sd">    Used for comparing SHAP explanations on sequential (T, F) inputs with rich spatial structure.</span>
+
+<span class="sd">    :param np.ndarray shap_gt: Ground-truth SHAP array (T, F) or (1, T, F).</span>
+<span class="sd">    :param dict shap_models: Dictionary mapping explainer names to SHAP arrays.</span>
+<span class="sd">    :param int seq_len: Sequence length (T).</span>
+<span class="sd">    :param int n_features: Number of input features (F).</span>
+<span class="sd">    :param str save: Optional filename to save the figure.</span>
+<span class="sd">    :param str cmap: Colormap for surface shading.</span>
+<span class="sd">    :param tuple vlim: Optional tuple of (vmin, vmax) for shared Z-axis scaling.</span>
+<span class="sd">    :param bool show: Whether to display the figure.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
     <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
@@ -465,9 +542,19 @@
     <span class="n">bar_color</span><span class="o">=</span><span class="s1">&#39;#3498db&#39;</span><span class="p">,</span>  <span class="c1"># Softer blue, can set e.g. &quot;#43aa8b&quot; for green</span>
     <span class="n">show</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
 <span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Plot ground truth and explainer SHAP values as paired 3D bar plots, visually appealing and publication ready.</span>
-<span class="sd">    No colorbar, single color bars, minimal margin.</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Visual comparison of SHAP values using 3D bar plots for ground-truth and explainer outputs.</span>
+
+<span class="sd">    Emphasizes direction and magnitude using colored bars over (T, F) space.</span>
+
+<span class="sd">    :param np.ndarray shap_gt: Ground-truth SHAP values.</span>
+<span class="sd">    :param dict shap_models: Dictionary mapping explainer names to SHAP arrays.</span>
+<span class="sd">    :param int seq_len: Length of the sequence (T).</span>
+<span class="sd">    :param int n_features: Number of input features (F).</span>
+<span class="sd">    :param str save: Optional path to save the plot.</span>
+<span class="sd">    :param float bar_alpha: Transparency of bars (default: 0.88).</span>
+<span class="sd">    :param str bar_color: Hex color string for positive bars.</span>
+<span class="sd">    :param bool show: Whether to display the figure.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">plt</span><span class="o">.</span><span class="n">style</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="s2">&quot;seaborn-v0_8-whitegrid&quot;</span><span class="p">)</span>
     <span class="n">n_models</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">shap_models</span><span class="p">)</span>
@@ -542,8 +629,13 @@
     <span class="n">feature_names</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="n">save</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
 <span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Bar plot for feature attributions of all explainers vs ground truth (tabular/1D).</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Plot bar charts comparing 1D/tabular SHAP attributions across explainers and ground truth.</span>
+
+<span class="sd">    :param np.ndarray shap_gt: Ground-truth SHAP values (1D).</span>
+<span class="sd">    :param dict shap_models: Dictionary of SHAP arrays from different explainers.</span>
+<span class="sd">    :param list feature_names: Optional list of feature names.</span>
+<span class="sd">    :param str save: Optional path to save the plot.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">plt</span><span class="o">.</span><span class="n">style</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="s2">&quot;seaborn-v0_8-whitegrid&quot;</span><span class="p">)</span>
     <span class="n">n_explainers</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">shap_models</span><span class="p">)</span>

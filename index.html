@@ -6,7 +6,7 @@
 <link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="SHAP Enhanced API" href="shap_enhanced_api.html" />
 
     <!-- Generated with Sphinx 8.2.3 and Furo 2024.08.06 -->
-        <title>shap_enhanced documentation</title>
+        <title>Enhanced SHAP documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?v=354aac6f" />
     <link rel="stylesheet" type="text/css" href="_static/styles/furo-extensions.css?v=302659d7" />
@@ -166,7 +166,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="#"><div class="brand">shap_enhanced  documentation</div></a>
+      <a href="#"><div class="brand">Enhanced SHAP  documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -194,7 +194,7 @@
     <img class="sidebar-logo only-dark" src="_static/fau_wiso_dark.png" alt="Dark Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">shap_enhanced  documentation</span>
+  <span class="sidebar-brand-text">Enhanced SHAP  documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -313,47 +313,36 @@
 <li><p>Built for scientific benchmarking, model debugging, and real-world explainability studies.</p></li>
 </ul>
 <p>This framework is created following <b>PEP8 standards</b>, <b>Sphinx documentation format</b>, and is released under the <b>GNU Affero General Public License v3.0</b>.</p>
+<p>Official documentation is hosted on <strong>GitHub Pages</strong>:</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://niyangbai.github.io/enhanced_shap/">https://niyangbai.github.io/enhanced_shap/</a></p></li>
+</ul>
+<p>This site provides comprehensive API reference, tutorials, and examples.
+Documentation is automatically generated from the source code and kept up to date with the latest release.</p>
 </section>
 <section id="installation">
 <h2>Installation<a class="headerlink" href="#installation" title="Link to this heading">¶</a></h2>
-<p>You can install the package locally:</p>
+<p>You can install directly from PyPI (recommended if available):</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>shap-enhanced
+</pre></div>
+</div>
+<p>Or build the package locally:</p>
 <div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/niyangbai/enhanced_shap.git
-<span class="nb">cd</span><span class="w"> </span>shap-enhanced
+<span class="nb">cd</span><span class="w"> </span>enhanced_shap
 pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>requirements.txt
+pip<span class="w"> </span>install<span class="w"> </span>.
 </pre></div>
 </div>
 </section>
 <section id="contribution">
 <h2>Contribution<a class="headerlink" href="#contribution" title="Link to this heading">¶</a></h2>
 <p>We welcome contributions to <b>SHAP-Enhanced</b>! To contribute, please follow these steps:</p>
-<ol>
-    <li><b>Fork the Repository</b>: Click the "Fork" button on the GitHub repository page.</li>
-    <li><b>Clone Your Fork</b>: Clone your forked repository to your local machine:
-        <pre><code>git clone https://github.com/niyangbai/enhanced_shap.git
-cd enhanced_shap
-</code></pre>
-    </li>
-    <li><b>Create a Branch</b>: Create a new branch for your feature or bug fix:
-        <pre><code>git checkout -b feature-or-bugfix-name
-</code></pre>
-    </li>
-    <li><b>Make Changes</b>: Implement your changes, ensuring they follow <b>PEP8 standards</b> and include proper <b>Sphinx-style docstrings</b>.</li>
-    <li><b>Write Tests</b>: Add or update unit tests in the <code>tests/</code> directory to cover your changes.</li>
-    <li><b>Run Tests</b>: Ensure all tests pass before submitting your changes:
-        <pre><code>pytest
-</code></pre>
-    </li>
-    <li><b>Commit Changes</b>: Commit your changes with a descriptive message:
-        <pre><code>git add .
-git commit -m "Description of your changes"
-</code></pre>
-    </li>
-    <li><b>Push Changes</b>: Push your branch to your forked repository:
-        <pre><code>git push origin feature-or-bugfix-name
-</code></pre>
-    </li>
-    <li><b>Submit a Pull Request</b>: Open a pull request to the main repository, describing your changes in detail.</li>
-</ol>
+<ul>
+    <li><b>Fork</b> this repository and clone your fork.</li>
+    <li><b>Create a branch</b> for your feature or bugfix.</li>
+    <li>Add or update tests, and run <code>pytest</code> to ensure they pass.</li>
+    <li><b>Commit</b> and <b>push</b> your changes, then open a <b>pull request</b> with a clear description.</li>
+</ul>
 <p><b>General Guidelines:</b></p>
 <ul>
     <li>Follow the <b>PEP8 coding style</b>.</li>

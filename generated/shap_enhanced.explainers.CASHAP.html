@@ -6,7 +6,7 @@
 <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="shap_enhanced.explainers.CMSHAP" href="shap_enhanced.explainers.CMSHAP.html" /><link rel="prev" title="shap_enhanced.explainers.BSHAP" href="shap_enhanced.explainers.BSHAP.html" />
 
     <!-- Generated with Sphinx 8.2.3 and Furo 2024.08.06 -->
-        <title>shap_enhanced.explainers.CASHAP - shap_enhanced documentation</title>
+        <title>shap_enhanced.explainers.CASHAP - Enhanced SHAP documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=354aac6f" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=302659d7" />
@@ -166,7 +166,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../index.html"><div class="brand">shap_enhanced  documentation</div></a>
+      <a href="../index.html"><div class="brand">Enhanced SHAP  documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -194,7 +194,7 @@
     <img class="sidebar-logo only-dark" src="../_static/fau_wiso_dark.png" alt="Dark Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">shap_enhanced  documentation</span>
+  <span class="sidebar-brand-text">Enhanced SHAP  documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -280,40 +280,64 @@
         <article role="main" id="furo-main-content">
           <section id="module-shap_enhanced.explainers.CASHAP">
 <span id="shap-enhanced-explainers-cashap"></span><h1>shap_enhanced.explainers.CASHAP<a class="headerlink" href="#module-shap_enhanced.explainers.CASHAP" title="Link to this heading">¶</a></h1>
-<p>Coalition-Aware SHAP (CASHAP) Explainer</p>
-<p>## Theoretical Explanation</p>
-<p>CASHAP (Coalition-Aware SHAP) is a feature attribution method that estimates Shapley values by explicitly sampling coalitions (subsets) of feature-time pairs and measuring their marginal contributions to the model output. This approach is particularly suited for sequential models (such as LSTMs) and can be generalized to tabular data. CASHAP supports various masking or imputation strategies to ensure context-aware and valid perturbations.</p>
-<p>### Key Concepts</p>
+<section id="cashap-coalition-aware-shap-explainer">
+<h2>CASHAP: Coalition-Aware SHAP Explainer<a class="headerlink" href="#cashap-coalition-aware-shap-explainer" title="Link to this heading">¶</a></h2>
+<section id="theoretical-explanation">
+<h3>Theoretical Explanation<a class="headerlink" href="#theoretical-explanation" title="Link to this heading">¶</a></h3>
+<p>CASHAP (Coalition-Aware SHAP) is a Shapley value estimation framework tailored for models that process sequential or structured inputs, such as LSTMs.
+Unlike classical SHAP methods that treat features independently, CASHAP considers <strong>feature-time pairs</strong>—enabling attribution of both spatial and temporal components.</p>
+<p>By explicitly sampling coalitions (subsets) of feature-time pairs and measuring marginal contributions, CASHAP provides granular, context-aware explanations.
+It also supports multiple imputation strategies to ensure the perturbed inputs remain valid and interpretable.</p>
+<section id="key-concepts">
+<h4>Key Concepts<a class="headerlink" href="#key-concepts" title="Link to this heading">¶</a></h4>
 <ul class="simple">
-<li><p><strong>Coalition Sampling:</strong> For each feature-time position (t, f), random coalitions (subsets of all other positions) are sampled. The marginal contribution of (t, f) is estimated by measuring the change in model output when (t, f) is added to the coalition.</p></li>
-<li><p><strong>Masking/Imputation:</strong> Masked positions can be set to zero, mean-imputed from background data, or imputed using a custom function. This allows for context-aware explanations and avoids unrealistic perturbations.</p></li>
-<li><p><strong>Sequential and Tabular Support:</strong> While designed for sequential models, CASHAP can be applied to any data where masking or imputation is meaningful.</p></li>
-<li><p><strong>Additivity Normalization:</strong> Attributions are normalized so their sum matches the model output difference between the original and fully-masked input.</p></li>
+<li><dl class="simple">
+<dt><strong>Coalition Sampling</strong>: For every feature-time pair ((t, f)), random subsets of all other positions are sampled.</dt><dd><p>The contribution of ((t, f)) is assessed by adding it to each coalition and measuring the change in model output.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><strong>Masking/Imputation Strategies</strong>:</dt><dd><ul>
+<li><p><strong>Zero masking</strong>: Replace masked values with zero.</p></li>
+<li><p><strong>Mean imputation</strong>: Use feature-wise means from background data.</p></li>
+<li><p><strong>Custom imputers</strong>: Support for user-defined imputation functions.</p></li>
 </ul>
-<p>## Algorithm</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><strong>Model-Agnostic &amp; Domain-General</strong>: While ideal for time-series and sequential models, CASHAP can also be applied to tabular data</dt><dd><p>wherever structured coalition masking is appropriate.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><strong>Additivity Normalization</strong>: Attribution scores are scaled such that their total sum equals the difference in model output</dt><dd><p>between the original input and a fully-masked version.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</section>
+</section>
+<section id="algorithm">
+<h3>Algorithm<a class="headerlink" href="#algorithm" title="Link to this heading">¶</a></h3>
 <ol class="arabic simple">
 <li><dl class="simple">
-<dt><strong>Initialization:</strong></dt><dd><ul class="simple">
-<li><p>Accepts a model, background data (for mean imputation), masking strategy, optional custom imputer, and device.</p></li>
+<dt><strong>Initialization</strong>:</dt><dd><ul class="simple">
+<li><p>Accepts a model, background data for imputation, masking strategy, optional custom imputer, and device context.</p></li>
 </ul>
 </dd>
 </dl>
 </li>
 <li><dl class="simple">
-<dt><strong>Coalition Sampling:</strong></dt><dd><ul class="simple">
+<dt><strong>Coalition Sampling</strong>:</dt><dd><ul class="simple">
 <li><dl class="simple">
-<dt>For each feature-time position (t, f):</dt><dd><ul>
-<li><p>Sample random coalitions ( C subseteq (T    imes F) setminus {(t, f)} ).</p></li>
+<dt>For each feature-time pair ((t, f)):</dt><dd><ul>
+<li><p>Sample coalitions ( C subseteq (T   imes F) setminus {(t, f)} ).</p></li>
 <li><dl class="simple">
-<dt>For each coalition:</dt><dd><ul>
-<li><p>Mask (impute) the coalition ( C ) in the input.</p></li>
-<li><p>Mask (impute) the coalition ( C cup {(t, f)} ).</p></li>
-<li><p>Compute the model output difference.</p></li>
-</ul>
-</dd>
-</dl>
-</li>
-<li><p>Average these differences to estimate the marginal contribution of (t, f).</p></li>
+<dt>For each coalition ( C ):</dt><dd><ul>
+<li><p>Impute features in ( C ) using the chosen strategy.</p></li>
+<li><p>Impute features in ( C cup {(t, f)} ).</p></li>
+<li><p>Compute and record the model output difference.</p></li>
 </ul>
 </dd>
 </dl>
@@ -322,58 +346,132 @@
 </dd>
 </dl>
 </li>
+</ul>
+</dd>
+</dl>
+</li>
 <li><dl class="simple">
-<dt><strong>Normalization:</strong></dt><dd><ul class="simple">
-<li><p>Scale attributions so their sum matches the difference between the original and fully-masked model output.</p></li>
+<dt><strong>Attribution Estimation</strong>:</dt><dd><ul class="simple">
+<li><p>Average the output differences across coalitions to estimate the marginal contribution of ((t, f)).</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><strong>Normalization</strong>:</dt><dd><ul class="simple">
+<li><dl class="simple">
+<dt>Normalize attributions so that their total matches the difference between the model’s prediction</dt><dd><p>on the original and the fully-masked input.</p>
+</dd>
+</dl>
+</li>
 </ul>
 </dd>
 </dl>
 </li>
 </ol>
+</section>
+</section>
 <p class="rubric">Classes</p>
 <div class="table-wrapper autosummary longtable docutils container">
 <table class="autosummary longtable docutils align-default">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#shap_enhanced.explainers.CASHAP.CoalitionAwareSHAPExplainer" title="shap_enhanced.explainers.CASHAP.CoalitionAwareSHAPExplainer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CoalitionAwareSHAPExplainer</span></code></a>(model[, ...])</p></td>
-<td><p>Coalition-Aware SHAP (CASHAP) Explainer.</p></td>
+<td><p>Coalition-Aware SHAP (CASHAP) Explainer</p></td>
 </tr>
 </tbody>
 </table>
 </div>
 <dl class="py class">
 <dt class="sig sig-object py" id="shap_enhanced.explainers.CASHAP.CoalitionAwareSHAPExplainer">
-<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">shap_enhanced.explainers.CASHAP.</span></span><span class="sig-name descname"><span class="pre">CoalitionAwareSHAPExplainer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">background</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Tensor</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask_strategy</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'zero'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">imputer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/shap_enhanced/explainers/CASHAP.html#CoalitionAwareSHAPExplainer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#shap_enhanced.explainers.CASHAP.CoalitionAwareSHAPExplainer" title="Link to this definition">¶</a></dt>
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">shap_enhanced.explainers.CASHAP.</span></span><span class="sig-name descname"><span class="pre">CoalitionAwareSHAPExplainer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">background</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask_strategy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'zero'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">imputer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/shap_enhanced/explainers/CASHAP.html#CoalitionAwareSHAPExplainer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#shap_enhanced.explainers.CASHAP.CoalitionAwareSHAPExplainer" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="shap_enhanced.base_explainer.html#shap_enhanced.base_explainer.BaseExplainer" title="shap_enhanced.base_explainer.BaseExplainer"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseExplainer</span></code></a></p>
-<p>Coalition-Aware SHAP (CASHAP) Explainer.</p>
-<p>Estimates Shapley values for sequential models by sampling random coalitions of (t, f) pairs,
-masking/imputing them, and measuring the marginal effect of each position on the model output.</p>
+<p>Coalition-Aware SHAP (CASHAP) Explainer</p>
+<p>Estimates Shapley values for models processing structured inputs (e.g., time-series, sequences)
+by sampling coalitions of feature-time pairs and computing their marginal contributions
+using various imputation strategies.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>model</strong> (<em>Any</em>) – The model to be explained. Must support __call__ or .predict with batched input.</p></li>
-<li><p><strong>background</strong> (<em>Optional</em><em>[</em><em>np.ndarray</em><em>, </em><em>torch.Tensor</em><em>]</em>) – Background data for mean imputation.</p></li>
-<li><p><strong>mask_strategy</strong> (<em>str</em>) – ‘zero’ for zero masking, ‘mean’ for mean imputation, or ‘custom’ for a user-supplied imputer.</p></li>
-<li><p><strong>imputer</strong> (<em>Optional</em><em>[</em><em>Callable</em><em>]</em>) – A callable function to perform imputation. Used only if mask_strategy == ‘custom’.</p></li>
-<li><p><strong>device</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em>) – ‘cpu’ or ‘cuda’ (only relevant for PyTorch).</p></li>
+<li><p><strong>model</strong> (<em>Any</em>) – Model to be explained.</p></li>
+<li><p><strong>background</strong> (<em>Optional</em><em>[</em><em>np.ndarray</em><em> or </em><em>torch.Tensor</em><em>]</em>) – Background data used for mean imputation strategy.</p></li>
+<li><p><strong>mask_strategy</strong> (<em>str</em>) – Strategy for imputing/masking feature-time pairs.
+Options: ‘zero’, ‘mean’, or ‘custom’.</p></li>
+<li><p><strong>imputer</strong> (<em>Optional</em><em>[</em><em>Callable</em><em>]</em>) – Custom callable for imputation. Required if <cite>mask_strategy</cite> is ‘custom’.</p></li>
+<li><p><strong>device</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em>) – Device on which computation runs. Defaults to ‘cuda’ if available.</p></li>
 </ul>
 </dd>
 </dl>
 <dl class="py property">
 <dt class="sig sig-object py" id="shap_enhanced.explainers.CASHAP.CoalitionAwareSHAPExplainer.expected_value">
 <em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">expected_value</span></span><a class="headerlink" href="#shap_enhanced.explainers.CASHAP.CoalitionAwareSHAPExplainer.expected_value" title="Link to this definition">¶</a></dt>
-<dd><p>(Optional) Return the expected value of the model output on the background dataset.</p>
+<dd><p>Optional property returning the expected model output on the background dataset.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Expected value if defined by the subclass, else None.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>float or None</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="shap_enhanced.explainers.CASHAP.CoalitionAwareSHAPExplainer.explain">
-<span class="sig-name descname"><span class="pre">explain</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">torch.Tensor</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span></span></span><a class="headerlink" href="#shap_enhanced.explainers.CASHAP.CoalitionAwareSHAPExplainer.explain" title="Link to this definition">¶</a></dt>
-<dd><p>Alias for shap_values, for compatibility and future flexibility.</p>
+<span class="sig-name descname"><span class="pre">explain</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#shap_enhanced.explainers.CASHAP.CoalitionAwareSHAPExplainer.explain" title="Link to this definition">¶</a></dt>
+<dd><p>Alias to <cite>shap_values</cite> for flexibility and API compatibility.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>X</strong> (<em>Union</em><em>[</em><em>np.ndarray</em><em>, </em><em>torch.Tensor</em><em>, </em><em>list</em><em>]</em>) – Input samples to explain.</p></li>
+<li><p><strong>kwargs</strong> – Additional arguments.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>SHAP values.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Union[np.ndarray, list]</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="shap_enhanced.explainers.CASHAP.CoalitionAwareSHAPExplainer.shap_values">
-<span class="sig-name descname"><span class="pre">shap_values</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nsamples</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coalition_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask_strategy</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">check_additivity</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">random_seed</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">42</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="reference internal" href="../_modules/shap_enhanced/explainers/CASHAP.html#CoalitionAwareSHAPExplainer.shap_values"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#shap_enhanced.explainers.CASHAP.CoalitionAwareSHAPExplainer.shap_values" title="Link to this definition">¶</a></dt>
-<dd><p>Improved CASHAP Shapley estimation.</p>
+<span class="sig-name descname"><span class="pre">shap_values</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nsamples</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coalition_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask_strategy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">check_additivity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">random_seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">42</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/shap_enhanced/explainers/CASHAP.html#CoalitionAwareSHAPExplainer.shap_values"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#shap_enhanced.explainers.CASHAP.CoalitionAwareSHAPExplainer.shap_values" title="Link to this definition">¶</a></dt>
+<dd><p>Compute CASHAP Shapley values for structured inputs via coalition-aware sampling.</p>
+<p>For each feature-time pair ((t, f)), randomly sample coalitions excluding ((t, f)),
+compute model outputs with and without the pair added, and average the marginal contributions.
+Attribution values are normalized so their total matches the model output difference
+between the original and fully-masked input.</p>
+<div class="math-wrapper docutils container">
+<div class="math notranslate nohighlight">
+\[\phi_{t,f} pprox \mathbb{E}_{C \subseteq (T        imes F) \setminus \{(t,f)\}} \left[
+    f(C \cup \{(t,f)\}) - f(C)\]</div>
+</div>
+<p>ight]</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Normalization ensures:
+sum_{t=1}^T sum_{f=1}^F phi_{t,f} pprox f(x) - f(x_{    ext{masked}})</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>X</strong> (<em>np.ndarray</em><em> or </em><em>torch.Tensor</em>) – Input sample of shape (T, F) or batch (B, T, F).</p></li>
+<li><p><strong>nsamples</strong> (<em>int</em>) – Number of coalitions sampled per (t, f).</p></li>
+<li><p><strong>coalition_size</strong> (<em>Optional</em><em>[</em><em>int</em><em>]</em>) – Fixed size of sampled coalitions. If None, varies randomly.</p></li>
+<li><p><strong>mask_strategy</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em>) – Override default masking strategy.</p></li>
+<li><p><strong>check_additivity</strong> (<em>bool</em>) – Print diagnostic SHAP sum vs. model delta.</p></li>
+<li><p><strong>random_seed</strong> (<em>int</em>) – Seed for reproducibility.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>SHAP values of shape (T, F) or (B, T, F).</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
 </dd></dl>
 
 </dd></dl>
@@ -436,6 +534,14 @@ masking/imputing them, and measuring the marginal effect of each position on the
           <div class="toc-tree">
             <ul>
 <li><a class="reference internal" href="#">shap_enhanced.explainers.CASHAP</a><ul>
+<li><a class="reference internal" href="#cashap-coalition-aware-shap-explainer">CASHAP: Coalition-Aware SHAP Explainer</a><ul>
+<li><a class="reference internal" href="#theoretical-explanation">Theoretical Explanation</a><ul>
+<li><a class="reference internal" href="#key-concepts">Key Concepts</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#algorithm">Algorithm</a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#shap_enhanced.explainers.CASHAP.CoalitionAwareSHAPExplainer"><code class="docutils literal notranslate"><span class="pre">CoalitionAwareSHAPExplainer</span></code></a><ul>
 <li><a class="reference internal" href="#shap_enhanced.explainers.CASHAP.CoalitionAwareSHAPExplainer.expected_value"><code class="docutils literal notranslate"><span class="pre">CoalitionAwareSHAPExplainer.expected_value</span></code></a></li>
 <li><a class="reference internal" href="#shap_enhanced.explainers.CASHAP.CoalitionAwareSHAPExplainer.explain"><code class="docutils literal notranslate"><span class="pre">CoalitionAwareSHAPExplainer.explain()</span></code></a></li>
@@ -457,5 +563,6 @@ masking/imputing them, and measuring the marginal effect of each position on the
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/scripts/furo.js?v=5fa4622c"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     </body>
 </html>

@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../genindex.html" /><link rel="search" title="Search" href="../../../search.html" />
 
     <!-- Generated with Sphinx 8.2.3 and Furo 2024.08.06 -->
-        <title>shap_enhanced.explainers.ERSHAP - shap_enhanced documentation</title>
+        <title>shap_enhanced.explainers.ERSHAP - Enhanced SHAP documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=354aac6f" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?v=302659d7" />
@@ -165,7 +165,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../../index.html"><div class="brand">shap_enhanced  documentation</div></a>
+      <a href="../../../index.html"><div class="brand">Enhanced SHAP  documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -193,7 +193,7 @@
     <img class="sidebar-logo only-dark" src="../../../_static/fau_wiso_dark.png" alt="Dark Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">shap_enhanced  documentation</span>
+  <span class="sidebar-brand-text">Enhanced SHAP  documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -274,33 +274,61 @@
           <h1>Source code for shap_enhanced.explainers.ERSHAP</h1><div class="highlight"><pre>
 <span></span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">ER-SHAP: Ensemble of Random SHAP Explainer</span>
+<span class="sd">==========================================</span>
 
-<span class="sd">## Theoretical Explanation</span>
+<span class="sd">Theoretical Explanation</span>
+<span class="sd">-----------------------</span>
 
-<span class="sd">ER-SHAP is a fast, ensemble-based approximation of SHAP values for sequential or tabular models. It estimates feature attributions by repeatedly sampling random coalitions (subsets) of feature–timestep pairs, computing their marginal contributions to the model output, and averaging the results. ER-SHAP supports uniform or weighted coalition sampling, allowing prior knowledge (e.g., feature importance) to guide the process.</span>
+<span class="sd">ER-SHAP is a computationally efficient, ensemble-based approximation of Shapley values, designed for  </span>
+<span class="sd">both sequential and tabular models. Instead of exhaustively enumerating all possible coalitions,  </span>
+<span class="sd">ER-SHAP repeatedly samples random subsets of feature–timestep positions and estimates their  </span>
+<span class="sd">marginal contributions to model output.</span>
 
-<span class="sd">### Key Concepts</span>
+<span class="sd">This stochastic approach significantly accelerates SHAP estimation while maintaining interpretability,  </span>
+<span class="sd">especially in high-dimensional or temporal settings. ER-SHAP also allows prior knowledge (e.g., feature importance)  </span>
+<span class="sd">to guide coalition sampling through weighted schemes.</span>
 
-<span class="sd">- **Random Coalition Sampling:** For each feature–timestep position (t, f), random coalitions (subsets of all other positions) are sampled. The marginal contribution of (t, f) is estimated by measuring the change in model output when (t, f) is added to the coalition.</span>
-<span class="sd">- **Weighted Sampling:** Coalitions can be sampled uniformly or with weights based on prior feature importance or frequency.</span>
-<span class="sd">- **Flexible Masking:** Masked features can be imputed with zeros or mean values from the background data.</span>
-<span class="sd">- **Additivity Normalization:** Attributions are normalized so their sum matches the model output difference between the original and fully-masked input.</span>
+<span class="sd">Key Concepts</span>
+<span class="sd">^^^^^^^^^^^^</span>
 
-<span class="sd">## Algorithm</span>
+<span class="sd">- **Random Coalition Sampling**:  </span>
+<span class="sd">    For each position \((t, f)\), sample coalitions \( C \subseteq (T \times F) \setminus \{(t, f)\} \)  </span>
+<span class="sd">    and estimate the marginal contribution of \((t, f)\) by measuring its impact on model output.</span>
 
-<span class="sd">1. **Initialization:**</span>
-<span class="sd">    - Accepts a model, background data (for mean imputation), number of coalitions, masking strategy, weighting scheme, optional feature importance, and device.</span>
-<span class="sd">2. **Coalition Sampling:**</span>
-<span class="sd">    - For each feature–timestep position (t, f):</span>
-<span class="sd">        - Sample random coalitions \( C \subseteq (T \times F) \setminus \{(t, f)\} \), with optional weighting.</span>
+<span class="sd">- **Weighted Sampling**:  </span>
+<span class="sd">    Coalition sampling can be uniform or weighted based on prior feature importance scores  </span>
+<span class="sd">    or positional frequency, allowing informed, efficient sampling.</span>
+
+<span class="sd">- **Flexible Masking**:  </span>
+<span class="sd">    Masked features are imputed using:</span>
+<span class="sd">        - Zeros (hard masking).</span>
+<span class="sd">        - Feature-wise means from the background dataset (soft masking).</span>
+
+<span class="sd">- **Additivity Normalization**:  </span>
+<span class="sd">    Final attributions are scaled so that their sum matches the model output difference  </span>
+<span class="sd">    between the original and fully-masked input.</span>
+
+<span class="sd">Algorithm</span>
+<span class="sd">---------</span>
+
+<span class="sd">1. **Initialization**:</span>
+<span class="sd">    - Accepts a model, background dataset for imputation, number of sampled coalitions,  </span>
+<span class="sd">        masking strategy (`&#39;zero&#39;` or `&#39;mean&#39;`), weighting scheme, optional feature importance, and device context.</span>
+
+<span class="sd">2. **Coalition Sampling**:</span>
+<span class="sd">    - For each feature–timestep pair \((t, f)\):</span>
+<span class="sd">        - Sample coalitions \( C \subseteq (T \times F) \setminus \{(t, f)\} \), either uniformly or using weights.</span>
 <span class="sd">        - For each coalition:</span>
-<span class="sd">            - Mask (impute) the coalition \( C \) in the input.</span>
-<span class="sd">            - Mask (impute) the coalition \( C \cup \{(t, f)\} \).</span>
+<span class="sd">            - Impute the coalition \( C \) in the input.</span>
+<span class="sd">            - Impute the coalition \( C \cup \{(t, f)\} \).</span>
 <span class="sd">            - Compute the model output difference.</span>
-<span class="sd">        - Average these differences to estimate the marginal contribution of (t, f).</span>
-<span class="sd">3. **Normalization:**</span>
-<span class="sd">    - Scale attributions so their sum matches the difference between the original and fully-masked model output.</span>
+<span class="sd">        - Average these differences to estimate the marginal contribution of \((t, f)\).</span>
+
+<span class="sd">3. **Normalization**:</span>
+<span class="sd">    - Scale the final attributions so that their total equals the difference in model output  </span>
+<span class="sd">        between the original input and a fully-masked baseline.</span>
 <span class="sd">&quot;&quot;&quot;</span>
+
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
@@ -310,24 +338,26 @@
 <a class="viewcode-back" href="../../../generated/shap_enhanced.explainers.ERSHAP.html#shap_enhanced.explainers.ERSHAP.ERSHAPExplainer">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">ERSHAPExplainer</span><span class="p">(</span><span class="n">BaseExplainer</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    ER-SHAP: Random Coalition Ensemble SHAP Explainer</span>
+<span class="sd">    ER-SHAP: Ensemble of Random SHAP Explainer</span>
 
-<span class="sd">    Parameters</span>
-<span class="sd">    ----------</span>
-<span class="sd">    model : Any</span>
-<span class="sd">        Model to be explained.</span>
-<span class="sd">    background : np.ndarray or torch.Tensor</span>
-<span class="sd">        For mean/zero imputation (N, T, F).</span>
-<span class="sd">    n_coalitions : int</span>
-<span class="sd">        Number of random coalitions to sample per feature.</span>
-<span class="sd">    mask_strategy : str</span>
-<span class="sd">        &#39;mean&#39; or &#39;zero&#39; (default: &#39;mean&#39;).</span>
-<span class="sd">    weighting : str</span>
-<span class="sd">        Coalition weighting: &#39;uniform&#39;, &#39;frequency&#39;, &#39;importance&#39;.</span>
-<span class="sd">    feature_importance : np.ndarray, optional</span>
-<span class="sd">        (T, F) prior importances, used if weighting=&#39;importance&#39;.</span>
-<span class="sd">    device : str</span>
-<span class="sd">        &#39;cpu&#39; or &#39;cuda&#39;.</span>
+<span class="sd">    An efficient approximation of Shapley values using random coalition sampling over</span>
+<span class="sd">    time-feature positions. Supports uniform and weighted sampling strategies and flexible</span>
+<span class="sd">    masking (zero or mean) to generate perturbed inputs.</span>
+
+<span class="sd">    :param model: Model to explain, compatible with PyTorch tensors.</span>
+<span class="sd">    :type model: Any</span>
+<span class="sd">    :param background: Background dataset for mean imputation; shape (N, T, F).</span>
+<span class="sd">    :type background: np.ndarray or torch.Tensor</span>
+<span class="sd">    :param n_coalitions: Number of coalitions to sample per (t, f) position.</span>
+<span class="sd">    :type n_coalitions: int</span>
+<span class="sd">    :param mask_strategy: Masking method: &#39;zero&#39; or &#39;mean&#39;.</span>
+<span class="sd">    :type mask_strategy: str</span>
+<span class="sd">    :param weighting: Sampling scheme: &#39;uniform&#39;, &#39;frequency&#39;, or &#39;importance&#39;.</span>
+<span class="sd">    :type weighting: str</span>
+<span class="sd">    :param feature_importance: Prior feature importances for weighted sampling; shape (T, F).</span>
+<span class="sd">    :type feature_importance: Optional[np.ndarray]</span>
+<span class="sd">    :param device: Device identifier, &#39;cpu&#39; or &#39;cuda&#39;.</span>
+<span class="sd">    :type device: str</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -351,6 +381,19 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_mean</span> <span class="o">=</span> <span class="kc">None</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_impute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">idxs</span><span class="p">):</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Apply masking strategy to selected (t, f) indices in input.</span>
+
+<span class="sd">        - &#39;zero&#39;: Replace with 0.0.</span>
+<span class="sd">        - &#39;mean&#39;: Use mean value from background dataset.</span>
+
+<span class="sd">        :param X: Input sample of shape (T, F).</span>
+<span class="sd">        :type X: np.ndarray</span>
+<span class="sd">        :param idxs: List of (t, f) pairs to mask.</span>
+<span class="sd">        :type idxs: list[tuple[int, int]]</span>
+<span class="sd">        :return: Masked/imputed version of X.</span>
+<span class="sd">        :rtype: np.ndarray</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">X_imp</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
         <span class="k">for</span> <span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span> <span class="ow">in</span> <span class="n">idxs</span><span class="p">:</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mask_strategy</span> <span class="o">==</span> <span class="s2">&quot;zero&quot;</span><span class="p">:</span>
@@ -362,6 +405,20 @@
         <span class="k">return</span> <span class="n">X_imp</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_sample_coalition</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">available</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sample a coalition of k positions from the available list.</span>
+
+<span class="sd">        If weights are provided, sampling is weighted; otherwise, uniform.</span>
+
+<span class="sd">        :param available: List of available (t, f) pairs.</span>
+<span class="sd">        :type available: list[tuple[int, int]]</span>
+<span class="sd">        :param k: Number of elements to sample.</span>
+<span class="sd">        :type k: int</span>
+<span class="sd">        :param weights: Sampling probabilities aligned with `available`.</span>
+<span class="sd">        :type weights: Optional[np.ndarray]</span>
+<span class="sd">        :return: List of sampled (t, f) pairs.</span>
+<span class="sd">        :rtype: list[tuple[int, int]]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">weights</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">weights</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">weights</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="n">available</span><span class="p">])</span>
             <span class="n">weights</span> <span class="o">=</span> <span class="n">weights</span> <span class="o">/</span> <span class="p">(</span><span class="n">weights</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">+</span> <span class="mf">1e-8</span><span class="p">)</span>
@@ -379,17 +436,24 @@
         <span class="n">random_seed</span><span class="o">=</span><span class="mi">42</span><span class="p">,</span>
         <span class="o">**</span><span class="n">kwargs</span>
     <span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        ER-SHAP: Random coalitions, marginal contributions, averaging.</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute SHAP values via random coalition sampling.</span>
 
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        X : np.ndarray or torch.Tensor</span>
-<span class="sd">            (T, F) or (B, T, F)</span>
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        shap_vals : np.ndarray</span>
-<span class="sd">            SHAP attributions (T, F) or (B, T, F)</span>
+<span class="sd">        For each position (t, f), sample coalitions of other positions,</span>
+<span class="sd">        compute marginal contributions, and average over samples.</span>
+<span class="sd">        Attributions are normalized to satisfy:</span>
+
+<span class="sd">        .. math::</span>
+<span class="sd">            \sum_{t=1}^T \sum_{f=1}^F \phi_{t,f} \approx f(x) - f(x_{masked})</span>
+
+<span class="sd">        :param X: Input array or tensor of shape (T, F) or (B, T, F).</span>
+<span class="sd">        :type X: np.ndarray or torch.Tensor</span>
+<span class="sd">        :param check_additivity: Whether to apply normalization for additivity.</span>
+<span class="sd">        :type check_additivity: bool</span>
+<span class="sd">        :param random_seed: Seed for reproducibility.</span>
+<span class="sd">        :type random_seed: int</span>
+<span class="sd">        :return: SHAP values of shape (T, F) or (B, T, F).</span>
+<span class="sd">        :rtype: np.ndarray</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="n">random_seed</span><span class="p">)</span>
         <span class="n">is_torch</span> <span class="o">=</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="s1">&#39;detach&#39;</span><span class="p">)</span>

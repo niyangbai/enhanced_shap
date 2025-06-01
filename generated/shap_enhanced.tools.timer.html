@@ -6,7 +6,7 @@
 <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="shap_enhanced.tools.visulization" href="shap_enhanced.tools.visulization.html" /><link rel="prev" title="shap_enhanced.tools.predefined_models" href="shap_enhanced.tools.predefined_models.html" />
 
     <!-- Generated with Sphinx 8.2.3 and Furo 2024.08.06 -->
-        <title>shap_enhanced.tools.timer - shap_enhanced documentation</title>
+        <title>shap_enhanced.tools.timer - Enhanced SHAP documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=354aac6f" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=302659d7" />
@@ -166,7 +166,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../index.html"><div class="brand">shap_enhanced  documentation</div></a>
+      <a href="../index.html"><div class="brand">Enhanced SHAP  documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -178,7 +178,7 @@
           <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
         </button>
       </div>
-      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
         <div class="visually-hidden">Toggle table of contents sidebar</div>
         <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
       </label>
@@ -194,7 +194,7 @@
     <img class="sidebar-logo only-dark" src="../_static/fau_wiso_dark.png" alt="Dark Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">shap_enhanced  documentation</span>
+  <span class="sidebar-brand-text">Enhanced SHAP  documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -272,7 +272,7 @@
               <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
             </button>
           </div>
-          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
             <div class="visually-hidden">Toggle table of contents sidebar</div>
             <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
           </label>
@@ -280,6 +280,68 @@
         <article role="main" id="furo-main-content">
           <section id="module-shap_enhanced.tools.timer">
 <span id="shap-enhanced-tools-timer"></span><h1>shap_enhanced.tools.timer<a class="headerlink" href="#module-shap_enhanced.tools.timer" title="Link to this heading">¶</a></h1>
+<section id="timing-utility-for-code-execution">
+<h2>Timing Utility for Code Execution<a class="headerlink" href="#timing-utility-for-code-execution" title="Link to this heading">¶</a></h2>
+<section id="overview">
+<h3>Overview<a class="headerlink" href="#overview" title="Link to this heading">¶</a></h3>
+<p>This module provides a lightweight utility class <cite>Timer</cite> for measuring the execution time
+of arbitrary blocks of Python code using a context manager (<cite>with</cite> block). It is intended
+for profiling and monitoring performance during development, benchmarking, or debugging.</p>
+<section id="features">
+<h4>Features<a class="headerlink" href="#features" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p><strong>Context Manager Interface</strong>:
+Use <cite>with Timer(“label”):</cite> to automatically time a code block.</p></li>
+<li><p><strong>Human-Readable Output</strong>:
+Prints the elapsed time in seconds with 4-digit precision.</p></li>
+<li><p><strong>Silent Mode</strong>:
+Set <cite>verbose=False</cite> to suppress output and access <cite>.elapsed</cite> manually.</p></li>
+</ul>
+</section>
+</section>
+<section id="use-case">
+<h3>Use Case<a class="headerlink" href="#use-case" title="Link to this heading">¶</a></h3>
+<p>Useful for timing:
+- Model training loops.
+- Data loading or preprocessing steps.
+- Custom algorithm profiling or benchmarking.</p>
+</section>
+</section>
+<p class="rubric">Classes</p>
+<div class="table-wrapper autosummary longtable docutils container">
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#shap_enhanced.tools.timer.Timer" title="shap_enhanced.tools.timer.Timer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Timer</span></code></a>([label, verbose])</p></td>
+<td><p>Timing context manager for profiling code execution.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<dl class="py class">
+<dt class="sig sig-object py" id="shap_enhanced.tools.timer.Timer">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">shap_enhanced.tools.timer.</span></span><span class="sig-name descname"><span class="pre">Timer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/shap_enhanced/tools/timer.html#Timer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#shap_enhanced.tools.timer.Timer" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Timing context manager for profiling code execution.</p>
+<p>This utility measures wall-clock time (in seconds) for any code block wrapped in a <cite>with</cite> statement.
+It prints the elapsed time with a label, or stores it for later access via the <cite>.elapsed</cite> attribute.</p>
+<p class="rubric">Example</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">Timer</span><span class="p">(</span><span class="s2">&quot;Sleeping 1s...&quot;</span><span class="p">):</span>
+    <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>label</strong> (<em>str</em>) – Optional label to describe the timed block.</p></li>
+<li><p><strong>verbose</strong> (<em>bool</em>) – If True, prints elapsed time on exit. Otherwise, stores in <cite>.elapsed</cite>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Variables<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>elapsed</strong> (<em>float</em>) – Time in seconds between context entry and exit.</p>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 
         </article>
@@ -325,8 +387,35 @@
         
       </footer>
     </div>
-    <aside class="toc-drawer no-toc">
+    <aside class="toc-drawer">
       
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">shap_enhanced.tools.timer</a><ul>
+<li><a class="reference internal" href="#timing-utility-for-code-execution">Timing Utility for Code Execution</a><ul>
+<li><a class="reference internal" href="#overview">Overview</a><ul>
+<li><a class="reference internal" href="#features">Features</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#use-case">Use Case</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#shap_enhanced.tools.timer.Timer"><code class="docutils literal notranslate"><span class="pre">Timer</span></code></a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
       
       
     </aside>

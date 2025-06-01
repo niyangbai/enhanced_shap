@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../genindex.html" /><link rel="search" title="Search" href="../../../search.html" />
 
     <!-- Generated with Sphinx 8.2.3 and Furo 2024.08.06 -->
-        <title>shap_enhanced.tools.evaluation - shap_enhanced documentation</title>
+        <title>shap_enhanced.tools.evaluation - Enhanced SHAP documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=354aac6f" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?v=302659d7" />
@@ -165,7 +165,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../../index.html"><div class="brand">shap_enhanced  documentation</div></a>
+      <a href="../../../index.html"><div class="brand">Enhanced SHAP  documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -193,7 +193,7 @@
     <img class="sidebar-logo only-dark" src="../../../_static/fau_wiso_dark.png" alt="Dark Logo"/>
   </div>
   
-  <span class="sidebar-brand-text">shap_enhanced  documentation</span>
+  <span class="sidebar-brand-text">Enhanced SHAP  documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -272,24 +272,83 @@
         </div>
         <article role="main" id="furo-main-content">
           <h1>Source code for shap_enhanced.tools.evaluation</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Ground-Truth Shapley Value Estimation via Monte Carlo</span>
+<span class="sd">======================================================</span>
+
+<span class="sd">Overview</span>
+<span class="sd">--------</span>
+
+<span class="sd">This module provides brute-force Monte Carlo estimators for **ground-truth Shapley values**  </span>
+<span class="sd">in both sequential and tabular settings. These estimators are model-agnostic and compute  </span>
+<span class="sd">marginal contributions of each feature (or feature–time pair) by averaging the effect  </span>
+<span class="sd">of masking/unmasking them across many random feature subsets.</span>
+
+<span class="sd">These implementations serve as a reference baseline for benchmarking approximate SHAP methods,  </span>
+<span class="sd">especially in experimental or synthetic settings where accuracy is paramount.</span>
+
+<span class="sd">Key Functions</span>
+<span class="sd">^^^^^^^^^^^^^</span>
+
+<span class="sd">- **compute_shapley_gt_seq**:  </span>
+<span class="sd">  Computes per-feature-per-timestep Shapley values for a sequence input via masked sampling.</span>
+
+<span class="sd">- **compute_shapley_gt_tabular**:  </span>
+<span class="sd">  Computes standard tabular Shapley values for a single input vector using random coalitions.</span>
+
+<span class="sd">Methodology</span>
+<span class="sd">-----------</span>
+
+<span class="sd">For a given input and feature subset mask \( S \), the Shapley value of feature \( i \) is computed as:</span>
+
+<span class="sd">.. math::</span>
+
+<span class="sd">    \phi_i = \mathbb{E}_{S \subseteq N \setminus \{i\}} [f(x_{S \cup \{i\}}) - f(x_S)]</span>
+
+<span class="sd">This expectation is approximated by sampling random subsets \( S \) and measuring the marginal contribution  </span>
+<span class="sd">of feature \( i \) over those subsets.</span>
+
+<span class="sd">Use Case</span>
+<span class="sd">--------</span>
+
+<span class="sd">These estimators are useful for:</span>
+<span class="sd">- Generating ground-truth SHAP values for synthetic benchmarking.</span>
+<span class="sd">- Evaluating surrogate or approximate SHAP methods.</span>
+<span class="sd">- Debugging the sensitivity of models to masking-based perturbations.</span>
+
+<span class="sd">Example</span>
+<span class="sd">-------</span>
+
+<span class="sd">.. code-block:: python</span>
+
+<span class="sd">    shap_seq = compute_shapley_gt_seq(model, x_seq, baseline_seq, nsamples=500)</span>
+<span class="sd">    shap_tab = compute_shapley_gt_tabular(model, x_tab, baseline_tab, nsamples=1000)</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
 
 <div class="viewcode-block" id="compute_shapley_gt_seq">
 <a class="viewcode-back" href="../../../generated/shap_enhanced.tools.evaluation.html#shap_enhanced.tools.evaluation.compute_shapley_gt_seq">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">compute_shapley_gt_seq</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">baseline</span><span class="p">,</span> <span class="n">nsamples</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="s2">&quot;cpu&quot;</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Estimate ground-truth Shapley values via Monte Carlo for a single sequence input.</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Estimate ground-truth Shapley values for a sequential input using Monte Carlo sampling.</span>
 
-<span class="sd">    Args:</span>
-<span class="sd">        model: Trained PyTorch model.</span>
-<span class="sd">        x (np.ndarray): Input sample, shape (seq_len, n_features).</span>
-<span class="sd">        baseline (np.ndarray): Baseline (reference) sample, shape (seq_len, n_features).</span>
-<span class="sd">        nsamples (int): Number of Monte Carlo samples.</span>
-<span class="sd">        device: Torch device.</span>
+<span class="sd">    For each feature–timestep pair \((t, f)\), this method approximates the marginal contribution  </span>
+<span class="sd">    by computing the model output difference between including and excluding \((t, f)\) from randomly  </span>
+<span class="sd">    sampled coalitions.</span>
 
-<span class="sd">    Returns:</span>
-<span class="sd">        np.ndarray: Estimated Shapley values, shape (seq_len, n_features).</span>
+<span class="sd">    .. math::</span>
+<span class="sd">        \phi_{t,f} = \mathbb{E}_{S \subseteq N \setminus \{(t,f)\}} \left[ f(x_{S \cup \{(t,f)\}}) - f(x_S) \right]</span>
+
+<span class="sd">    :param model: A trained PyTorch model supporting (1, T, F)-shaped input.</span>
+<span class="sd">    :param np.ndarray x: Input instance of shape (T, F).</span>
+<span class="sd">    :param np.ndarray baseline: Reference baseline of same shape (T, F).</span>
+<span class="sd">    :param int nsamples: Number of random coalitions sampled.</span>
+<span class="sd">    :param str device: Device on which to run model evaluation (&#39;cpu&#39; or &#39;cuda&#39;).</span>
+<span class="sd">    :return: Estimated Shapley values for each (t, f) position.</span>
+<span class="sd">    :rtype: np.ndarray of shape (T, F)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">T</span><span class="p">,</span> <span class="n">F</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span>
     <span class="n">vals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">T</span><span class="p">,</span> <span class="n">F</span><span class="p">))</span>
@@ -319,6 +378,23 @@
 <div class="viewcode-block" id="compute_shapley_gt_tabular">
 <a class="viewcode-back" href="../../../generated/shap_enhanced.tools.evaluation.html#shap_enhanced.tools.evaluation.compute_shapley_gt_tabular">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">compute_shapley_gt_tabular</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">baseline</span><span class="p">,</span> <span class="n">nsamples</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="s2">&quot;cpu&quot;</span><span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Estimate ground-truth Shapley values for a tabular input using Monte Carlo sampling.</span>
+
+<span class="sd">    Each feature’s contribution is computed as the expected marginal impact on model output  </span>
+<span class="sd">    when added to a random subset of other features.</span>
+
+<span class="sd">    .. math::</span>
+<span class="sd">        \phi_i = \mathbb{E}_{S \subseteq N \setminus \{i\}} \left[ f(x_{S \cup \{i\}}) - f(x_S) \right]</span>
+
+<span class="sd">    :param model: A trained PyTorch model that accepts (1, F)-shaped inputs.</span>
+<span class="sd">    :param np.ndarray x: Input feature vector of shape (F,).</span>
+<span class="sd">    :param np.ndarray baseline: Baseline vector of same shape (F,).</span>
+<span class="sd">    :param int nsamples: Number of Monte Carlo samples.</span>
+<span class="sd">    :param str device: Device on which to run model evaluation (&#39;cpu&#39; or &#39;cuda&#39;).</span>
+<span class="sd">    :return: Estimated Shapley values for each feature.</span>
+<span class="sd">    :rtype: np.ndarray of shape (F,)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">F</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
     <span class="n">shap_vals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">F</span><span class="p">)</span>
     <span class="n">model</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
