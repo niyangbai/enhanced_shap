@@ -1,3 +1,62 @@
+"""
+SHAP Visualization Utilities
+============================
+
+Overview
+--------
+
+This module provides a set of clean, publication-ready visualization utilities for comparing  
+SHAP attributions against ground-truth or across multiple explainers. The visualizations support  
+both **sequential** (2D) and **tabular** (1D) input formats and offer multiple views such as bar plots,  
+3D surface plots, and 3D bar plots.
+
+The focus is on **clarity**, **aesthetics**, and **comparability**, making the tools well-suited  
+for research papers, presentations, and internal model audits.
+
+Key Functions
+^^^^^^^^^^^^^
+
+- **plot_mse_pearson**:  
+  Bar chart comparing MSE and Pearson correlation of each explainer vs ground-truth SHAP.
+
+- **plot_3d_surface**:  
+  Side-by-side 3D surface plots for ground-truth and predicted SHAP values over time and features.
+
+- **plot_3d_bars**:  
+  Paired 3D bar plots for SHAP values, visually appealing and easy to compare height/direction.
+
+- **plot_feature_comparison**:  
+  Side-by-side bar plots for SHAP values from different explainers (1D/tabular inputs only).
+
+Customization
+-------------
+
+- **Color maps**: Most functions support custom colormaps via `cmap` (default: `'viridis'`).
+- **Saving**: All plots can be saved using the `save` argument (PDF/PNG via `matplotlib`).
+- **Interactivity**: Plots are shown by default, but this can be toggled with `show=False`.
+
+Use Case
+--------
+
+These tools are especially useful for:
+- Benchmarking explainers on synthetic datasets.
+- Visualizing time-series explanations (e.g., SHAP over `(T, F)` inputs).
+- Comparing surrogate vs exact SHAP explainers.
+- Producing clean visuals for publications and reports.
+
+Example
+-------
+
+.. code-block:: python
+
+    plot_mse_pearson(mse_dict, pearson_dict, save="comparison.pdf")
+
+    plot_3d_surface(gt_shap, shap_outputs, seq_len=10, n_features=5)
+
+    plot_feature_comparison(gt_tab, shap_dict_tabular)
+"""
+
+
 import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D  # noqa: F401
@@ -13,9 +72,17 @@ def plot_mse_pearson(
     cmap="viridis",
     show=True,
 ):
-    """
-    Plot MSE and Pearson correlation for SHAP explainers vs ground truth.
-    No colorbar, clean plot, minimal white margin when saving as pdf/png.
+    r"""
+    Plot comparison of Mean Squared Error and Pearson Correlation across SHAP explainers.
+
+    Generates side-by-side bar charts to compare each explainer's SHAP attributions to ground-truth values.
+
+    :param dict results: Dictionary mapping explainer names to MSE values.
+    :param dict pearson_results: Dictionary mapping explainer names to Pearson correlation scores.
+    :param str save: Optional filename to save the figure (PDF/PNG).
+    :param int bar_threshold: Orientation switches to horizontal if number of bars exceeds this threshold.
+    :param str cmap: Colormap name for value encoding (default: "viridis").
+    :param bool show: Whether to display the plot.
     """
     plt.style.use("seaborn-v0_8-whitegrid")
     n_bars = max(len(results), len(pearson_results))
@@ -95,9 +162,19 @@ def plot_3d_surface(
     vlim=None,
     show=True,
 ):
-    """
-    Plot ground truth and explainer SHAP values as paired 3D surface plots.
-    Handles 1D/2D/3D input arrays for SHAP.
+    r"""
+    Generate side-by-side 3D surface plots for SHAP values from ground-truth and explainers.
+
+    Used for comparing SHAP explanations on sequential (T, F) inputs with rich spatial structure.
+
+    :param np.ndarray shap_gt: Ground-truth SHAP array (T, F) or (1, T, F).
+    :param dict shap_models: Dictionary mapping explainer names to SHAP arrays.
+    :param int seq_len: Sequence length (T).
+    :param int n_features: Number of input features (F).
+    :param str save: Optional filename to save the figure.
+    :param str cmap: Colormap for surface shading.
+    :param tuple vlim: Optional tuple of (vmin, vmax) for shared Z-axis scaling.
+    :param bool show: Whether to display the figure.
     """
     import matplotlib.pyplot as plt
     import numpy as np
@@ -183,9 +260,19 @@ def plot_3d_bars(
     bar_color='#3498db',  # Softer blue, can set e.g. "#43aa8b" for green
     show=True,
 ):
-    """
-    Plot ground truth and explainer SHAP values as paired 3D bar plots, visually appealing and publication ready.
-    No colorbar, single color bars, minimal margin.
+    r"""
+    Visual comparison of SHAP values using 3D bar plots for ground-truth and explainer outputs.
+
+    Emphasizes direction and magnitude using colored bars over (T, F) space.
+
+    :param np.ndarray shap_gt: Ground-truth SHAP values.
+    :param dict shap_models: Dictionary mapping explainer names to SHAP arrays.
+    :param int seq_len: Length of the sequence (T).
+    :param int n_features: Number of input features (F).
+    :param str save: Optional path to save the plot.
+    :param float bar_alpha: Transparency of bars (default: 0.88).
+    :param str bar_color: Hex color string for positive bars.
+    :param bool show: Whether to display the figure.
     """
     plt.style.use("seaborn-v0_8-whitegrid")
     n_models = len(shap_models)
@@ -257,8 +344,13 @@ def plot_feature_comparison(
     feature_names=None,
     save=None,
 ):
-    """
-    Bar plot for feature attributions of all explainers vs ground truth (tabular/1D).
+    r"""
+    Plot bar charts comparing 1D/tabular SHAP attributions across explainers and ground truth.
+
+    :param np.ndarray shap_gt: Ground-truth SHAP values (1D).
+    :param dict shap_models: Dictionary of SHAP arrays from different explainers.
+    :param list feature_names: Optional list of feature names.
+    :param str save: Optional path to save the plot.
     """
     plt.style.use("seaborn-v0_8-whitegrid")
     n_explainers = len(shap_models)

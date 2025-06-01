@@ -1,32 +1,60 @@
 """
 ER-SHAP: Ensemble of Random SHAP Explainer
+==========================================
 
-## Theoretical Explanation
+Theoretical Explanation
+-----------------------
 
-ER-SHAP is a fast, ensemble-based approximation of SHAP values for sequential or tabular models. It estimates feature attributions by repeatedly sampling random coalitions (subsets) of feature–timestep pairs, computing their marginal contributions to the model output, and averaging the results. ER-SHAP supports uniform or weighted coalition sampling, allowing prior knowledge (e.g., feature importance) to guide the process.
+ER-SHAP is a computationally efficient, ensemble-based approximation of Shapley values, designed for  
+both sequential and tabular models. Instead of exhaustively enumerating all possible coalitions,  
+ER-SHAP repeatedly samples random subsets of feature–timestep positions and estimates their  
+marginal contributions to model output.
 
-### Key Concepts
+This stochastic approach significantly accelerates SHAP estimation while maintaining interpretability,  
+especially in high-dimensional or temporal settings. ER-SHAP also allows prior knowledge (e.g., feature importance)  
+to guide coalition sampling through weighted schemes.
 
-- **Random Coalition Sampling:** For each feature–timestep position (t, f), random coalitions (subsets of all other positions) are sampled. The marginal contribution of (t, f) is estimated by measuring the change in model output when (t, f) is added to the coalition.
-- **Weighted Sampling:** Coalitions can be sampled uniformly or with weights based on prior feature importance or frequency.
-- **Flexible Masking:** Masked features can be imputed with zeros or mean values from the background data.
-- **Additivity Normalization:** Attributions are normalized so their sum matches the model output difference between the original and fully-masked input.
+Key Concepts
+^^^^^^^^^^^^
 
-## Algorithm
+- **Random Coalition Sampling**:  
+  For each position \((t, f)\), sample coalitions \( C \subseteq (T \times F) \setminus \{(t, f)\} \)  
+  and estimate the marginal contribution of \((t, f)\) by measuring its impact on model output.
 
-1. **Initialization:**
-    - Accepts a model, background data (for mean imputation), number of coalitions, masking strategy, weighting scheme, optional feature importance, and device.
-2. **Coalition Sampling:**
-    - For each feature–timestep position (t, f):
-        - Sample random coalitions \( C \subseteq (T \times F) \setminus \{(t, f)\} \), with optional weighting.
-        - For each coalition:
-            - Mask (impute) the coalition \( C \) in the input.
-            - Mask (impute) the coalition \( C \cup \{(t, f)\} \).
-            - Compute the model output difference.
-        - Average these differences to estimate the marginal contribution of (t, f).
-3. **Normalization:**
-    - Scale attributions so their sum matches the difference between the original and fully-masked model output.
+- **Weighted Sampling**:  
+  Coalition sampling can be uniform or weighted based on prior feature importance scores  
+  or positional frequency, allowing informed, efficient sampling.
+
+- **Flexible Masking**:  
+  Masked features are imputed using:
+  - Zeros (hard masking).
+  - Feature-wise means from the background dataset (soft masking).
+
+- **Additivity Normalization**:  
+  Final attributions are scaled so that their sum matches the model output difference  
+  between the original and fully-masked input.
+
+Algorithm
+---------
+
+1. **Initialization**:
+   - Accepts a model, background dataset for imputation, number of sampled coalitions,  
+     masking strategy (`'zero'` or `'mean'`), weighting scheme, optional feature importance, and device context.
+
+2. **Coalition Sampling**:
+   - For each feature–timestep pair \((t, f)\):
+     - Sample coalitions \( C \subseteq (T \times F) \setminus \{(t, f)\} \), either uniformly or using weights.
+     - For each coalition:
+       - Impute the coalition \( C \) in the input.
+       - Impute the coalition \( C \cup \{(t, f)\} \).
+       - Compute the model output difference.
+     - Average these differences to estimate the marginal contribution of \((t, f)\).
+
+3. **Normalization**:
+   - Scale the final attributions so that their total equals the difference in model output  
+     between the original input and a fully-masked baseline.
 """
+
 
 import numpy as np
 import torch
@@ -34,24 +62,26 @@ from shap_enhanced.base_explainer import BaseExplainer
 
 class ERSHAPExplainer(BaseExplainer):
     """
-    ER-SHAP: Random Coalition Ensemble SHAP Explainer
+    ER-SHAP: Ensemble of Random SHAP Explainer
 
-    Parameters
-    ----------
-    model : Any
-        Model to be explained.
-    background : np.ndarray or torch.Tensor
-        For mean/zero imputation (N, T, F).
-    n_coalitions : int
-        Number of random coalitions to sample per feature.
-    mask_strategy : str
-        'mean' or 'zero' (default: 'mean').
-    weighting : str
-        Coalition weighting: 'uniform', 'frequency', 'importance'.
-    feature_importance : np.ndarray, optional
-        (T, F) prior importances, used if weighting='importance'.
-    device : str
-        'cpu' or 'cuda'.
+    An efficient approximation of Shapley values using random coalition sampling over
+    time-feature positions. Supports uniform and weighted sampling strategies and flexible
+    masking (zero or mean) to generate perturbed inputs.
+
+    :param model: Model to explain, compatible with PyTorch tensors.
+    :type model: Any
+    :param background: Background dataset for mean imputation; shape (N, T, F).
+    :type background: np.ndarray or torch.Tensor
+    :param n_coalitions: Number of coalitions to sample per (t, f) position.
+    :type n_coalitions: int
+    :param mask_strategy: Masking method: 'zero' or 'mean'.
+    :type mask_strategy: str
+    :param weighting: Sampling scheme: 'uniform', 'frequency', or 'importance'.
+    :type weighting: str
+    :param feature_importance: Prior feature importances for weighted sampling; shape (T, F).
+    :type feature_importance: Optional[np.ndarray]
+    :param device: Device identifier, 'cpu' or 'cuda'.
+    :type device: str
     """
     def __init__(
         self,
@@ -75,6 +105,19 @@ class ERSHAPExplainer(BaseExplainer):
             self._mean = None
 
     def _impute(self, X, idxs):
+        r"""
+        Apply masking strategy to selected (t, f) indices in input.
+
+        - 'zero': Replace with 0.0.
+        - 'mean': Use mean value from background dataset.
+
+        :param X: Input sample of shape (T, F).
+        :type X: np.ndarray
+        :param idxs: List of (t, f) pairs to mask.
+        :type idxs: list[tuple[int, int]]
+        :return: Masked/imputed version of X.
+        :rtype: np.ndarray
+        """
         X_imp = X.copy()
         for (t, f) in idxs:
             if self.mask_strategy == "zero":
@@ -86,6 +129,20 @@ class ERSHAPExplainer(BaseExplainer):
         return X_imp
 
     def _sample_coalition(self, available, k, weights=None):
+        """
+        Sample a coalition of k positions from the available list.
+
+        If weights are provided, sampling is weighted; otherwise, uniform.
+
+        :param available: List of available (t, f) pairs.
+        :type available: list[tuple[int, int]]
+        :param k: Number of elements to sample.
+        :type k: int
+        :param weights: Sampling probabilities aligned with `available`.
+        :type weights: Optional[np.ndarray]
+        :return: List of sampled (t, f) pairs.
+        :rtype: list[tuple[int, int]]
+        """
         if weights is not None:
             weights = np.array([weights[idx] for idx in available])
             weights = weights / (weights.sum() + 1e-8)
@@ -101,17 +158,24 @@ class ERSHAPExplainer(BaseExplainer):
         random_seed=42,
         **kwargs
     ):
-        """
-        ER-SHAP: Random coalitions, marginal contributions, averaging.
+        r"""
+        Compute SHAP values via random coalition sampling.
 
-        Parameters
-        ----------
-        X : np.ndarray or torch.Tensor
-            (T, F) or (B, T, F)
-        Returns
-        -------
-        shap_vals : np.ndarray
-            SHAP attributions (T, F) or (B, T, F)
+        For each position (t, f), sample coalitions of other positions,
+        compute marginal contributions, and average over samples.
+        Attributions are normalized to satisfy:
+
+        .. math::
+            \sum_{t=1}^T \sum_{f=1}^F \phi_{t,f} \approx f(x) - f(x_{masked})
+
+        :param X: Input array or tensor of shape (T, F) or (B, T, F).
+        :type X: np.ndarray or torch.Tensor
+        :param check_additivity: Whether to apply normalization for additivity.
+        :type check_additivity: bool
+        :param random_seed: Seed for reproducibility.
+        :type random_seed: int
+        :return: SHAP values of shape (T, F) or (B, T, F).
+        :rtype: np.ndarray
         """
         np.random.seed(random_seed)
         is_torch = hasattr(X, 'detach')

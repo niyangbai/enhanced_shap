@@ -1,31 +1,76 @@
 """
 Sparse Coalition SHAP Explainer
+===============================
 
-## Theoretical Explanation
+Theoretical Explanation
+-----------------------
 
-Sparse Coalition SHAP is a feature attribution method tailored for sparse or structured discrete data, such as one-hot encodings or binary features. It only forms coalitions (feature subsets to mask) that produce valid sparse patterns. For one-hot sets, masking means setting the entire group to zero (no class selected), never producing invalid or fractional vectors. This ensures that all perturbed samples remain within the valid data manifold, avoiding unrealistic or out-of-distribution patterns.
+Sparse Coalition SHAP is a feature attribution method specifically designed for sparse, discrete,  
+or structured inputs—such as one-hot encodings and binary feature sets.  
+Unlike standard SHAP approaches that may generate invalid or unrealistic feature perturbations,  
+Sparse Coalition SHAP only considers **valid coalitions** that preserve the sparsity and logical structure  
+of the input space.
 
-### Key Concepts
+For one-hot encoded groups, masking a group zeroes out the entire set—representing "no selection"—without producing  
+fractional or ambiguous class encodings. For binary features, masking is performed element-wise while maintaining  
+input validity.
 
-- **Valid Sparse Coalitions:** Only masks feature groups in ways that preserve valid one-hot or binary patterns.
-- **One-Hot Group Support:** For one-hot encoded features, masking a group sets all features in the group to zero, representing "no class."
-- **General Binary Support:** For general binary features, masking is performed per (t, f) position.
-- **Flexible Masking Strategy:** Supports zero-masking (default) and can be extended to observed-pattern masking.
-- **Additivity Normalization:** Attributions are normalized so their sum matches the model output difference between the original and fully-masked input.
+This approach ensures all perturbed inputs remain on-manifold, improving both interpretability and the validity  
+of model attributions in discrete domains.
 
-## Algorithm
+Key Concepts
+^^^^^^^^^^^^
 
-1. **Initialization:**
-    - Accepts a model, background data, one-hot group definitions, masking strategy, and device.
-2. **Coalition Sampling:**
-    - For each group (one-hot) or feature (binary), repeatedly:
-        - Sample random subsets of other groups/features to mask.
-        - Mask the coalition and compute the model output.
-        - Mask the coalition plus the group/feature of interest and compute the model output.
-        - Record the difference.
-    - Average these differences to estimate the marginal contribution of each group/feature.
-3. **Normalization:**
-    - Scale attributions so their sum matches the difference between the original and fully-masked model output.
+- **Valid Sparse Coalitions**:  
+  Coalitions are restricted to those that produce syntactically valid inputs under the sparsity constraints.  
+  This avoids creating feature patterns that would never occur naturally.
+
+- **One-Hot Group Support**:  
+  Groups of mutually exclusive features (e.g., one-hot encodings) are masked by setting the entire group to zero,  
+  simulating "no class selected."
+
+- **Binary Feature Support**:  
+  Element-wise masking is applied to binary features, allowing localized coalitions across time and features.
+
+- **Flexible Masking Strategies**:  
+  - Default: zero-masking.
+  - Extensible to other strategies (e.g., pattern sampling from background data).
+
+- **Additivity Normalization**:  
+  Final attributions are normalized so their total matches the difference between the model outputs  
+  of the original and fully-masked inputs.
+
+Algorithm
+---------
+
+1. **Initialization**:
+   - Accepts the target model, background dataset, one-hot group definitions, masking strategy (default: zero),  
+     and device configuration.
+
+2. **Coalition Sampling**:
+   - For each one-hot group or binary feature:
+     - Randomly sample subsets of other groups/features to form coalitions.
+     - For each coalition:
+       - Mask the selected features/groups in the input.
+       - Mask the coalition plus the current target group/feature.
+       - Compute the model outputs for both variants.
+       - Record the output difference.
+
+3. **SHAP Value Estimation**:
+   - Average the output differences over many sampled coalitions to approximate the Shapley value  
+     (i.e., the marginal contribution) of each group/feature.
+
+4. **Normalization**:
+   - Scale all attributions so their sum equals the model output difference between  
+     the original and fully-masked inputs.
+
+Use Case
+--------
+
+Ideal for models operating on:
+- Categorical variables represented via one-hot encoding.
+- Structured binary inputs (e.g., presence/absence features).
+- Sparse input spaces where validity and interpretability are critical.
 """
 
 
@@ -34,25 +79,27 @@ import torch
 from shap_enhanced.base_explainer import BaseExplainer
 
 class SparseCoalitionSHAPExplainer(BaseExplainer):
-    """
-    Sparse Coalition SHAP Explainer
+    r"""
+    SparseCoalitionSHAPExplainer: Valid SHAP for Structured Sparse Inputs
 
-    Only forms coalitions (feature subsets to mask) that produce valid sparse patterns,
-    such as one-hot encodings or binary support. For one-hot sets, masking means setting
-    the entire group to zero (no class selected), never producing invalid or fractional vectors.
+    This explainer approximates Shapley values by sampling valid sparse coalitions of features. 
+    It ensures that perturbed inputs remain syntactically valid, especially for inputs with 
+    structured sparsity such as one-hot encodings or binary indicator features.
 
-    Parameters
-    ----------
-    model : Any
-        Model to be explained.
-    background : np.ndarray or torch.Tensor
-        Background for optional mean/mode imputation (not used for masking).
-    onehot_groups : list of lists
-        For one-hot data, each sublist contains feature indices of a one-hot set, e.g. [[0,1,2],[3,4,5],...].
-    mask_strategy : str
-        'zero' (default): mask sets features to zero (no class).
-    device : str
-        'cpu' or 'cuda'.
+    .. note::
+        One-hot groups are masked as entire sets to simulate "no class selected".
+        General binary features are masked element-wise.
+
+    :param model: Predictive model to explain.
+    :type model: Any
+    :param background: Background data (not directly used but required for base class).
+    :type background: np.ndarray or torch.Tensor
+    :param onehot_groups: List of one-hot index groups, e.g., [[0,1,2], [3,4]].
+    :type onehot_groups: list[list[int]] or None
+    :param mask_strategy: Currently supports only "zero" masking.
+    :type mask_strategy: str
+    :param device: Device context for evaluation (e.g., 'cuda' or 'cpu').
+    :type device: str
     """
     def __init__(
         self,
@@ -89,8 +136,32 @@ class SparseCoalitionSHAPExplainer(BaseExplainer):
         random_seed=42,
         **kwargs
     ):
-        """
-        SHAP with valid sparse coalitions: (B, T, F) or (T, F)
+        r"""
+        Estimate SHAP values using sparse-valid coalitions.
+
+        For each input sample:
+        - Iterates over all features (or one-hot groups).
+        - Randomly samples subsets of other features/groups to form coalitions.
+        - Computes model output difference when adding the current feature/group to the coalition.
+        - Averages these differences to estimate the Shapley value.
+
+        .. math::
+            \phi_i = \mathbb{E}_{S \subseteq N \setminus \{i\}} \left[
+                f(S \cup \{i\}) - f(S)
+            \right]
+
+        Final attributions are normalized such that:
+
+        .. math::
+            \sum_i \phi_i = f(x) - f(x_{\text{masked}})
+
+        :param X: Input instance(s), shape (T, F) or (B, T, F).
+        :type X: np.ndarray or torch.Tensor
+        :param int nsamples: Number of coalition samples per feature/group.
+        :param bool check_additivity: If True, prints the additivity check.
+        :param int random_seed: Seed for reproducible sampling.
+        :return: SHAP attribution values, same shape as input.
+        :rtype: np.ndarray
         """
         np.random.seed(random_seed)
         is_torch = hasattr(X, 'detach')

@@ -1,31 +1,77 @@
 """
-TimeSHAP Explainer (pruning-enhanced SHAP for sequential models).
+TimeSHAP Explainer: Pruning-Enhanced SHAP for Sequential Models
+================================================================
 
-## Theoretical Explanation
+Theoretical Explanation
+-----------------------
 
-TimeSHAP is a SHAP-style feature attribution method for sequential or event-based models that uses pruning to efficiently estimate attributions over time-event windows. It implements KernelSHAP-style estimation, but avoids the combinatorial explosion of possible feature/time subsets by pruning to the most important events or windows. TimeSHAP supports attribution at the timestep, feature, or event (window) level.
+**TimeSHAP** is a SHAP-style feature attribution method specifically designed for **sequential, temporal,  
+or event-based models**. It builds upon the principles of KernelSHAP but introduces **pruning** to handle  
+the combinatorial complexity of time-series input structures.
 
-### Key Concepts
+Rather than sampling all possible feature–timestep or event subsets, TimeSHAP first performs a **rough importance  
+scan**, then prunes the space down to the **top-k most relevant events**, windows, or timesteps. This makes it  
+scalable to long sequences while maintaining fidelity.
 
-- **Pruned Coalition Sampling:** Instead of exhaustively sampling all possible coalitions, TimeSHAP first estimates rough importances for all units (timesteps, features, or events), then prunes to the top-k most important units for refined estimation.
-- **Event/Window Support:** Attributions can be computed for individual timesteps, features, or over sliding windows of events.
-- **Flexible Masking:** Masked features can be imputed with zeros or mean values from the background data.
-- **Additivity Normalization:** Attributions are normalized so their sum matches the model output difference between the original and fully-masked input.
+Key Concepts
+^^^^^^^^^^^^
 
-## Algorithm
+- **Pruned Coalition Sampling**:  
+  Performs an initial round of random sampling to estimate rough feature/event importance.  
+  Only the top-k units are retained for precise SHAP estimation.
 
-1. **Initialization:**
-    - Accepts a model, background data, masking strategy, event window size, pruning parameter, and device.
-2. **Rough Importance Estimation:**
-    - For each unit (timestep, feature, or event window), estimate its marginal contribution by sampling random coalitions and measuring the change in model output.
-3. **Pruning:**
-    - If pruning is enabled, select the top-k most important units for further analysis.
-4. **Refined Attribution:**
-    - For each selected unit, sample random coalitions and compute the marginal contribution more accurately.
-    - Assign attributions to the appropriate timesteps, features, or events.
-5. **Normalization:**
-    - Scale attributions so their sum matches the difference between the original and fully-masked model output.
+- **Event/Window Attribution**:  
+  Supports attribution across:
+  - Individual timesteps (fine-grained),
+  - Features (vertical slices),
+  - Event windows (e.g., rolling sequences).
+
+- **Flexible Masking**:  
+  Masked features can be:
+  - Set to zero (hard masking), or
+  - Replaced with the mean from background data (soft masking).
+
+- **Additivity Normalization**:  
+  Final SHAP attributions are normalized so that their total equals the model output difference  
+  between the original and fully-masked inputs.
+
+Algorithm
+---------
+
+1. **Initialization**:
+   - Accepts a target model, background data, event window size, masking strategy, pruning parameter (e.g., top-k),  
+     and device context.
+
+2. **Rough Importance Estimation**:
+   - For each unit (feature, timestep, or window):
+     - Sample random coalitions excluding the unit.
+     - Compute model outputs with and without the unit masked.
+     - Estimate marginal contribution based on output difference.
+
+3. **Pruning**:
+   - If pruning is enabled:
+     - Retain only the top-k most important units from the rough scan.
+     - Discard lower-importance units from further evaluation.
+
+4. **Refined Attribution**:
+   - For each selected unit:
+     - Sample coalitions and compute more precise SHAP values.
+     - Assign contributions to the appropriate location in the attribution map  
+       (e.g., timestep, feature, or window).
+
+5. **Normalization**:
+   - Rescale all SHAP values so that their sum equals the difference between  
+     the model prediction on the original and fully-masked input.
+
+Use Case
+--------
+
+TimeSHAP is ideal for:
+- Event sequences, medical time-series, or log data.
+- Models where full SHAP computation is infeasible due to input length.
+- Explaining model behavior over time, including “when” and “what” drove a prediction.
 """
+
 
 import numpy as np
 import torch
@@ -33,23 +79,25 @@ import random
 from shap_enhanced.base_explainer import BaseExplainer
 
 class TimeSHAPExplainer(BaseExplainer):
-    """
-    TimeSHAP: SHAP with pruning for sequential/event models, supporting true per-(t, f) attributions.
+    r"""
+    TimeSHAPExplainer: Pruned SHAP Attribution for Sequential Models
 
-    Parameters
-    ----------
-    model : Any
-        The model to be explained.
-    background : np.ndarray or torch.Tensor
-        Background data for imputation (N, T, F).
-    mask_strategy : str
-        'zero' or 'mean' (default).
-    event_window : int or None
-        If set, computes SHAP over windows of this size instead of single (t, f) units.
-    prune_topk : int or None
-        If set, after initial run, prune to top-k most important units, then resample only these.
-    device : str
-        'cpu' or 'cuda'.
+    Implements a SHAP-style explainer for time-series and sequential data using pruning
+    to efficiently estimate per-(t, f) or event-level attributions.
+
+    Combines:
+    - Masking strategy (zero or mean-based).
+    - Optional event windowing (for segment-level attribution).
+    - Top-k pruning to reduce the coalition space before final SHAP estimation.
+
+    :param model: The model to be explained.
+    :type model: Any
+    :param background: Background dataset for imputation and mean estimation.
+    :type background: np.ndarray or torch.Tensor
+    :param str mask_strategy: Masking method, either 'zero' or 'mean'.
+    :param int or None event_window: Optional window size for event-based attribution.
+    :param int or None prune_topk: If specified, retain only top-k units (based on rough attribution) for refinement.
+    :param str device: Computation device ('cpu' or 'cuda').
     """
     def __init__(
         self, model, background,
@@ -96,8 +144,21 @@ class TimeSHAPExplainer(BaseExplainer):
         random_seed=42,
         **kwargs
     ):
-        """
-        Computes SHAP attributions at timestep-feature, event, or feature level using pruned coalition sampling.
+        r"""
+        Compute SHAP values for sequential input with optional pruning and window-based attribution.
+
+        .. note::
+            Pruned estimation uses an initial coarse pass to identify important units
+            (features, timesteps, or windows), followed by refined SHAP estimation over that subset.
+
+        :param X: Input tensor or array of shape (T, F) or (B, T, F).
+        :type X: Union[np.ndarray, torch.Tensor]
+        :param int nsamples: Number of coalitions to sample per unit.
+        :param str level: Attribution level: 'timestep', 'feature', or 'event'.
+        :param bool check_additivity: If True, print additivity diagnostics.
+        :param int random_seed: Random seed for reproducibility.
+        :return: SHAP values with shape (T, F) or (B, T, F).
+        :rtype: np.ndarray
         """
         np.random.seed(random_seed)
         random.seed(random_seed)

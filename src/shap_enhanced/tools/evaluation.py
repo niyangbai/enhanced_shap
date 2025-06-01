@@ -1,19 +1,78 @@
+"""
+Ground-Truth Shapley Value Estimation via Monte Carlo
+======================================================
+
+Overview
+--------
+
+This module provides brute-force Monte Carlo estimators for **ground-truth Shapley values**  
+in both sequential and tabular settings. These estimators are model-agnostic and compute  
+marginal contributions of each feature (or feature–time pair) by averaging the effect  
+of masking/unmasking them across many random feature subsets.
+
+These implementations serve as a reference baseline for benchmarking approximate SHAP methods,  
+especially in experimental or synthetic settings where accuracy is paramount.
+
+Key Functions
+^^^^^^^^^^^^^
+
+- **compute_shapley_gt_seq**:  
+  Computes per-feature-per-timestep Shapley values for a sequence input via masked sampling.
+
+- **compute_shapley_gt_tabular**:  
+  Computes standard tabular Shapley values for a single input vector using random coalitions.
+
+Methodology
+-----------
+
+For a given input and feature subset mask \( S \), the Shapley value of feature \( i \) is computed as:
+
+.. math::
+
+    \phi_i = \mathbb{E}_{S \subseteq N \setminus \{i\}} [f(x_{S \cup \{i\}}) - f(x_S)]
+
+This expectation is approximated by sampling random subsets \( S \) and measuring the marginal contribution  
+of feature \( i \) over those subsets.
+
+Use Case
+--------
+
+These estimators are useful for:
+- Generating ground-truth SHAP values for synthetic benchmarking.
+- Evaluating surrogate or approximate SHAP methods.
+- Debugging the sensitivity of models to masking-based perturbations.
+
+Example
+-------
+
+.. code-block:: python
+
+    shap_seq = compute_shapley_gt_seq(model, x_seq, baseline_seq, nsamples=500)
+    shap_tab = compute_shapley_gt_tabular(model, x_tab, baseline_tab, nsamples=1000)
+"""
+
+
 import numpy as np
 import torch
 
 def compute_shapley_gt_seq(model, x, baseline, nsamples=200, device="cpu"):
-    """
-    Estimate ground-truth Shapley values via Monte Carlo for a single sequence input.
+    r"""
+    Estimate ground-truth Shapley values for a sequential input using Monte Carlo sampling.
 
-    Args:
-        model: Trained PyTorch model.
-        x (np.ndarray): Input sample, shape (seq_len, n_features).
-        baseline (np.ndarray): Baseline (reference) sample, shape (seq_len, n_features).
-        nsamples (int): Number of Monte Carlo samples.
-        device: Torch device.
+    For each feature–timestep pair \((t, f)\), this method approximates the marginal contribution  
+    by computing the model output difference between including and excluding \((t, f)\) from randomly  
+    sampled coalitions.
 
-    Returns:
-        np.ndarray: Estimated Shapley values, shape (seq_len, n_features).
+    .. math::
+        \phi_{t,f} = \mathbb{E}_{S \subseteq N \setminus \{(t,f)\}} \left[ f(x_{S \cup \{(t,f)\}}) - f(x_S) \right]
+
+    :param model: A trained PyTorch model supporting (1, T, F)-shaped input.
+    :param np.ndarray x: Input instance of shape (T, F).
+    :param np.ndarray baseline: Reference baseline of same shape (T, F).
+    :param int nsamples: Number of random coalitions sampled.
+    :param str device: Device on which to run model evaluation ('cpu' or 'cuda').
+    :return: Estimated Shapley values for each (t, f) position.
+    :rtype: np.ndarray of shape (T, F)
     """
     T, F = x.shape
     vals = np.zeros((T, F))
@@ -40,6 +99,23 @@ def compute_shapley_gt_seq(model, x, baseline, nsamples=200, device="cpu"):
     return vals
 
 def compute_shapley_gt_tabular(model, x, baseline, nsamples=1000, device="cpu"):
+    r"""
+    Estimate ground-truth Shapley values for a tabular input using Monte Carlo sampling.
+
+    Each feature’s contribution is computed as the expected marginal impact on model output  
+    when added to a random subset of other features.
+
+    .. math::
+        \phi_i = \mathbb{E}_{S \subseteq N \setminus \{i\}} \left[ f(x_{S \cup \{i\}}) - f(x_S) \right]
+
+    :param model: A trained PyTorch model that accepts (1, F)-shaped inputs.
+    :param np.ndarray x: Input feature vector of shape (F,).
+    :param np.ndarray baseline: Baseline vector of same shape (F,).
+    :param int nsamples: Number of Monte Carlo samples.
+    :param str device: Device on which to run model evaluation ('cpu' or 'cuda').
+    :return: Estimated Shapley values for each feature.
+    :rtype: np.ndarray of shape (F,)
+    """
     F = x.shape[0]
     shap_vals = np.zeros(F)
     model.eval()

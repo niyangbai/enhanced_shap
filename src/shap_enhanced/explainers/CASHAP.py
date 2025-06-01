@@ -1,32 +1,55 @@
 """
-Coalition-Aware SHAP (CASHAP) Explainer
+CASHAP: Coalition-Aware SHAP Explainer
+======================================
 
-## Theoretical Explanation
+Theoretical Explanation
+-----------------------
 
-CASHAP (Coalition-Aware SHAP) is a feature attribution method that estimates Shapley values by explicitly sampling coalitions (subsets) of feature-time pairs and measuring their marginal contributions to the model output. This approach is particularly suited for sequential models (such as LSTMs) and can be generalized to tabular data. CASHAP supports various masking or imputation strategies to ensure context-aware and valid perturbations.
+CASHAP (Coalition-Aware SHAP) is a Shapley value estimation framework tailored for models that process sequential or structured inputs, such as LSTMs.  
+Unlike classical SHAP methods that treat features independently, CASHAP considers **feature-time pairs**—enabling attribution of both spatial and temporal components.  
 
-### Key Concepts
+By explicitly sampling coalitions (subsets) of feature-time pairs and measuring marginal contributions, CASHAP provides granular, context-aware explanations.  
+It also supports multiple imputation strategies to ensure the perturbed inputs remain valid and interpretable.
 
-- **Coalition Sampling:** For each feature-time position (t, f), random coalitions (subsets of all other positions) are sampled. The marginal contribution of (t, f) is estimated by measuring the change in model output when (t, f) is added to the coalition.
-- **Masking/Imputation:** Masked positions can be set to zero, mean-imputed from background data, or imputed using a custom function. This allows for context-aware explanations and avoids unrealistic perturbations.
-- **Sequential and Tabular Support:** While designed for sequential models, CASHAP can be applied to any data where masking or imputation is meaningful.
-- **Additivity Normalization:** Attributions are normalized so their sum matches the model output difference between the original and fully-masked input.
+Key Concepts
+^^^^^^^^^^^^
 
-## Algorithm
+- **Coalition Sampling**: For every feature-time pair \((t, f)\), random subsets of all other positions are sampled.  
+  The contribution of \((t, f)\) is assessed by adding it to each coalition and measuring the change in model output.
 
-1. **Initialization:**
-    - Accepts a model, background data (for mean imputation), masking strategy, optional custom imputer, and device.
-2. **Coalition Sampling:**
-    - For each feature-time position (t, f):
-        - Sample random coalitions \( C \subseteq (T \times F) \setminus \{(t, f)\} \).
-        - For each coalition:
-            - Mask (impute) the coalition \( C \) in the input.
-            - Mask (impute) the coalition \( C \cup \{(t, f)\} \).
-            - Compute the model output difference.
-        - Average these differences to estimate the marginal contribution of (t, f).
-3. **Normalization:**
-    - Scale attributions so their sum matches the difference between the original and fully-masked model output.
+- **Masking/Imputation Strategies**:
+  - **Zero masking**: Replace masked values with zero.
+  - **Mean imputation**: Use feature-wise means from background data.
+  - **Custom imputers**: Support for user-defined imputation functions.
+
+- **Model-Agnostic & Domain-General**: While ideal for time-series and sequential models, CASHAP can also be applied to tabular data  
+  wherever structured coalition masking is appropriate.
+
+- **Additivity Normalization**: Attribution scores are scaled such that their total sum equals the difference in model output  
+  between the original input and a fully-masked version.
+
+Algorithm
+---------
+
+1. **Initialization**:
+   - Accepts a model, background data for imputation, masking strategy, optional custom imputer, and device context.
+
+2. **Coalition Sampling**:
+   - For each feature-time pair \((t, f)\):
+     - Sample coalitions \( C \subseteq (T \times F) \setminus \{(t, f)\} \).
+     - For each coalition \( C \):
+       - Impute features in \( C \) using the chosen strategy.
+       - Impute features in \( C \cup \{(t, f)\} \).
+       - Compute and record the model output difference.
+
+3. **Attribution Estimation**:
+   - Average the output differences across coalitions to estimate the marginal contribution of \((t, f)\).
+
+4. **Normalization**:
+   - Normalize attributions so that their total matches the difference between the model's prediction  
+     on the original and the fully-masked input.
 """
+
 
 from typing import Any, Optional, Union
 from collections.abc import Callable
@@ -37,23 +60,22 @@ from shap_enhanced.base_explainer import BaseExplainer
 
 class CoalitionAwareSHAPExplainer(BaseExplainer):
     """
-    Coalition-Aware SHAP (CASHAP) Explainer.
+    Coalition-Aware SHAP (CASHAP) Explainer
 
-    Estimates Shapley values for sequential models by sampling random coalitions of (t, f) pairs,
-    masking/imputing them, and measuring the marginal effect of each position on the model output.
+    Estimates Shapley values for models processing structured inputs (e.g., time-series, sequences)
+    by sampling coalitions of feature-time pairs and computing their marginal contributions
+    using various imputation strategies.
 
-    Parameters
-    ----------
-    model : Any
-        The model to be explained. Must support __call__ or .predict with batched input.
-    background : Optional[np.ndarray, torch.Tensor]
-        Background data for mean imputation.
-    mask_strategy : str
-        'zero' for zero masking, 'mean' for mean imputation, or 'custom' for a user-supplied imputer.
-    imputer : Optional[Callable]
-        A callable function to perform imputation. Used only if mask_strategy == 'custom'.
-    device : Optional[str]
-        'cpu' or 'cuda' (only relevant for PyTorch).
+    :param model: Model to be explained.
+    :type model: Any
+    :param background: Background data used for mean imputation strategy.
+    :type background: Optional[np.ndarray or torch.Tensor]
+    :param str mask_strategy: Strategy for imputing/masking feature-time pairs.
+                              Options: 'zero', 'mean', or 'custom'.
+    :param imputer: Custom callable for imputation. Required if `mask_strategy` is 'custom'.
+    :type imputer: Optional[Callable]
+    :param device: Device on which computation runs. Defaults to 'cuda' if available.
+    :type device: Optional[str]
     """
 
     def __init__(
@@ -82,9 +104,15 @@ class CoalitionAwareSHAPExplainer(BaseExplainer):
 
     def _mask(self, X, idxs, value=None):
         """
-        Mask (or impute) positions in X at indices given by idxs.
-        idxs: list of (t, f) pairs (or (batch, t, f) if batched)
-        value: value to use for masking/imputation
+        Mask specified feature-time positions in the input.
+
+        :param X: Input array (T, F) or tensor.
+        :type X: np.ndarray or torch.Tensor
+        :param idxs: List of (t, f) index pairs to mask.
+        :type idxs: list[tuple[int, int]]
+        :param value: Value to replace at masked positions. Defaults to 0.0.
+        :return: Masked version of the input.
+        :rtype: Same as input type
         """
         X_masked = X.copy() if isinstance(X, np.ndarray) else X.clone()
         for (t, f) in idxs:
@@ -96,7 +124,19 @@ class CoalitionAwareSHAPExplainer(BaseExplainer):
 
     def _impute(self, X, idxs):
         """
-        Impute positions in X at indices given by idxs using the selected strategy.
+        Apply imputation strategy to specified positions.
+
+        Imputation method depends on the selected `mask_strategy`:
+        - 'zero': Set masked values to 0.
+        - 'mean': Use mean values computed from background data.
+        - 'custom': Use user-defined callable function.
+
+        :param X: Input data (T, F).
+        :type X: np.ndarray or torch.Tensor
+        :param idxs: Positions to impute, as (t, f) tuples.
+        :type idxs: list[tuple[int, int]]
+        :return: Imputed input.
+        :rtype: Same as input type
         """
         if self.mask_strategy == "zero":
             return self._mask(X, idxs, value=0.0)
@@ -146,7 +186,36 @@ class CoalitionAwareSHAPExplainer(BaseExplainer):
         **kwargs
     ) -> np.ndarray:
         """
-        Improved CASHAP Shapley estimation.
+        Compute CASHAP Shapley values for structured inputs via coalition-aware sampling.
+
+        For each feature-time pair \((t, f)\), randomly sample coalitions excluding \((t, f)\),
+        compute model outputs with and without the pair added, and average the marginal contributions.
+        Attribution values are normalized so their total matches the model output difference
+        between the original and fully-masked input.
+
+        .. math::
+            \phi_{t,f} \approx \mathbb{E}_{C \subseteq (T \times F) \setminus \{(t,f)\}} \left[
+                f(C \cup \{(t,f)\}) - f(C)
+            \right]
+
+        .. note::
+            Normalization ensures:
+            \sum_{t=1}^T \sum_{f=1}^F \phi_{t,f} \approx f(x) - f(x_{\text{masked}})
+
+        :param X: Input sample of shape (T, F) or batch (B, T, F).
+        :type X: np.ndarray or torch.Tensor
+        :param nsamples: Number of coalitions sampled per (t, f).
+        :type nsamples: int
+        :param coalition_size: Fixed size of sampled coalitions. If None, varies randomly.
+        :type coalition_size: Optional[int]
+        :param mask_strategy: Override default masking strategy.
+        :type mask_strategy: Optional[str]
+        :param check_additivity: Print diagnostic SHAP sum vs. model delta.
+        :type check_additivity: bool
+        :param random_seed: Seed for reproducibility.
+        :type random_seed: int
+        :return: SHAP values of shape (T, F) or (B, T, F).
+        :rtype: np.ndarray
         """
         np.random.seed(random_seed)
         mask_strategy = mask_strategy or self.mask_strategy

@@ -1,37 +1,88 @@
 """
-Empirical Conditional SHAP (EC-SHAP) for Discrete Data
+EC-SHAP: Empirical Conditional SHAP for Discrete Data
+=====================================================
 
-## Theoretical Explanation
+Theoretical Explanation
+-----------------------
 
-Empirical Conditional SHAP (EC-SHAP) is a feature attribution method for discrete (binary, categorical, or one-hot) data. For each coalition (subset of masked features), EC-SHAP imputes the masked features by sampling from the empirical conditional distribution given the observed (unmasked) features, using the background dataset. This ensures that all imputations correspond to valid, observed patterns in the data, avoiding unrealistic or out-of-distribution perturbations.
+Empirical Conditional SHAP (EC-SHAP) is a feature attribution method tailored for discrete data types,  
+including binary, categorical, and one-hot encoded features. Unlike classical SHAP methods that often rely  
+on unconditional sampling or simplistic imputations, EC-SHAP imputes masked features based on the  
+**empirical conditional distribution** derived from a background dataset.
 
-### Key Concepts
+For each coalition (a subset of masked features), EC-SHAP seeks background samples that match the unmasked features,  
+ensuring that imputed instances remain within the data manifold and reflect realistic, observed patterns.
 
-- **Empirical Conditional Imputation:** For each coalition, masked features are filled in by finding background samples that match the unmasked features. If no exact match is found, the method can skip the coalition or use the closest match (by Hamming distance).
-- **Valid Discrete Patterns:** All imputations are guaranteed to be valid, observed binary/one-hot patterns, preserving the data distribution.
-- **Fallback for Continuous Data:** If the data is detected as continuous (many unique values per feature), EC-SHAP falls back to mean imputation.
-- **Additivity Normalization:** Attributions are normalized so their sum matches the model output difference between the original and fully-masked input.
+Key Concepts
+^^^^^^^^^^^^
 
-## Algorithm
+- **Empirical Conditional Imputation**:  
+  Masked features are filled by matching the unmasked portion of an input to background data. If no exact match exists,  
+  the algorithm can either skip the coalition or use the closest match (by Hamming distance).
 
-1. **Initialization:**
-    - Accepts a model, background data, skip/closest matching flags, and device.
-2. **Conditional Imputation:**
-    - For each coalition (subset of features to mask), find a background sample that matches the unmasked features. If none is found, optionally use the closest match or mean imputation.
-3. **SHAP Value Estimation:**
-    - For each feature position, repeatedly:
-        - Sample a random coalition of other positions.
-        - Impute the coalition using empirical conditional matching.
-        - Impute the coalition plus the feature of interest.
-        - Compute the model output difference.
-        - Average these differences to estimate the marginal contribution of the feature.
-    - Normalize attributions so their sum matches the difference between the original and fully-masked model output.
+- **Valid Discrete Patterns**:  
+  All imputations correspond to real, observed combinations in the background dataset—preserving the statistical validity  
+  and interpretability of the perturbed inputs.
+
+- **Fallback for Continuous Features**:  
+  If features appear continuous (e.g., many unique values), EC-SHAP automatically falls back to mean imputation.
+
+- **Additivity Normalization**:  
+  Attributions are scaled such that their sum equals the difference in model outputs between the original  
+  and fully-masked inputs.
+
+Algorithm
+---------
+
+1. **Initialization**:
+   - Accepts a model, background dataset, device context, and configuration for skipping or relaxing matches (e.g., using closest match).
+
+2. **Conditional Imputation**:
+   - For each coalition (subset of features to mask):
+     - Identify background samples where the unmasked features match.
+     - If a match exists, use it to fill in masked features.
+     - If no match:
+       - Optionally use the nearest match (by Hamming distance), or
+       - Fallback to mean imputation (for continuous features), or
+       - Skip the coalition.
+
+3. **SHAP Value Estimation**:
+   - For each feature:
+     - Sample random coalitions of other features.
+     - Impute both:
+       - The coalition alone, and
+       - The coalition plus the target feature.
+     - Compute the difference in model outputs.
+     - Average the differences to estimate marginal contribution.
+
+4. **Normalization**:
+   - Ensure the sum of feature attributions equals the difference in model output between the original and fully-masked input.
 """
+
 import numpy as np
 import torch
 from shap_enhanced.base_explainer import BaseExplainer
 
 class EmpiricalConditionalSHAPExplainer(BaseExplainer):
+    r"""
+    Empirical Conditional SHAP (EC-SHAP) Explainer for Discrete Data
+
+    This explainer estimates Shapley values for discrete (e.g., categorical, binary, or one-hot)
+    feature inputs by imputing masked features from a background dataset using conditional matching.
+    It ensures perturbed samples remain within the data manifold, preserving interpretability.
+
+    :param model: Model to explain, must support PyTorch tensors as input.
+    :type model: Any
+    :param background: Background dataset used for empirical conditional imputation.
+    :type background: np.ndarray or torch.Tensor
+    :param skip_unmatched: If True, skip coalitions where no matching background sample exists.
+    :type skip_unmatched: bool
+    :param use_closest: If True, use the closest (Hamming distance) background sample when no exact match is found.
+    :type use_closest: bool
+    :param device: Device on which to run the model ('cpu' or 'cuda').
+    :type device: Optional[str]
+    """
+
     def __init__(
         self,
         model,
@@ -55,6 +106,19 @@ class EmpiricalConditionalSHAPExplainer(BaseExplainer):
         self.mean_baseline = np.mean(self.background, axis=0)  # (T, F)
 
     def _find_conditional_match(self, mask, x):
+        r"""
+        Find a background sample that matches the unmasked features of the input.
+
+        If `use_closest` is enabled, falls back to the nearest background match
+        (measured via Hamming distance) when no exact match is found.
+
+        :param mask: Boolean mask array indicating masked positions (True).
+        :type mask: np.ndarray
+        :param x: Input array to match against background samples.
+        :type x: np.ndarray
+        :return: Index of matched background sample or None.
+        :rtype: Optional[int]
+        """
         unmasked_flat = (~mask).reshape(-1)
         x_flat = x.reshape(-1)
         bg_flat = self.background.reshape(self.background.shape[0], -1)
@@ -77,6 +141,36 @@ class EmpiricalConditionalSHAPExplainer(BaseExplainer):
         random_seed=42,
         **kwargs
     ):
+        r"""
+        Estimate SHAP values using empirical conditional imputation.
+
+        For each feature-time index (t, f), this method:
+        - Samples coalitions of other features.
+        - Finds background samples matching the unmasked portion of the input.
+        - Imputes masked values with corresponding values from the matched sample.
+        - Computes model output with and without the target feature masked.
+        - Averages the differences over multiple coalitions.
+
+        Normalization ensures:
+
+        .. math::
+            \sum_{t=1}^T \sum_{f=1}^F \phi_{t,f} \approx f(x) - f(x_{\text{masked}})
+
+        .. note::
+            If no exact match is found and `use_closest` is False, the coalition may be skipped.
+            For continuous-looking data, the method will fallback to mean imputation.
+
+        :param X: Input data of shape (T, F) or (B, T, F)
+        :type X: np.ndarray or torch.Tensor
+        :param nsamples: Number of coalitions to sample per feature.
+        :type nsamples: int
+        :param check_additivity: Whether to rescale SHAP values to match model output difference.
+        :type check_additivity: bool
+        :param random_seed: Seed for reproducibility.
+        :type random_seed: int
+        :return: SHAP values of shape (T, F) or (B, T, F)
+        :rtype: np.ndarray
+        """
         np.random.seed(random_seed)
         is_torch = hasattr(X, 'detach')
         X_in = X.detach().cpu().numpy() if is_torch else np.asarray(X)

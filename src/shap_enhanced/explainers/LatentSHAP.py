@@ -1,3 +1,81 @@
+"""
+Latent SHAP with Autoencoding for Structured Time Series
+=========================================================
+
+Theoretical Explanation
+-----------------------
+
+This module implements a **Latent SHAP Explainer** that applies SHAP to the latent space of an autoencoder,  
+specifically designed for sequential or multivariate time-series data.  
+By operating in a compressed latent representation, the explainer benefits from reduced dimensionality  
+and improved noise tolerance, while maintaining interpretability through a decoder Jacobian projection.
+
+The workflow is based on encoding the input data, applying SHAP in latent space (e.g., via `GradientExplainer`),  
+and then projecting the latent attributions back into the input space using the decoder's Jacobian.  
+This approach is especially useful for high-dimensional or noisy input domains where direct SHAP attribution  
+is unstable or computationally expensive.
+
+Key Components
+^^^^^^^^^^^^^^
+
+- **Conv1dEncoder / Conv1dDecoder**: Lightweight 1D convolutional autoencoder architecture for time-series encoding/decoding.
+- **LatentModelWrapper**: Wraps a downstream model and decoder into a latent-to-output computation graph for SHAP.
+- **LatentSHAPExplainer**:
+  - Runs SHAP (e.g., `GradientExplainer`) on the latent representation of input data.
+  - Projects latent attributions to input space using decoder Jacobians (optionally path-integrated).
+- **make_shap_explainer**: Utility that handles compatibility across SHAP versions and explainer signatures.
+- **train_conv1d_autoencoder**: Simple MSE-based training function for the autoencoder.
+
+Algorithm
+---------
+
+1. **Autoencoder Construction and Training**:
+   - Build a `Conv1dEncoder` and `Conv1dDecoder` for the desired input shape.
+   - Train them using standard MSE reconstruction loss.
+
+2. **Latent Attribution via SHAP**:
+   - Encode the input and background into latent space.
+   - Run a base SHAP explainer (e.g., `GradientExplainer`) on the latent representations.
+   - Estimate input attributions by projecting SHAP values using the decoder's Jacobian:
+   
+     .. math::
+         \phi_{\text{input}} = J_{\text{decoder}}(z) \cdot \phi_{\text{latent}}
+
+3. **Jacobian Projection Options**:
+   - Compute Jacobian at a single point (`z`) or along a path from baseline to `z` for smoother attribution.
+
+4. **Normalization and Output**:
+   - Return attributions in the shape of the original input (e.g., `[T, F]` for time-series).
+
+Use Case
+--------
+
+This setup is ideal when:
+- Inputs are high-dimensional sequences or grids.
+- The model is highly non-linear or unstable with direct input perturbations.
+- Interpretability is needed at both latent and original input levels.
+
+Example
+-------
+
+.. code-block:: python
+
+    model = DummyLSTM(F)
+    encoder = Conv1dEncoder(F, T, latent_dim=4)
+    decoder = Conv1dDecoder(latent_dim=4, seq_len=T, output_features=F)
+
+    latent_expl = LatentSHAPExplainer(
+        model=model,
+        encoder=encoder,
+        decoder=decoder,
+        base_explainer_class=shap.GradientExplainer,
+        background=X[:32]
+    )
+
+    attr = latent_expl.shap_values(X[0])
+"""
+
+
 import numpy as np
 import torch
 import torch.nn as nn
@@ -6,6 +84,20 @@ import inspect
 from shap_enhanced.base_explainer import BaseExplainer
 
 class Conv1dEncoder(nn.Module):
+    r"""
+    Conv1dEncoder: Temporal Convolutional Encoder for Time-Series
+
+    A lightweight 1D convolutional encoder that transforms multivariate time-series input 
+    of shape (B, T, F) into a fixed-dimensional latent representation.
+
+    Architecture:
+    - 3 stacked Conv1d layers with ReLU activations.
+    - Output is flattened and linearly projected to latent_dim.
+
+    :param int input_features: Number of input features (F).
+    :param int seq_len: Length of the input sequence (T).
+    :param int latent_dim: Dimension of the latent space.
+    """
     def __init__(self, input_features, seq_len, latent_dim):
         super().__init__()
         self.conv = nn.Sequential(
@@ -19,6 +111,14 @@ class Conv1dEncoder(nn.Module):
         self.input_features = input_features
 
     def forward(self, x):
+        r"""
+        Encode input into latent space.
+
+        :param x: Input tensor of shape (B, T, F).
+        :type x: torch.Tensor
+        :return: Latent representation of shape (B, latent_dim).
+        :rtype: torch.Tensor
+        """
         x = x.permute(0, 2, 1)  # (B, F, T)
         x = self.conv(x)
         x = x.permute(0, 2, 1)  # (B, T, C)
@@ -27,6 +127,16 @@ class Conv1dEncoder(nn.Module):
         return z
 
 class Conv1dDecoder(nn.Module):
+    r"""
+    Conv1dDecoder: Temporal Convolutional Decoder for Time-Series
+
+    A lightweight decoder that reconstructs time-series input from a latent representation.
+    Mirrors the structure of Conv1dEncoder using Conv1d layers.
+
+    :param int latent_dim: Dimensionality of the latent input.
+    :param int seq_len: Desired output sequence length (T).
+    :param int output_features: Number of output features (F).
+    """
     def __init__(self, latent_dim, seq_len, output_features):
         super().__init__()
         self.fc = nn.Linear(latent_dim, 32 * seq_len)
@@ -39,6 +149,14 @@ class Conv1dDecoder(nn.Module):
         self.output_features = output_features
 
     def forward(self, z):
+        r"""
+        Decode latent representation into reconstructed time-series.
+
+        :param z: Latent input of shape (B, latent_dim).
+        :type z: torch.Tensor
+        :return: Reconstructed input of shape (B, T, F).
+        :rtype: torch.Tensor
+        """
         x = self.fc(z)
         x = x.view(-1, 32, self.seq_len)
         x = self.deconv(x)
@@ -46,13 +164,33 @@ class Conv1dDecoder(nn.Module):
         return x  # (B, T, F)
 
 class LatentModelWrapper(nn.Module):
-    """nn.Module wrapper for latent->decoder->model, used for GradientExplainer."""
+    r"""
+    LatentModelWrapper: Compose Decoder and Model for SHAP
+
+    Utility wrapper that chains decoder and model together. Accepts latent input,
+    decodes it to input space, and passes it through the downstream model.
+
+    This is used to apply SHAP directly in the latent space.
+
+    :param model: Predictive model accepting decoded input.
+    :type model: torch.nn.Module
+    :param decoder: Decoder mapping latent to input space.
+    :type decoder: torch.nn.Module
+    """
     def __init__(self, model, decoder):
         super().__init__()
         self.model = model
         self.decoder = decoder
 
     def forward(self, z):
+        r"""
+        Pass latent vector through decoder and then model.
+
+        :param z: Latent input vector or batch.
+        :type z: torch.Tensor
+        :return: Model output for decoded input.
+        :rtype: torch.Tensor
+        """
         if z.dim() == 1:
             z = z.unsqueeze(0)
         x = self.decoder(z)
@@ -61,7 +199,18 @@ class LatentModelWrapper(nn.Module):
         return self.model(x)
 
 def make_shap_explainer(explainer_class, model, background, **kwargs):
-    """Handles both old and new SHAP APIs."""
+    r"""
+    Instantiate a SHAP explainer object in a version-agnostic way.
+
+    Handles differences in SHAP's API for older and newer versions, where the second argument
+    might be named "data", "background", or another keyword.
+
+    :param explainer_class: SHAP explainer class (e.g., GradientExplainer).
+    :param model: The model to explain.
+    :param background: Background dataset for SHAP.
+    :param kwargs: Additional keyword arguments.
+    :return: Instantiated SHAP explainer.
+    """
     sig = inspect.signature(explainer_class.__init__)
     params = [p for p in sig.parameters if p != "self"]
     if len(params) == 1:
@@ -79,17 +228,21 @@ def make_shap_explainer(explainer_class, model, background, **kwargs):
         raise RuntimeError("Can't infer how to call explainer_class")
 
 def train_conv1d_autoencoder(encoder, decoder, X, epochs=80, lr=1e-3, device="cpu", batch_size=32):
-    """
-    Train a Conv1dEncoder and Conv1dDecoder as an autoencoder.
+    r"""
+    Train a Conv1dEncoder and Conv1dDecoder on time-series data using MSE loss.
 
-    Args:
-        encoder: torch.nn.Module (Conv1dEncoder)
-        decoder: torch.nn.Module (Conv1dDecoder)
-        X: np.ndarray or torch.Tensor, shape (N, T, F)
-        epochs: int, number of training epochs
-        lr: float, learning rate
-        device: str or torch.device
-        batch_size: int, mini-batch size (optional)
+    This function fits an autoencoder to reconstruct its input using batched SGD.
+
+    :param encoder: Instance of Conv1dEncoder.
+    :type encoder: torch.nn.Module
+    :param decoder: Instance of Conv1dDecoder.
+    :type decoder: torch.nn.Module
+    :param X: Input data of shape (N, T, F), either np.ndarray or torch.Tensor.
+    :type X: np.ndarray or torch.Tensor
+    :param int epochs: Number of training epochs.
+    :param float lr: Learning rate for Adam optimizer.
+    :param str device: Device to train on (e.g., 'cpu' or 'cuda').
+    :param int batch_size: Mini-batch size.
     """
     encoder.to(device)
     decoder.to(device)
@@ -125,9 +278,28 @@ def train_conv1d_autoencoder(encoder, decoder, X, epochs=80, lr=1e-3, device="cp
 
 
 class LatentSHAPExplainer(BaseExplainer):
-    """
-    SHAP in Latent Space: uses GradientExplainer/KernelExplainer on latent vectors,
-    then projects attributions back to input using the decoder Jacobian.
+    r"""
+    LatentSHAPExplainer: SHAP Attribution in Autoencoded Latent Space
+
+    This class applies SHAP to the latent space of an autoencoder and projects the resulting attributions 
+    back into input space using the decoder's Jacobian. It is especially useful for high-dimensional, 
+    structured inputs (e.g., time series) where direct SHAP attribution is noisy or expensive.
+
+    .. math::
+        \phi_{\text{input}} = J_{\text{decoder}}(z) \cdot \phi_{\text{latent}}
+
+    :param model: Downstream predictive model, operating in input space.
+    :type model: torch.nn.Module
+    :param encoder: Encoder network mapping input to latent space.
+    :type encoder: torch.nn.Module
+    :param decoder: Decoder network mapping latent to input space.
+    :type decoder: torch.nn.Module
+    :param base_explainer_class: SHAP explainer class (e.g., GradientExplainer).
+    :param background: Background dataset (N, T, F) used for SHAP estimation.
+    :type background: np.ndarray or torch.Tensor
+    :param device: Device context (e.g., 'cpu' or 'cuda').
+    :param base_explainer_kwargs: Optional dictionary of kwargs passed to SHAP explainer.
+    :type base_explainer_kwargs: dict
     """
     def __init__(
         self,
@@ -166,7 +338,17 @@ class LatentSHAPExplainer(BaseExplainer):
         self.latent_dim = latent_bg.shape[1]
 
     def _decoder_jacobian(self, latent_vec):
-        """Jacobian of decoder output w.r.t. latent vector."""
+        r"""
+        Compute the Jacobian of the decoder output with respect to a latent vector.
+
+        .. math::
+            J(z) = \frac{\partial \text{Decoder}(z)}{\partial z}
+
+        :param latent_vec: Latent representation of a single sample.
+        :type latent_vec: np.ndarray
+        :return: Jacobian matrix of shape (input_dim, latent_dim).
+        :rtype: np.ndarray
+        """
         latent = torch.tensor(latent_vec, dtype=torch.float32, device=self.device, requires_grad=True)
         x_dec = self.decoder(latent.unsqueeze(0))
         if isinstance(x_dec, (tuple, list)):
@@ -179,6 +361,20 @@ class LatentSHAPExplainer(BaseExplainer):
         return jac.detach().cpu().numpy()
 
     def _pathwise_decoder_jacobian(self, z_base, z, n_steps=10):
+        r"""
+        Compute the average decoder Jacobian over interpolated path from baseline to latent vector.
+
+        .. math::
+            \bar{J} = \frac{1}{n} \sum_{i=1}^{n} J\left((1 - \alpha_i) z_{\text{base}} + \alpha_i z\right)
+
+        :param z_base: Baseline latent vector (e.g., mean of background).
+        :type z_base: np.ndarray
+        :param z: Target latent vector for SHAP.
+        :type z: np.ndarray
+        :param int n_steps: Number of interpolation steps.
+        :return: Averaged Jacobian matrix along the path.
+        :rtype: np.ndarray
+        """
         alphas = np.linspace(0, 1, n_steps)
         jacs = []
         for alpha in alphas:
@@ -187,7 +383,24 @@ class LatentSHAPExplainer(BaseExplainer):
         return np.mean(jacs, axis=0)
 
     def shap_values(self, X, **kwargs):
-        """X: torch.Tensor (N, T, F) or np.ndarray. Returns input attributions."""
+        r"""
+        Compute SHAP values in latent space and project them to input space.
+
+        Steps:
+        1. Encode input and background into latent space.
+        2. Run SHAP (e.g., GradientExplainer) on latent input.
+        3. Compute Jacobian from latent to input.
+        4. Project latent SHAP values using the Jacobian.
+        5. Return attributions with original input shape.
+
+        .. math::
+            \phi_{\text{input}} = J(z) \cdot \phi_{\text{latent}}
+
+        :param X: Input sample(s), shape (T, F) or (B, T, F)
+        :type X: np.ndarray or torch.Tensor
+        :return: SHAP attributions in input space.
+        :rtype: np.ndarray
+        """
         single_input = False
         if isinstance(X, np.ndarray):
             X_t = torch.tensor(X, dtype=torch.float32, device=self.device)

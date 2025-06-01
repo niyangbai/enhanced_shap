@@ -1,62 +1,79 @@
+r"""
+BShapExplainer: Distribution-Free SHAP for Sequential Models
+============================================================
+
+Theoretical Explanation
+-----------------------
+
+BShap is a distribution-free variant of the SHAP framework, specifically designed for sequential models such as LSTMs.  
+Unlike classical SHAP methods that rely on empirical data (e.g., using mean or sample values as feature baselines),  
+BShap masks features using uninformative replacements such as uniform noise, Gaussian noise, or zeros.  
+This makes it particularly suitable when the underlying data distribution is unknown, unreliable, or intentionally ignored.
+
+By avoiding assumptions about the data, BShap enables a cleaner interpretation of how a model behaves under  
+entirely synthetic perturbations—revealing how features contribute even when removed from their contextual correlations.
+
+Key Concepts
+^^^^^^^^^^^^
+
+- **Distribution-Free Masking**: Masked features are replaced with independently sampled values that do not rely on the input data distribution.
+- **Masking Strategies**:
+  - `'random'`: Sample feature values uniformly at random from a defined range (default).
+  - `'noise'`: Add Gaussian noise to masked feature values.
+  - `'zero'`: Set masked features to zero.
+- **No Data Assumptions**: All masking is performed without drawing from empirical feature distributions.
+- **Additivity Normalization**: Feature attributions are normalized so that their sum equals the change in model output  
+  between the original and fully-masked input.
+
+Algorithm
+---------
+
+1. **Initialization**:
+   - Accepts a model, a value range for feature sampling, the number of samples, masking strategy (`'random'`, `'noise'`, `'zero'`), and device context.
+
+2. **Masking**:
+   - For each coalition (a subset of features to mask), masked values are replaced by:
+     - Random values (uniform), or
+     - Gaussian noise, or
+     - Zeros, depending on the selected strategy.
+
+3. **SHAP Value Estimation**:
+   - For each feature:
+     - Randomly select a subset of other features to mask.
+     - Compute model output for:
+       - The input with the coalition masked.
+       - The input with the coalition plus the current feature masked.
+     - Record and average the difference in outputs as the estimated contribution.
+
+4. **Normalization**:
+   - Scale the attributions so that their sum equals the difference between the original and fully-masked model outputs.
+
+References
+----------
+
+- Lundberg, S. M., & Lee, S.-I. (2017). *A Unified Approach to Interpreting Model Predictions*. Advances in Neural Information Processing Systems.
+- `Distribution-Free SHAP Reference <https://www.tandfonline.com/doi/full/10.1080/02331888.2025.2487853>`_
 """
-BShapExplainer (Distribution-Free SHAP, LSTM/sequence edition)
 
-## Theoretical Explanation
-
-BShap is a distribution-free variant of SHAP for feature attribution, particularly suited for sequence models (e.g., LSTM). Unlike classic SHAP, which uses empirical data or mean values as baselines, BShap masks features by replacing them with uninformative, random values (e.g., uniform noise, Gaussian noise, or zeros), never relying on the data distribution. This approach is useful when the data distribution is unknown, unreliable, or when a truly "uninformative" baseline is desired.
-
-### Key Concepts
-
-- **Distribution-Free Masking:** Masked features are replaced with random values sampled independently from a specified range or noise distribution, not from the empirical data.
-- **Masking Strategies:** 
-    - `'random'`: Uniformly sample values for each mask (default).
-    - `'noise'`: Add Gaussian noise to masked features.
-    - `'zero'`: Set masked features to zero.
-- **No Data Distribution Assumptions:** The method does not use the empirical distribution of the data for masking.
-- **Additivity Normalization:** Attributions are normalized so their sum matches the model output difference between the original and fully-masked input.
-
-## Algorithm
-
-1. **Initialization:**
-    - Accepts a model, input value range, number of samples, masking strategy, and device.
-2. **Masking:**
-    - For each coalition (subset of features to mask), masked features are replaced by random values, noise, or zeros, depending on the chosen strategy.
-3. **SHAP Value Estimation:**
-    - For each feature position, repeatedly:
-        - Randomly select a subset of other positions to mask.
-        - Mask the selected positions in the input.
-        - Mask the selected positions plus the feature of interest.
-        - Compute the model output difference.
-        - Average these differences to estimate the marginal contribution of the feature.
-    - Normalize attributions so their sum matches the difference between the original and fully-masked model output.
-
-## References
-
-- Lundberg, S. M., & Lee, S.-I. (2017). A Unified Approach to Interpreting Model Predictions. *Advances in Neural Information Processing Systems*.
-- [Distribution-Free SHAP Reference](https://www.tandfonline.com/doi/full/10.1080/02331888.2025.2487853)
-"""
 
 import numpy as np
 import torch
 from shap_enhanced.base_explainer import BaseExplainer
 
 class BShapExplainer(BaseExplainer):
-    """
-    BShap: Distribution-Free SHAP Explainer (LSTM/sequence)
+    r"""
+    BShap: Distribution-Free SHAP Explainer for Sequential Models
 
-    Parameters
-    ----------
-    model : Any
-        Sequence model to be explained.
-    input_range : tuple or (min, max) arrays
-        (min, max) or per-feature min/max to sample for each feature.
-        If None, uses (-1, 1) or actual data min/max.
-    n_samples : int
-        Number of random coalitions per feature to average.
-    mask_strategy : str
-        'random', 'noise', or 'zero'
-    device : str
-        'cpu' or 'cuda'.
+    Implements a SHAP-based attribution method that avoids empirical data distribution assumptions
+    by applying synthetic masking strategies (e.g., uniform noise, Gaussian noise, or zero).
+    This is useful for evaluating model robustness or interpretability in data-agnostic contexts.
+
+    :param model: Sequence model to explain.
+    :param input_range: Tuple of (min, max) or arrays defining per-feature value bounds. Used for random masking.
+    :type input_range: tuple or (np.ndarray, np.ndarray)
+    :param int n_samples: Number of coalitions sampled per feature.
+    :param str mask_strategy: Masking strategy: 'random', 'noise', or 'zero'.
+    :param str device: Device identifier, e.g., 'cpu' or 'cuda'.
     """
     def __init__(
         self,
@@ -73,6 +90,21 @@ class BShapExplainer(BaseExplainer):
         self.device = device or ("cuda" if torch.cuda.is_available() else "cpu")
 
     def _mask(self, x, mask_idxs):
+        r"""
+        Apply masking to the input at specified (t, f) indices.
+
+        Masked values are replaced using the selected masking strategy:
+        - 'random': Sampled uniformly from input_range or [-1, 1].
+        - 'noise': Original value plus Gaussian noise.
+        - 'zero': Set to zero.
+
+        :param x: Input sample of shape (T, F).
+        :type x: np.ndarray
+        :param mask_idxs: List of (t, f) index pairs to mask.
+        :type mask_idxs: list[tuple[int, int]]
+        :return: Masked input.
+        :rtype: np.ndarray
+        """
         x_masked = x.copy()
         T, F = x.shape
         for (t, f) in mask_idxs:
@@ -102,9 +134,25 @@ class BShapExplainer(BaseExplainer):
         random_seed=42,
         **kwargs
     ):
-        """
-        BShap for (B, T, F) or (T, F).
-        Returns: (T, F) or (B, T, F)
+        r"""
+        Compute SHAP values using distribution-free perturbations.
+
+        Estimates marginal feature contributions by averaging differences between model outputs
+        under masked coalitions. Uses synthetic masking based on the configured strategy
+        without any reliance on background data statistics.
+
+        Final attributions are normalized to satisfy the SHAP additivity constraint:
+
+        .. math::
+            \sum_{t=1}^T \sum_{f=1}^F \phi_{t,f} \approx f(x) - f(x_{\text{masked}})
+
+        :param X: Input of shape (T, F) or (B, T, F)
+        :type X: np.ndarray or torch.Tensor
+        :param int nsamples: Number of coalition samples per feature (defaults to self.n_samples).
+        :param bool check_additivity: Print diagnostic message for SHAP sum vs. model delta.
+        :param int random_seed: Seed for reproducibility.
+        :return: SHAP values of shape (T, F) or (B, T, F)
+        :rtype: np.ndarray
         """
         np.random.seed(random_seed)
         if nsamples is None:

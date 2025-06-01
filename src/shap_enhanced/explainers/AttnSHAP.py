@@ -1,42 +1,73 @@
-"""
+r"""
 AttnSHAPExplainer: Attention-Guided SHAP with General Proxy Attention
+=====================================================================
 
-## Theoretical Explanation
+Theoretical Explanation
+-----------------------
 
-AttnSHAP is a feature attribution method that extends the SHAP framework by incorporating attention mechanisms to guide the coalition sampling process. This is especially useful for sequential or structured data where certain positions or features are more relevant, as indicated by model attention or proxy attention scores.
+AttnSHAP is a feature attribution method that enhances the traditional SHAP framework by leveraging attention mechanisms  
+to guide the sampling of feature coalitions. This is especially effective for sequential or structured data,  
+where model-provided or proxy attention scores highlight important feature positions.
 
-### Key Concepts
+By biasing the coalition selection process with attention, AttnSHAP prioritizes the masking of less informative features  
+and isolates the contributions of more relevant ones more effectively than uniform sampling.
 
-- **Attention-Guided Sampling:** If the model provides attention weights (via `get_attention_weights`), these are used to bias the selection of feature coalitions for masking, focusing on more relevant positions.
-- **Proxy Attention:** If no attention is available, AttnSHAP can compute proxy attention using:
-    - **Gradient-based:** Magnitude of input gradients.
-    - **Input-based:** Magnitude of input values.
-    - **Perturbation-based:** Sensitivity of the model output to masking each position.
-- **Uniform Sampling:** If attention is not used, coalitions are sampled uniformly at random (classic SHAP approach).
-- **Additivity Normalization:** Attributions are normalized so their sum matches the model output difference between the original and fully-masked input.
+Key Concepts
+^^^^^^^^^^^^
 
-## Algorithm
+- **Attention-Guided Sampling**: When available, model attention weights (via `get_attention_weights`) are used  
+  to bias coalition sampling toward informative features.
+- **Proxy Attention**: If direct attention is unavailable, attention scores can be approximated using:
+  - **Gradient-based**: Magnitude of input gradients.
+  - **Input-based**: Magnitude of input values.
+  - **Perturbation-based**: Change in model output due to masking each individual feature.
+- **Uniform Sampling**: Falls back to classical SHAP's uniform random sampling when attention is not used.
+- **Additivity Normalization**: Attribution values are scaled such that their sum equals the model output difference  
+  between the original and fully-masked inputs.
 
-1. **Initialization:**
-    - Accepts a model, background data, attention usage flag, proxy attention type, and device.
-2. **Attention/Proxy Computation:**
-    - For each input, obtain attention weights from the model or compute proxy attention.
-3. **Coalition Sampling:**
-    - For each feature position, repeatedly:
-        - Sample a coalition (subset of other positions) to mask, with probability proportional to attention (if used).
-        - Mask the coalition and compute the model output.
-        - Mask the coalition plus the feature of interest and compute the model output.
-        - Record the difference.
-    - Average these differences to estimate the marginal contribution of the feature.
-4. **Normalization:**
-    - Scale attributions so their sum matches the difference between the original and fully-masked model output.
+Algorithm
+---------
+
+1. **Initialization**:
+   - Takes a model, background dataset, a flag for using attention, a proxy attention strategy, and device context.
+
+2. **Attention/Proxy Computation**:
+   - For each input:
+     - Retrieve model attention weights if available.
+     - Otherwise, compute proxy attention based on the configured method.
+
+3. **Coalition Sampling**:
+   - For each feature:
+     - Repeatedly sample a subset (coalition) of other features, with probability weighted by attention (if applicable).
+     - Compute model output after masking the coalition.
+     - Compute model output after masking the coalition plus the target feature.
+     - Record the difference to estimate the marginal contribution.
+
+4. **Normalization**:
+   - Normalize feature attributions so that their sum matches the model output difference  
+     between the unmasked input and a fully-masked input baseline.
 """
+
 
 import numpy as np
 import torch
 from shap_enhanced.base_explainer import BaseExplainer
 
 class AttnSHAPExplainer(BaseExplainer):
+    r"""
+    Attention-Guided SHAP Explainer for structured/sequential data.
+    
+    This class implements an extension to the SHAP framework that leverages attention mechanisms
+    (either native to the model or via proxy strategies) to guide the coalition sampling process,
+    focusing attribution on informative feature regions.
+
+    :param model: PyTorch model to be explained.
+    :param background: Background dataset used for SHAP estimation.
+    :param bool use_attention: If True, uses attention weights (or proxy) for guiding feature masking.
+    :param str proxy_attention: Strategy to approximate attention when model does not provide it.
+                                Options: "gradient", "input", "perturb".
+    :param device: Computation device ('cuda' or 'cpu').
+    """
     def __init__(
         self,
         model,
@@ -51,11 +82,22 @@ class AttnSHAPExplainer(BaseExplainer):
         self.device = device or ("cuda" if torch.cuda.is_available() else "cpu")
 
     def _get_attention_weights(self, x):
-        """
-        Returns attention weights for input x (T, F).
-        If model has get_attention_weights(x), uses that;
-        else, uses proxy specified by self.proxy_attention.
-        Output: (T,) or (T, F)
+        r"""
+        Computes attention weights for a single input.
+
+        Uses native model attention if available. Otherwise, calculates proxy attention scores
+        based on gradients, input magnitude, or perturbation sensitivity.
+
+        .. math::
+            \text{Gradient proxy: } \alpha_t = \frac{\sum_{f=1}^F |\frac{\partial y}{\partial x_{t,f}}|}{\sum_{t'=1}^T \sum_{f=1}^F |\frac{\partial y}{\partial x_{t',f}}| + \epsilon}
+
+            \text{Input proxy: } \alpha_t = \frac{\sum_{f=1}^F |x_{t,f}|}{\sum_{t'=1}^T \sum_{f=1}^F |x_{t',f}| + \epsilon}
+
+            \text{Perturb proxy: } \alpha_t = \frac{|y - y_{(-t)}|}{\sum_{t'=1}^T |y - y_{(-t')}| + \epsilon}
+
+        :param x: Input array of shape (T, F)
+        :return: Attention weights as a numpy array of shape (T,) or (T, F)
+        :rtype: np.ndarray
         """
         # Try to use model's attention method if exists
         if hasattr(self.model, "get_attention_weights"):
@@ -105,9 +147,26 @@ class AttnSHAPExplainer(BaseExplainer):
         random_seed=42,
         **kwargs
     ):
-        """
-        SHAP with attention/proxy-guided coalition sampling.
-        Returns: (T, F) or (B, T, F)
+        r"""
+        Compute SHAP values using attention-guided or proxy-guided coalition sampling.
+
+        For each feature at each time step, it estimates the marginal contribution by comparing
+        model outputs when the feature is masked vs. when it is included in a masked coalition.
+        Sampling is optionally biased using attention scores.
+
+        The final attributions are normalized to satisfy SHAP's additivity constraint:
+
+        .. math::
+            \sum_{t=1}^T \sum_{f=1}^F \phi_{t,f} \approx f(x) - f(x_{masked})
+
+        :param X: Input data of shape (B, T, F) or (T, F)
+        :type X: np.ndarray or torch.Tensor
+        :param int nsamples: Number of coalitions sampled per feature.
+        :param int coalition_size: Number of features in each sampled coalition.
+        :param bool check_additivity: Whether to print additivity check results.
+        :param int random_seed: Seed for reproducible coalition sampling.
+        :return: SHAP values of shape (T, F) for single input or (B, T, F) for batch.
+        :rtype: np.ndarray
         """
         np.random.seed(random_seed)
         is_torch = hasattr(X, 'detach')

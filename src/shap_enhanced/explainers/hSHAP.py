@@ -1,29 +1,59 @@
 """
-Hierarchical SHAP (h-SHAP) Explainer
+h-SHAP: Hierarchical SHAP Explainer
+===================================
 
-## Theoretical Explanation
+Theoretical Explanation
+-----------------------
 
-h-SHAP is a hierarchical extension of SHAP that computes feature attributions using structured feature grouping. Instead of treating each feature independently, h-SHAP organizes features (and/or time steps) into groups or blocks, and recursively estimates SHAP values at both group and subgroup levels. This approach enables efficient and interpretable attributions for high-dimensional or structured data, such as time series or grouped features.
+Hierarchical SHAP (h-SHAP) is an extension of the SHAP framework that enables structured, group-wise attribution  
+of features in models operating over high-dimensional or structured input data, such as time series or grouped tabular features.
 
-### Key Concepts
+Instead of treating each feature independently, h-SHAP introduces a hierarchy of feature groups, allowing recursive  
+estimation of SHAP values at multiple levels—first over coarse groups, then over finer subgroups or individual features.  
+This promotes interpretability and computational efficiency in contexts where feature dimensions have natural structure.
 
-- **Hierarchical Grouping:** Features (and/or time steps) are grouped into blocks (e.g., by time, by feature, or both). The hierarchy can be nested, supporting multi-level groupings.
-- **Recursive SHAP Estimation:** SHAP values are estimated recursively: first for groups, then for subgroups or individual features within each group.
-- **Flexible Masking:** Masked features can be imputed with mean values from the background data or set to zero, depending on the chosen strategy.
-- **Additivity Normalization:** Attributions are normalized so their sum matches the model output difference between the original and fully-masked input.
+Key Concepts
+^^^^^^^^^^^^
 
-## Algorithm
+- **Hierarchical Grouping**:  
+  Features are grouped into blocks (e.g., temporal windows, spatial zones, feature families), possibly in multiple nested levels.  
+  These groups define the hierarchy over which SHAP values are computed.
 
-1. **Initialization:**
-    - Accepts a model, background data (for mean imputation), a hierarchy of feature groups, masking strategy, and device.
-2. **Recursive Attribution:**
-    - For each group in the hierarchy:
-        - Estimate the marginal contribution of the group by comparing model outputs with and without the group masked, averaging over random coalitions of the remaining features.
-        - If the group contains subgroups, recursively estimate attributions for each subgroup.
-        - Distribute the group SHAP value equally among its members.
-3. **Normalization:**
-    - Scale attributions so their sum matches the difference between the original and fully-masked model output.
+- **Recursive SHAP Estimation**:  
+  SHAP values are estimated first at the group level, and then recursively subdivided among subgroups or features  
+  within each group. This preserves hierarchical structure in the resulting attribution map.
+
+- **Flexible Masking**:  
+  Features can be masked by:
+  - Setting them to zero (hard masking).
+  - Imputing with background mean values (soft masking), using a provided reference dataset.
+
+- **Additivity Normalization**:  
+  Final attributions are normalized such that their total sum equals the model output difference  
+  between the original and fully-masked inputs.
+
+Algorithm
+---------
+
+1. **Initialization**:
+   - Accepts a model, background dataset for imputation, a user-defined hierarchy of feature groups,  
+     masking strategy (`'zero'` or `'mean'`), and a device context.
+
+2. **Recursive Attribution**:
+   - For each group in the hierarchy:
+     - Sample coalitions of other groups.
+     - Estimate the group’s marginal contribution by masking:
+       - Only the coalition, and
+       - The coalition plus the current group.
+     - Compute the model output difference to get SHAP value.
+     - If the group contains subgroups, repeat recursively.
+     - If not, distribute the SHAP value equally among group members or subfeatures.
+
+3. **Normalization**:
+   - Rescale all SHAP values so that their sum matches the change in model output  
+     between the unmasked input and the fully-masked input.
 """
+
 
 import numpy as np
 import torch
@@ -35,15 +65,23 @@ def generate_hierarchical_groups(
     feature_block=None,
     nested=False
 ):
-    """
-    Dynamically generate a hierarchy for (T, F) data.
+    r"""
+    Generate a hierarchical grouping of features in a (T, F)-shaped input space.
 
-    - time_block: int or None, size of time step blocks (e.g. 2 for groups of 2 time steps)
-    - feature_block: int or None, size of feature blocks
-    - nested: if True, generates a hierarchy of groupings (list of lists of (t, f))
+    This utility is useful for constructing hierarchical feature groupings for use with hierarchical SHAP (h-SHAP).
+    Depending on the specified block sizes, it partitions time steps, features, or both into groups. If `nested=True`,
+    the function returns subgroups within each block.
 
-    Returns:
-        hierarchy: list (or nested list) of (t, f) tuples
+    .. note::
+        The output format supports both flat and nested group structures, which are compatible with recursive SHAP attribution.
+
+    :param int T: Number of time steps (first input dimension).
+    :param int F: Number of features (second input dimension).
+    :param int or None time_block: Size of time blocks (e.g., 2 for groups of 2 time steps). If None, no time blocking.
+    :param int or None feature_block: Size of feature blocks. If None, no feature blocking.
+    :param bool nested: Whether to return nested groups (group → list of singleton subgroups).
+    :return: A list of grouped (t, f) indices, either flat or nested depending on `nested`.
+    :rtype: list[list[tuple[int, int]]] or list[list[list[tuple[int, int]]]]
     """
     # Block by time only
     if time_block is not None and feature_block is None:
@@ -82,22 +120,23 @@ def generate_hierarchical_groups(
 
 
 class HShapExplainer(BaseExplainer):
-    """
-    h-SHAP: Hierarchical SHAP Explainer
+    r"""
+    HShapExplainer: Hierarchical SHAP Explainer
 
-    Parameters
-    ----------
-    model : Any
-        Model to be explained.
-    background : np.ndarray or torch.Tensor
-        (N, T, F), for mean imputation.
-    hierarchy : list
-        Feature hierarchy as nested lists of (t, f) tuples (see below).
-        Example: [[(0,0), (0,1)], [(1,0), (1,1)], ...] for block-of-2 time steps.
-    mask_strategy : str
-        'mean' or 'zero' (default: 'mean').
-    device : str
-        'cpu' or 'cuda'.
+    Implements the h-SHAP algorithm, which recursively computes SHAP values over structured 
+    groups of features using hierarchical masking. Suitable for time-series or block-structured 
+    feature inputs where interpretability benefits from grouped attributions.
+
+    .. note::
+        Features can be masked using hard zero-masking or soft imputation via background means.
+
+    :param model: Model to explain.
+    :param background: Background dataset for mean imputation. Shape: (N, T, F).
+    :type background: np.ndarray or torch.Tensor
+    :param hierarchy: Nested list of feature index groups (e.g., [[(t1, f1), (t2, f2)], ...]).
+    :type hierarchy: list
+    :param str mask_strategy: Either "mean" for imputation or "zero" for hard masking.
+    :param str device: Device context, e.g., "cuda" or "cpu".
     """
     def __init__(
         self,
@@ -117,6 +156,16 @@ class HShapExplainer(BaseExplainer):
             self._mean = None
 
     def _impute(self, X, idxs):
+        r"""
+        Mask or impute features in `X` at the given (t, f) indices according to the configured strategy.
+
+        :param X: Input sample to be modified.
+        :type X: np.ndarray
+        :param idxs: List of (t, f) indices to mask.
+        :type idxs: list of tuples
+        :return: Modified input sample with masked/imputed values.
+        :rtype: np.ndarray
+        """
         X_imp = X.copy()
         for (t, f) in idxs:
             if self.mask_strategy == "zero":
@@ -128,7 +177,25 @@ class HShapExplainer(BaseExplainer):
         return X_imp
 
     def _shap_group(self, x, group_idxs, rest_idxs, nsamples=50):
-        # Estimate marginal contribution of 'group' vs. 'rest'
+        r"""
+        Estimate the SHAP value of a feature group by computing its marginal contribution 
+        compared to sampled subsets of other groups.
+
+        .. math::
+            \phi(S) = \mathbb{E}_{R \subseteq \text{rest}} \left[
+                f(x_{\text{rest}}) - f(x_{\text{rest} \cup S})
+            \right]
+
+        :param x: Input sample (T, F).
+        :type x: np.ndarray
+        :param group_idxs: Indices of the current group.
+        :type group_idxs: list of tuples
+        :param rest_idxs: Indices of all other groups.
+        :type rest_idxs: list of tuples
+        :param int nsamples: Number of random coalitions to sample for marginal estimation.
+        :return: Estimated SHAP value for the group.
+        :rtype: float
+        """
         contribs = []
         all_idxs = group_idxs + rest_idxs
         for _ in range(nsamples):
@@ -149,10 +216,21 @@ class HShapExplainer(BaseExplainer):
 
 
     def _explain_recursive(self, x, groups, nsamples=50, attributions=None):
-        """
-        Recursively explain at group and subgroup levels.
-        groups: list of lists or tuples
-        Returns: attribution dict {(t, f): value}
+        r"""
+        Recursively apply SHAP attribution over a hierarchical structure of groups.
+
+        If subgroups exist, the SHAP value is divided equally among sub-elements. 
+        Accumulates attributions for each (t, f) index.
+
+        :param x: Input instance to explain.
+        :type x: np.ndarray
+        :param groups: List of groups (can be nested).
+        :type groups: list
+        :param int nsamples: Number of samples per group SHAP estimation.
+        :param attributions: Dictionary to accumulate attributions.
+        :type attributions: dict or None
+        :return: Dictionary mapping (t, f) indices to SHAP values.
+        :rtype: dict
         """
         if attributions is None:
             attributions = {}
@@ -187,9 +265,22 @@ class HShapExplainer(BaseExplainer):
         random_seed=42,
         **kwargs
     ):
-        """
-        Hierarchical SHAP: computes SHAP values for each (t, f) via recursive group explanation.
-        Returns: (T, F) or (B, T, F)
+        r"""
+        Compute hierarchical SHAP values for a batch of inputs.
+
+        The method recursively attributes model output to hierarchical feature groups. 
+        It also ensures additivity via normalization of final attributions.
+
+        .. math::
+            \sum_{i=1}^{TF} \phi_i = f(x) - f(x_{\text{masked}})
+
+        :param X: Input batch, shape (B, T, F) or single instance (T, F).
+        :type X: np.ndarray or torch.Tensor
+        :param int nsamples: Number of Monte Carlo samples per group.
+        :param bool check_additivity: If True, prints additivity check summary.
+        :param int random_seed: Seed for reproducible sampling.
+        :return: SHAP values, same shape as `X`.
+        :rtype: np.ndarray
         """
         np.random.seed(random_seed)
         is_torch = hasattr(X, 'detach')

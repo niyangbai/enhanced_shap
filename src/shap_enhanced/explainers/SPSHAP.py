@@ -1,34 +1,74 @@
 """
 Support-Preserving SHAP Explainer
+=================================
 
-## Theoretical Explanation
+Theoretical Explanation
+-----------------------
 
-Support-Preserving SHAP is a feature attribution method designed for sparse or structured discrete data (e.g., one-hot or binary encodings). For each coalition (subset of features to mask), the perturbed instance is replaced by a real sample from the dataset that matches the resulting support pattern. This ensures that all perturbed samples are valid and observed in the data, avoiding unrealistic or out-of-distribution patterns. If no such sample exists, the coalition is skipped or flagged. For non-sparse data, the method falls back to classic mean-masking SHAP.
+Support-Preserving SHAP is a specialized feature attribution method tailored for **sparse** or **structured discrete data**,  
+such as one-hot encodings or binary presence/absence features. Unlike traditional SHAP variants that create  
+synthetic masked inputs (often resulting in out-of-distribution samples), this explainer **only evaluates inputs that have  
+been observed in the dataset** and match the support pattern induced by masking.
 
-### Key Concepts
+For each coalition (subset of features to mask), the method attempts to find a real background sample  
+with the **same binary support** (nonzero positions) as the masked instance. If no such sample exists, the coalition  
+is skipped or flagged—ensuring that only valid, realistic inputs are used for estimating SHAP values.
 
-- **Support Pattern Matching:** For each masked coalition, find a real background sample with the same support (nonzero pattern) as the masked instance.
-- **One-Hot/Binary Support:** Especially suited for one-hot or binary sparse data, ensuring only valid patterns are used for model evaluation.
-- **Fallback to Mean Masking:** If the data is not truly one-hot or binary, falls back to mean-masking (classic SHAP).
-- **Additivity Normalization:** Attributions are normalized so their sum matches the model output difference between the original and fully-masked input.
+For continuous or dense data, the method gracefully falls back to **mean-masking** (standard SHAP behavior).
 
-## Algorithm
+Key Concepts
+^^^^^^^^^^^^
 
-1. **Initialization:**
-    - Accepts a model, background data, skip-unmatched flag, and device.
-2. **Support-Preserving Masking:**
-    - For each coalition, mask the selected features and find a background sample with the same support pattern.
-    - If no match is found, skip the coalition or raise an error.
-    - For non-sparse data, use mean-masking for each feature.
-3. **SHAP Value Estimation:**
-    - For each feature, repeatedly:
-        - Sample random coalitions of other features.
-        - Mask the coalition and find a matching background sample.
-        - Mask the coalition plus the feature of interest and find a matching sample.
-        - Compute the model output difference.
-        - Average these differences to estimate the marginal contribution of the feature.
-    - Normalize attributions so their sum matches the difference between the original and fully-masked model output.
+- **Support Pattern Matching**:  
+  Masked inputs are replaced with real background examples that match the nonzero pattern (support)  
+  of the masked input. This maintains validity and avoids generating unrealistic inputs.
+
+- **One-Hot / Binary Support**:  
+  Especially effective for categorical features encoded as one-hot vectors or binary indicators.  
+  Masking respects group structures and ensures feasible combinations.
+
+- **Graceful Fallback**:  
+  When applied to continuous or dense data, the explainer defaults to mean-masking to retain applicability.
+
+- **Additivity Normalization**:  
+  Final attributions are scaled such that their total equals the model output difference between  
+  the original and fully-masked inputs.
+
+Algorithm
+---------
+
+1. **Initialization**:
+   - Accepts a model, background dataset, device context, and configuration for skipping or flagging unmatched patterns.
+
+2. **Support-Preserving Masking**:
+   - For each sampled coalition of masked features:
+     - Create a masked version of the input.
+     - Find a background example with the same binary support (nonzero positions).
+     - If no match is found, either skip or raise an exception based on configuration.
+     - For non-sparse (dense) inputs, fallback to mean-masking.
+
+3. **SHAP Value Estimation**:
+   - For each feature:
+     - Repeatedly sample coalitions of other features.
+     - For each:
+       - Mask the coalition and find a matching background sample.
+       - Mask the coalition plus the feature of interest and find another match.
+       - Compute the model output difference.
+     - Average these differences to estimate the feature’s marginal contribution.
+
+4. **Normalization**:
+   - Scale the final attributions so their sum matches the model output difference  
+     between the unmasked and fully-masked input.
+
+Use Case
+--------
+
+Ideal for:
+- One-hot encoded categorical features.
+- Binary indicators (presence/absence).
+- Sparse high-dimensional data where only valid observed patterns should be used for attribution.
 """
+
 
 
 import numpy as np
@@ -36,22 +76,23 @@ import torch
 from shap_enhanced.base_explainer import BaseExplainer
 
 class SupportPreservingSHAPExplainer(BaseExplainer):
-    """
-    Support-Preserving SHAP Explainer.
+    r"""
+    SupportPreservingSHAPExplainer: Real-Pattern-Constrained SHAP Estimator
 
-    Uses real samples from the background matching the support pattern of the masked instance.
-    If the data is not truly one-hot or binary sparse, falls back to mean-masking (SHAP style).
+    This explainer approximates SHAP values by generating only masked inputs that match real examples 
+    in the dataset—preserving the discrete or sparse structure of the input space. It avoids 
+    out-of-distribution perturbations by requiring coalitions (masked variants) to have binary 
+    support patterns that exist in the original data.
 
-    Parameters
-    ----------
-    model : Any
-        Model to be explained.
-    background : np.ndarray or torch.Tensor
-        The full dataset (N, T, F) or (N, F).
-    skip_unmatched : bool
-        If True, skip coalitions where no matching sample is found.
-    device : str
-        'cpu' or 'cuda'.
+    If the data is not sparse (e.g., continuous), the method falls back to mean-masking, 
+    akin to standard SHAP explainers.
+
+    :param model: Predictive model to explain.
+    :type model: Any
+    :param background: Dataset used to match support patterns (shape: (N, T, F) or (N, F)).
+    :type background: np.ndarray or torch.Tensor
+    :param bool skip_unmatched: If True, coalitions without support-matching background samples are skipped.
+    :param str device: Device to evaluate model on ('cpu' or 'cuda').
     """
     def __init__(
         self,
@@ -92,6 +133,36 @@ class SupportPreservingSHAPExplainer(BaseExplainer):
         random_seed=42,
         **kwargs
     ):
+        r"""
+        Compute SHAP values by evaluating only valid support-preserving perturbations.
+
+        For sparse inputs (e.g., one-hot or binary):
+        - For each feature, sample coalitions of other features.
+        - Construct masked inputs and locate matching background samples with same nonzero support.
+        - Evaluate model differences with and without the feature of interest.
+        - Average differences to estimate SHAP values.
+
+        For dense inputs:
+        - Fallback to standard mean-based masking for each feature individually.
+
+        .. math::
+            \phi_i = \mathbb{E}_{S \subseteq N \setminus \{i\}} \left[
+                f(x_{S \cup \{i\}}) - f(x_S)
+            \right]
+
+        Final attributions are normalized such that:
+
+        .. math::
+            \sum_i \phi_i = f(x) - f(x_{\text{masked}})
+
+        :param X: Input sample or batch of shape (T, F) or (B, T, F).
+        :type X: np.ndarray or torch.Tensor
+        :param int nsamples: Number of coalition samples per feature.
+        :param bool check_additivity: If True, prints sum of SHAP vs model output difference.
+        :param int random_seed: Seed for reproducibility.
+        :return: SHAP attributions with same shape as input.
+        :rtype: np.ndarray
+        """
         np.random.seed(random_seed)
         is_torch = hasattr(X, 'detach')
         X_in = X.detach().cpu().numpy() if is_torch else np.asarray(X)
