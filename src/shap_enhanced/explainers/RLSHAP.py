@@ -19,55 +19,55 @@ Key Concepts
 ^^^^^^^^^^^^
 
 - **Masking Policy Network**:  
-  A neural network that learns to generate binary masks over the input features and time steps.  
-  The masks decide which features to keep and which to replace with a baseline (e.g., mean).
+    A neural network that learns to generate binary masks over the input features and time steps.  
+    The masks decide which features to keep and which to replace with a baseline (e.g., mean).
 
 - **Reinforcement Learning Objective**:  
-  The policy network is trained to maximize the reward signal, defined as the absolute change  
-  in model output caused by masking.
+    The policy network is trained to maximize the reward signal, defined as the absolute change  
+    in model output caused by masking.
 
 - **Gumbel-Softmax Sampling**:  
-  Enables differentiable approximation of discrete binary masking, allowing gradient descent  
-  to be used for training the policy network.
+    Enables differentiable approximation of discrete binary masking, allowing gradient descent  
+    to be used for training the policy network.
 
 - **Mean Imputation**:  
-  Masked features are imputed with their mean values, derived from a background dataset.
+    Masked features are imputed with their mean values, derived from a background dataset.
 
 - **Attribution Estimation**:  
-  After training, the policy is used to evaluate the marginal contribution of each feature  
-  by comparing model predictions with and without the feature unmasked across various policy-generated masks.
+    After training, the policy is used to evaluate the marginal contribution of each feature  
+    by comparing model predictions with and without the feature unmasked across various policy-generated masks.
 
 Algorithm
 ---------
 
 1. **Initialization**:
-   - Accepts the model to be explained, background dataset for mean imputation, device context,  
-     and policy network architecture or hyperparameters.
+    - Accepts the model to be explained, background dataset for mean imputation, device context,  
+        and policy network architecture or hyperparameters.
 
 2. **Policy Training**:
-   - For each training iteration:
-     - Sample a batch of background inputs.
-     - The policy network outputs logits for feature-wise masks.
-     - Apply Gumbel-Softmax sampling to obtain soft (differentiable) or hard (binary) masks.
-     - Construct masked inputs by replacing selected features with their background mean.
-     - Compute model outputs on both original and masked inputs.
-     - Calculate rewards as the absolute change in output.
-     - Update the policy using policy gradient optimization to maximize expected reward.
+    - For each training iteration:
+        - Sample a batch of background inputs.
+        - The policy network outputs logits for feature-wise masks.
+        - Apply Gumbel-Softmax sampling to obtain soft (differentiable) or hard (binary) masks.
+        - Construct masked inputs by replacing selected features with their background mean.
+        - Compute model outputs on both original and masked inputs.
+        - Calculate rewards as the absolute change in output.
+        - Update the policy using policy gradient optimization to maximize expected reward.
 
 3. **SHAP Value Estimation**:
-   - For each input sample and each feature:
-     - Sample multiple masks from the trained policy.
-     - For each mask:
-       - Evaluate model outputs with the feature masked vs. unmasked.
-     - Estimate the SHAP value as the average difference in outputs due to unmasking the feature.
+    - For each input sample and each feature:
+        - Sample multiple masks from the trained policy.
+        - For each mask:
+            - Evaluate model outputs with the feature masked vs. unmasked.
+        - Estimate the SHAP value as the average difference in outputs due to unmasking the feature.
 
 Use Case
 --------
 
 RL-SHAP is particularly beneficial when:
-- Exhaustive or random sampling of coalitions is infeasible due to input dimensionality.
-- The model is highly sensitive to feature interactions.
-- A learned masking strategy can offer better efficiency or accuracy than brute-force approaches.
+    - Exhaustive or random sampling of coalitions is infeasible due to input dimensionality.
+    - The model is highly sensitive to feature interactions.
+    - A learned masking strategy can offer better efficiency or accuracy than brute-force approaches.
 """
 
 

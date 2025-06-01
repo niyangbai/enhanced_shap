@@ -40,48 +40,41 @@
 
 This framework is created following <b>PEP8 standards</b>, <b>Sphinx documentation format</b>, and is released under the <b>GNU Affero General Public License v3.0</b>.
 
+Official documentation is hosted on **GitHub Pages**:
+
+- [https://niyangbai.github.io/enhanced_shap/](https://niyangbai.github.io/enhanced_shap/)
+
+This site provides comprehensive API reference, tutorials, and examples.
+Documentation is automatically generated from the source code and kept up to date with the latest release.
+
+
 ## Installation
 
-You can install the package locally:
+You can install directly from PyPI (recommended if available):
+
+```sh
+pip install shap-enhanced
+```
+
+Or build the package locally:
 
 ```sh
 git clone https://github.com/niyangbai/enhanced_shap.git
-cd shap-enhanced
+cd enhanced_shap
 pip install -r requirements.txt
+pip install .
 ```
 
 ## Contribution
 
 We welcome contributions to <b>SHAP-Enhanced</b>! To contribute, please follow these steps:
 
-<ol>
-    <li><b>Fork the Repository</b>: Click the "Fork" button on the GitHub repository page.</li>
-    <li><b>Clone Your Fork</b>: Clone your forked repository to your local machine:
-        <pre><code>git clone https://github.com/niyangbai/enhanced_shap.git
-cd enhanced_shap
-</code></pre>
-    </li>
-    <li><b>Create a Branch</b>: Create a new branch for your feature or bug fix:
-        <pre><code>git checkout -b feature-or-bugfix-name
-</code></pre>
-    </li>
-    <li><b>Make Changes</b>: Implement your changes, ensuring they follow <b>PEP8 standards</b> and include proper <b>Sphinx-style docstrings</b>.</li>
-    <li><b>Write Tests</b>: Add or update unit tests in the <code>tests/</code> directory to cover your changes.</li>
-    <li><b>Run Tests</b>: Ensure all tests pass before submitting your changes:
-        <pre><code>pytest
-</code></pre>
-    </li>
-    <li><b>Commit Changes</b>: Commit your changes with a descriptive message:
-        <pre><code>git add .
-git commit -m "Description of your changes"
-</code></pre>
-    </li>
-    <li><b>Push Changes</b>: Push your branch to your forked repository:
-        <pre><code>git push origin feature-or-bugfix-name
-</code></pre>
-    </li>
-    <li><b>Submit a Pull Request</b>: Open a pull request to the main repository, describing your changes in detail.</li>
-</ol>
+<ul>
+    <li><b>Fork</b> this repository and clone your fork.</li>
+    <li><b>Create a branch</b> for your feature or bugfix.</li>
+    <li>Add or update tests, and run <code>pytest</code> to ensure they pass.</li>
+    <li><b>Commit</b> and <b>push</b> your changes, then open a <b>pull request</b> with a clear description.</li>
+</ul>
 
 <b>General Guidelines:</b>
 <ul>

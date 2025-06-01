@@ -3,7 +3,7 @@ Contextual Masking SHAP (CM-SHAP) Explainer for Sequential Models
 =================================================================
 
 Theoretical Explanation
-----------------------
+-----------------------
 
 CM-SHAP is a SHAP-style feature attribution method designed for sequential (time series) models.
 Instead of masking features with zeros or mean values, CM-SHAP uses context-aware imputation:
@@ -22,8 +22,10 @@ Algorithm
 
 1. **Initialization**:
     - Accepts a model and device.
+    
 2. **Contextual Masking**:
     - For each coalition (subset of features to mask), masked positions are replaced by the average of their immediate temporal neighbors.
+    
 3. **SHAP Value Estimation**:
     - For each feature-time position ``(t, f)``, repeatedly:
         - Sample a random coalition of other positions.
@@ -31,6 +33,7 @@ Algorithm
         - Mask the coalition plus ``(t, f)`` using contextual interpolation.
         - Compute the model output difference.
         - Average these differences to estimate the marginal contribution of ``(t, f)``.
+        
     - Normalize attributions so their sum matches the difference between the original and fully-masked model output.
 """
 

@@ -15,39 +15,36 @@ Key Concepts
 ^^^^^^^^^^^^
 
 - **Coalition Sampling**: For every feature-time pair \((t, f)\), random subsets of all other positions are sampled.  
-  The contribution of \((t, f)\) is assessed by adding it to each coalition and measuring the change in model output.
-
+    The contribution of \((t, f)\) is assessed by adding it to each coalition and measuring the change in model output.
 - **Masking/Imputation Strategies**:
-  - **Zero masking**: Replace masked values with zero.
-  - **Mean imputation**: Use feature-wise means from background data.
-  - **Custom imputers**: Support for user-defined imputation functions.
-
+    - **Zero masking**: Replace masked values with zero.
+    - **Mean imputation**: Use feature-wise means from background data.
+    - **Custom imputers**: Support for user-defined imputation functions.
 - **Model-Agnostic & Domain-General**: While ideal for time-series and sequential models, CASHAP can also be applied to tabular data  
-  wherever structured coalition masking is appropriate.
-
+    wherever structured coalition masking is appropriate.
 - **Additivity Normalization**: Attribution scores are scaled such that their total sum equals the difference in model output  
-  between the original input and a fully-masked version.
+    between the original input and a fully-masked version.
 
 Algorithm
 ---------
 
 1. **Initialization**:
-   - Accepts a model, background data for imputation, masking strategy, optional custom imputer, and device context.
+    - Accepts a model, background data for imputation, masking strategy, optional custom imputer, and device context.
 
 2. **Coalition Sampling**:
-   - For each feature-time pair \((t, f)\):
-     - Sample coalitions \( C \subseteq (T \times F) \setminus \{(t, f)\} \).
-     - For each coalition \( C \):
-       - Impute features in \( C \) using the chosen strategy.
-       - Impute features in \( C \cup \{(t, f)\} \).
-       - Compute and record the model output difference.
+    - For each feature-time pair \((t, f)\):
+        - Sample coalitions \( C \subseteq (T \times F) \setminus \{(t, f)\} \).
+        - For each coalition \( C \):
+            - Impute features in \( C \) using the chosen strategy.
+            - Impute features in \( C \cup \{(t, f)\} \).
+            - Compute and record the model output difference.
 
 3. **Attribution Estimation**:
-   - Average the output differences across coalitions to estimate the marginal contribution of \((t, f)\).
+    - Average the output differences across coalitions to estimate the marginal contribution of \((t, f)\).
 
 4. **Normalization**:
-   - Normalize attributions so that their total matches the difference between the model's prediction  
-     on the original and the fully-masked input.
+    - Normalize attributions so that their total matches the difference between the model's prediction  
+        on the original and the fully-masked input.
 """
 
 

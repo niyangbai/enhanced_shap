@@ -17,43 +17,43 @@ Key Concepts
 ^^^^^^^^^^^^
 
 - **Empirical Conditional Imputation**:  
-  Masked features are filled by matching the unmasked portion of an input to background data. If no exact match exists,  
-  the algorithm can either skip the coalition or use the closest match (by Hamming distance).
+    Masked features are filled by matching the unmasked portion of an input to background data. If no exact match exists,  
+    the algorithm can either skip the coalition or use the closest match (by Hamming distance).
 
 - **Valid Discrete Patterns**:  
-  All imputations correspond to real, observed combinations in the background dataset—preserving the statistical validity  
-  and interpretability of the perturbed inputs.
+    All imputations correspond to real, observed combinations in the background dataset—preserving the statistical validity  
+    and interpretability of the perturbed inputs.
 
 - **Fallback for Continuous Features**:  
-  If features appear continuous (e.g., many unique values), EC-SHAP automatically falls back to mean imputation.
+    If features appear continuous (e.g., many unique values), EC-SHAP automatically falls back to mean imputation.
 
 - **Additivity Normalization**:  
-  Attributions are scaled such that their sum equals the difference in model outputs between the original  
-  and fully-masked inputs.
+    Attributions are scaled such that their sum equals the difference in model outputs between the original  
+    and fully-masked inputs.
 
 Algorithm
 ---------
 
 1. **Initialization**:
-   - Accepts a model, background dataset, device context, and configuration for skipping or relaxing matches (e.g., using closest match).
+    - Accepts a model, background dataset, device context, and configuration for skipping or relaxing matches (e.g., using closest match).
 
 2. **Conditional Imputation**:
-   - For each coalition (subset of features to mask):
-     - Identify background samples where the unmasked features match.
-     - If a match exists, use it to fill in masked features.
-     - If no match:
-       - Optionally use the nearest match (by Hamming distance), or
-       - Fallback to mean imputation (for continuous features), or
-       - Skip the coalition.
+    - For each coalition (subset of features to mask):
+        - Identify background samples where the unmasked features match.
+        - If a match exists, use it to fill in masked features.
+        - If no match:
+            - Optionally use the nearest match (by Hamming distance), or
+            - Fallback to mean imputation (for continuous features), or
+            - Skip the coalition.
 
 3. **SHAP Value Estimation**:
-   - For each feature:
-     - Sample random coalitions of other features.
-     - Impute both:
-       - The coalition alone, and
-       - The coalition plus the target feature.
-     - Compute the difference in model outputs.
-     - Average the differences to estimate marginal contribution.
+    - For each feature:
+        - Sample random coalitions of other features.
+        - Impute both:
+            - The coalition alone, and
+            - The coalition plus the target feature.
+        - Compute the difference in model outputs.
+        - Average the differences to estimate marginal contribution.
 
 4. **Normalization**:
    - Ensure the sum of feature attributions equals the difference in model output between the original and fully-masked input.

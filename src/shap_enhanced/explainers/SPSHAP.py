@@ -20,53 +20,53 @@ Key Concepts
 ^^^^^^^^^^^^
 
 - **Support Pattern Matching**:  
-  Masked inputs are replaced with real background examples that match the nonzero pattern (support)  
-  of the masked input. This maintains validity and avoids generating unrealistic inputs.
+    Masked inputs are replaced with real background examples that match the nonzero pattern (support)  
+    of the masked input. This maintains validity and avoids generating unrealistic inputs.
 
 - **One-Hot / Binary Support**:  
-  Especially effective for categorical features encoded as one-hot vectors or binary indicators.  
-  Masking respects group structures and ensures feasible combinations.
+    Especially effective for categorical features encoded as one-hot vectors or binary indicators.  
+    Masking respects group structures and ensures feasible combinations.
 
 - **Graceful Fallback**:  
-  When applied to continuous or dense data, the explainer defaults to mean-masking to retain applicability.
+    When applied to continuous or dense data, the explainer defaults to mean-masking to retain applicability.
 
 - **Additivity Normalization**:  
-  Final attributions are scaled such that their total equals the model output difference between  
-  the original and fully-masked inputs.
+    Final attributions are scaled such that their total equals the model output difference between  
+    the original and fully-masked inputs.
 
 Algorithm
 ---------
 
 1. **Initialization**:
-   - Accepts a model, background dataset, device context, and configuration for skipping or flagging unmatched patterns.
+    - Accepts a model, background dataset, device context, and configuration for skipping or flagging unmatched patterns.
 
 2. **Support-Preserving Masking**:
-   - For each sampled coalition of masked features:
-     - Create a masked version of the input.
-     - Find a background example with the same binary support (nonzero positions).
-     - If no match is found, either skip or raise an exception based on configuration.
-     - For non-sparse (dense) inputs, fallback to mean-masking.
+    - For each sampled coalition of masked features:
+        - Create a masked version of the input.
+        - Find a background example with the same binary support (nonzero positions).
+        - If no match is found, either skip or raise an exception based on configuration.
+        - For non-sparse (dense) inputs, fallback to mean-masking.
 
 3. **SHAP Value Estimation**:
-   - For each feature:
-     - Repeatedly sample coalitions of other features.
-     - For each:
-       - Mask the coalition and find a matching background sample.
-       - Mask the coalition plus the feature of interest and find another match.
-       - Compute the model output difference.
-     - Average these differences to estimate the feature’s marginal contribution.
+    - For each feature:
+        - Repeatedly sample coalitions of other features.
+        - For each:
+            - Mask the coalition and find a matching background sample.
+            - Mask the coalition plus the feature of interest and find another match.
+            - Compute the model output difference.
+        - Average these differences to estimate the feature’s marginal contribution.
 
 4. **Normalization**:
-   - Scale the final attributions so their sum matches the model output difference  
-     between the unmasked and fully-masked input.
+    - Scale the final attributions so their sum matches the model output difference  
+        between the unmasked and fully-masked input.
 
 Use Case
 --------
 
 Ideal for:
-- One-hot encoded categorical features.
-- Binary indicators (presence/absence).
-- Sparse high-dimensional data where only valid observed patterns should be used for attribution.
+    - One-hot encoded categorical features.
+    - Binary indicators (presence/absence).
+    - Sparse high-dimensional data where only valid observed patterns should be used for attribution.
 """
 
 
@@ -137,10 +137,11 @@ class SupportPreservingSHAPExplainer(BaseExplainer):
         Compute SHAP values by evaluating only valid support-preserving perturbations.
 
         For sparse inputs (e.g., one-hot or binary):
-        - For each feature, sample coalitions of other features.
-        - Construct masked inputs and locate matching background samples with same nonzero support.
-        - Evaluate model differences with and without the feature of interest.
-        - Average differences to estimate SHAP values.
+        
+            - For each feature, sample coalitions of other features.
+            - Construct masked inputs and locate matching background samples with same nonzero support.
+            - Evaluate model differences with and without the feature of interest.
+            - Average differences to estimate SHAP values.
 
         For dense inputs:
         - Fallback to standard mean-based masking for each feature individually.

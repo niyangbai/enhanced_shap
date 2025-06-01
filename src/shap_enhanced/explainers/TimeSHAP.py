@@ -17,59 +17,59 @@ Key Concepts
 ^^^^^^^^^^^^
 
 - **Pruned Coalition Sampling**:  
-  Performs an initial round of random sampling to estimate rough feature/event importance.  
-  Only the top-k units are retained for precise SHAP estimation.
+    Performs an initial round of random sampling to estimate rough feature/event importance.  
+    Only the top-k units are retained for precise SHAP estimation.
 
 - **Event/Window Attribution**:  
-  Supports attribution across:
-  - Individual timesteps (fine-grained),
-  - Features (vertical slices),
-  - Event windows (e.g., rolling sequences).
+    Supports attribution across:
+        - Individual timesteps (fine-grained),
+        - Features (vertical slices),
+        - Event windows (e.g., rolling sequences).
 
 - **Flexible Masking**:  
-  Masked features can be:
-  - Set to zero (hard masking), or
-  - Replaced with the mean from background data (soft masking).
+    Masked features can be:
+        - Set to zero (hard masking), or
+        - Replaced with the mean from background data (soft masking).
 
 - **Additivity Normalization**:  
-  Final SHAP attributions are normalized so that their total equals the model output difference  
-  between the original and fully-masked inputs.
+    Final SHAP attributions are normalized so that their total equals the model output difference  
+    between the original and fully-masked inputs.
 
 Algorithm
 ---------
 
 1. **Initialization**:
-   - Accepts a target model, background data, event window size, masking strategy, pruning parameter (e.g., top-k),  
-     and device context.
+    - Accepts a target model, background data, event window size, masking strategy, pruning parameter (e.g., top-k),  
+        and device context.
 
 2. **Rough Importance Estimation**:
-   - For each unit (feature, timestep, or window):
-     - Sample random coalitions excluding the unit.
-     - Compute model outputs with and without the unit masked.
-     - Estimate marginal contribution based on output difference.
+    - For each unit (feature, timestep, or window):
+        - Sample random coalitions excluding the unit.
+        - Compute model outputs with and without the unit masked.
+        - Estimate marginal contribution based on output difference.
 
 3. **Pruning**:
-   - If pruning is enabled:
-     - Retain only the top-k most important units from the rough scan.
-     - Discard lower-importance units from further evaluation.
+    - If pruning is enabled:
+        - Retain only the top-k most important units from the rough scan.
+        - Discard lower-importance units from further evaluation.
 
 4. **Refined Attribution**:
-   - For each selected unit:
-     - Sample coalitions and compute more precise SHAP values.
-     - Assign contributions to the appropriate location in the attribution map  
-       (e.g., timestep, feature, or window).
+    - For each selected unit:
+        - Sample coalitions and compute more precise SHAP values.
+        - Assign contributions to the appropriate location in the attribution map  
+            (e.g., timestep, feature, or window).
 
 5. **Normalization**:
-   - Rescale all SHAP values so that their sum equals the difference between  
-     the model prediction on the original and fully-masked input.
+    - Rescale all SHAP values so that their sum equals the difference between  
+        the model prediction on the original and fully-masked input.
 
 Use Case
 --------
 
 TimeSHAP is ideal for:
-- Event sequences, medical time-series, or log data.
-- Models where full SHAP computation is infeasible due to input length.
-- Explaining model behavior over time, including “when” and “what” drove a prediction.
+    - Event sequences, medical time-series, or log data.
+    - Models where full SHAP computation is infeasible due to input length.
+    - Explaining model behavior over time, including “when” and “what” drove a prediction.
 """
 
 
@@ -86,9 +86,9 @@ class TimeSHAPExplainer(BaseExplainer):
     to efficiently estimate per-(t, f) or event-level attributions.
 
     Combines:
-    - Masking strategy (zero or mean-based).
-    - Optional event windowing (for segment-level attribution).
-    - Top-k pruning to reduce the coalition space before final SHAP estimation.
+        - Masking strategy (zero or mean-based).
+        - Optional event windowing (for segment-level attribution).
+        - Top-k pruning to reduce the coalition space before final SHAP estimation.
 
     :param model: The model to be explained.
     :type model: Any

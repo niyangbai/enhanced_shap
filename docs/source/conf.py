@@ -2,7 +2,7 @@ import os
 import sys
 sys.path.insert(0, os.path.abspath('../src'))
 
-project = 'shap_enhanced'
+project = 'Enhanced SHAP'
 copyright = '2025, Niyang Bai'
 author = 'Niyang Bai'
 
@@ -12,6 +12,7 @@ extensions = [
     'sphinx.ext.viewcode',
     'sphinx.ext.autosummary',
     'myst_parser',
+    'sphinx_autodoc_typehints',
 ]
 
 autosummary_generate = True
@@ -32,4 +33,9 @@ html_static_path = ['_static']
 html_theme_options = {
     "light_logo": "fau_wiso_light.png",
     "dark_logo": "fau_wiso_dark.png",
+}
+
+intersphinx_mapping = {
+    'python': ('https://docs.python.org/3', None),
+    'torch': ('https://pytorch.org/docs/stable/', None),
 }

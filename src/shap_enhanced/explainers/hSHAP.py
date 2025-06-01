@@ -16,42 +16,42 @@ Key Concepts
 ^^^^^^^^^^^^
 
 - **Hierarchical Grouping**:  
-  Features are grouped into blocks (e.g., temporal windows, spatial zones, feature families), possibly in multiple nested levels.  
-  These groups define the hierarchy over which SHAP values are computed.
+    Features are grouped into blocks (e.g., temporal windows, spatial zones, feature families), possibly in multiple nested levels.  
+    These groups define the hierarchy over which SHAP values are computed.
 
 - **Recursive SHAP Estimation**:  
-  SHAP values are estimated first at the group level, and then recursively subdivided among subgroups or features  
-  within each group. This preserves hierarchical structure in the resulting attribution map.
+    SHAP values are estimated first at the group level, and then recursively subdivided among subgroups or features  
+    within each group. This preserves hierarchical structure in the resulting attribution map.
 
 - **Flexible Masking**:  
-  Features can be masked by:
-  - Setting them to zero (hard masking).
-  - Imputing with background mean values (soft masking), using a provided reference dataset.
+    Features can be masked by:
+        - Setting them to zero (hard masking).
+        - Imputing with background mean values (soft masking), using a provided reference dataset.
 
 - **Additivity Normalization**:  
-  Final attributions are normalized such that their total sum equals the model output difference  
-  between the original and fully-masked inputs.
+    Final attributions are normalized such that their total sum equals the model output difference  
+    between the original and fully-masked inputs.
 
 Algorithm
 ---------
 
 1. **Initialization**:
-   - Accepts a model, background dataset for imputation, a user-defined hierarchy of feature groups,  
-     masking strategy (`'zero'` or `'mean'`), and a device context.
+    - Accepts a model, background dataset for imputation, a user-defined hierarchy of feature groups,  
+        masking strategy (`'zero'` or `'mean'`), and a device context.
 
 2. **Recursive Attribution**:
-   - For each group in the hierarchy:
-     - Sample coalitions of other groups.
-     - Estimate the group’s marginal contribution by masking:
-       - Only the coalition, and
-       - The coalition plus the current group.
-     - Compute the model output difference to get SHAP value.
-     - If the group contains subgroups, repeat recursively.
-     - If not, distribute the SHAP value equally among group members or subfeatures.
+    - For each group in the hierarchy:
+        - Sample coalitions of other groups.
+        - Estimate the group’s marginal contribution by masking:
+            - Only the coalition, and
+            - The coalition plus the current group.
+        - Compute the model output difference to get SHAP value.
+        - If the group contains subgroups, repeat recursively.
+        - If not, distribute the SHAP value equally among group members or subfeatures.
 
 3. **Normalization**:
-   - Rescale all SHAP values so that their sum matches the change in model output  
-     between the unmasked input and the fully-masked input.
+    - Rescale all SHAP values so that their sum matches the change in model output  
+        between the unmasked input and the fully-masked input.
 """
 
 

@@ -17,54 +17,54 @@ Key Concepts
 ^^^^^^^^^^^^
 
 - **Surrogate Regression**:  
-  A regression model (e.g., Random Forest, Kernel Ridge, MLP) is trained to predict SHAP attributions  
-  using inputs as features and base SHAP values as targets.
+    A regression model (e.g., Random Forest, Kernel Ridge, MLP) is trained to predict SHAP attributions  
+    using inputs as features and base SHAP values as targets.
 
 - **Base SHAP Explainer**:  
-  Any standard SHAP-style explainer (e.g., `DeepExplainer`, `GradientExplainer`, `KernelExplainer`)  
-  can be used to generate training labels (pseudo-ground-truth SHAP values).
+    Any standard SHAP-style explainer (e.g., `DeepExplainer`, `GradientExplainer`, `KernelExplainer`)  
+    can be used to generate training labels (pseudo-ground-truth SHAP values).
 
 - **Optional Scaling**:  
-  Input features and/or SHAP attributions can be standardized to improve the surrogate's learning performance.
+    Input features and/or SHAP attributions can be standardized to improve the surrogate's learning performance.
 
 - **Fast Inference**:  
-  Once trained, the surrogate model can rapidly produce SHAP attributions for unseen inputs  
-  without invoking the base SHAP explainer again.
+    Once trained, the surrogate model can rapidly produce SHAP attributions for unseen inputs  
+    without invoking the base SHAP explainer again.
 
 Algorithm
 ---------
 
 1. **Initialization**:
-   - Accepts the following:
-     - A predictive model to explain.
-     - Background dataset for base SHAP explainer.
-     - SHAP-style base explainer class.
-     - Surrogate regressor class (e.g., `sklearn.ensemble.RandomForestRegressor`).
-     - Number of training samples for surrogate fitting.
-     - Options for input/output scaling.
-     - Device context (if applicable).
+    - Accepts the following:
+        - A predictive model to explain.
+        - Background dataset for base SHAP explainer.
+        - SHAP-style base explainer class.
+        - Surrogate regressor class (e.g., `sklearn.ensemble.RandomForestRegressor`).
+        - Number of training samples for surrogate fitting.
+        - Options for input/output scaling.
+        - Device context (if applicable).
 
 2. **Surrogate Training**:
-   - Sample training points from the background dataset.
-   - For each sample:
-     - Compute SHAP values using the base explainer.
-     - Flatten the input and corresponding SHAP vector.
-   - Optionally scale both inputs and targets.
-   - Fit the surrogate regressor on the collected (input, attribution) pairs.
+    - Sample training points from the background dataset.
+    - For each sample:
+        - Compute SHAP values using the base explainer.
+        - Flatten the input and corresponding SHAP vector.
+    - Optionally scale both inputs and targets.
+    - Fit the surrogate regressor on the collected (input, attribution) pairs.
 
 3. **SHAP Value Prediction**:
-   - For a new sample:
-     - Flatten and optionally scale the input.
-     - Predict SHAP attributions using the surrogate model.
-     - Inverse-transform and reshape predictions to original attribution shape if needed.
+    - For a new sample:
+        - Flatten and optionally scale the input.
+        - Predict SHAP attributions using the surrogate model.
+        - Inverse-transform and reshape predictions to original attribution shape if needed.
 
 Use Case
 --------
 
 SurroSHAP is best suited for:
-- Large-scale datasets requiring rapid SHAP value generation.
-- Scenarios where base SHAP computation is slow or expensive.
-- Situations where approximate explanations are acceptable in exchange for speed.
+    - Large-scale datasets requiring rapid SHAP value generation.
+    - Scenarios where base SHAP computation is slow or expensive.
+    - Situations where approximate explanations are acceptable in exchange for speed.
 """
 
 
@@ -86,8 +86,8 @@ def ensure_shap_input(x, explainer, device="cpu"):
     and converts the input `x` into the appropriate format—either a NumPy array or a
     PyTorch tensor—based on the explainer's requirements.
 
-    - Deep/Gradient explainers require `torch.Tensor` input.
-    - Kernel/Partition explainers require `np.ndarray` input.
+        - Deep/Gradient explainers require `torch.Tensor` input.
+        - Kernel/Partition explainers require `np.ndarray` input.
 
     :param x: Input sample to format, shape (T, F) or (1, T, F).
     :type x: np.ndarray or torch.Tensor

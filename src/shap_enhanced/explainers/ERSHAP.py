@@ -18,41 +18,41 @@ Key Concepts
 ^^^^^^^^^^^^
 
 - **Random Coalition Sampling**:  
-  For each position \((t, f)\), sample coalitions \( C \subseteq (T \times F) \setminus \{(t, f)\} \)  
-  and estimate the marginal contribution of \((t, f)\) by measuring its impact on model output.
+    For each position \((t, f)\), sample coalitions \( C \subseteq (T \times F) \setminus \{(t, f)\} \)  
+    and estimate the marginal contribution of \((t, f)\) by measuring its impact on model output.
 
 - **Weighted Sampling**:  
-  Coalition sampling can be uniform or weighted based on prior feature importance scores  
-  or positional frequency, allowing informed, efficient sampling.
+    Coalition sampling can be uniform or weighted based on prior feature importance scores  
+    or positional frequency, allowing informed, efficient sampling.
 
 - **Flexible Masking**:  
-  Masked features are imputed using:
-  - Zeros (hard masking).
-  - Feature-wise means from the background dataset (soft masking).
+    Masked features are imputed using:
+        - Zeros (hard masking).
+        - Feature-wise means from the background dataset (soft masking).
 
 - **Additivity Normalization**:  
-  Final attributions are scaled so that their sum matches the model output difference  
-  between the original and fully-masked input.
+    Final attributions are scaled so that their sum matches the model output difference  
+    between the original and fully-masked input.
 
 Algorithm
 ---------
 
 1. **Initialization**:
-   - Accepts a model, background dataset for imputation, number of sampled coalitions,  
-     masking strategy (`'zero'` or `'mean'`), weighting scheme, optional feature importance, and device context.
+    - Accepts a model, background dataset for imputation, number of sampled coalitions,  
+        masking strategy (`'zero'` or `'mean'`), weighting scheme, optional feature importance, and device context.
 
 2. **Coalition Sampling**:
-   - For each feature–timestep pair \((t, f)\):
-     - Sample coalitions \( C \subseteq (T \times F) \setminus \{(t, f)\} \), either uniformly or using weights.
-     - For each coalition:
-       - Impute the coalition \( C \) in the input.
-       - Impute the coalition \( C \cup \{(t, f)\} \).
-       - Compute the model output difference.
-     - Average these differences to estimate the marginal contribution of \((t, f)\).
+    - For each feature–timestep pair \((t, f)\):
+        - Sample coalitions \( C \subseteq (T \times F) \setminus \{(t, f)\} \), either uniformly or using weights.
+        - For each coalition:
+            - Impute the coalition \( C \) in the input.
+            - Impute the coalition \( C \cup \{(t, f)\} \).
+            - Compute the model output difference.
+        - Average these differences to estimate the marginal contribution of \((t, f)\).
 
 3. **Normalization**:
-   - Scale the final attributions so that their total equals the difference in model output  
-     between the original input and a fully-masked baseline.
+    - Scale the final attributions so that their total equals the difference in model output  
+        between the original input and a fully-masked baseline.
 """
 
 

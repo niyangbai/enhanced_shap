@@ -22,55 +22,55 @@ Key Concepts
 ^^^^^^^^^^^^
 
 - **Valid Sparse Coalitions**:  
-  Coalitions are restricted to those that produce syntactically valid inputs under the sparsity constraints.  
-  This avoids creating feature patterns that would never occur naturally.
+    Coalitions are restricted to those that produce syntactically valid inputs under the sparsity constraints.  
+    This avoids creating feature patterns that would never occur naturally.
 
 - **One-Hot Group Support**:  
-  Groups of mutually exclusive features (e.g., one-hot encodings) are masked by setting the entire group to zero,  
-  simulating "no class selected."
+    Groups of mutually exclusive features (e.g., one-hot encodings) are masked by setting the entire group to zero,  
+    simulating "no class selected."
 
 - **Binary Feature Support**:  
-  Element-wise masking is applied to binary features, allowing localized coalitions across time and features.
+    Element-wise masking is applied to binary features, allowing localized coalitions across time and features.
 
 - **Flexible Masking Strategies**:  
-  - Default: zero-masking.
-  - Extensible to other strategies (e.g., pattern sampling from background data).
+    - Default: zero-masking.
+    - Extensible to other strategies (e.g., pattern sampling from background data).
 
 - **Additivity Normalization**:  
-  Final attributions are normalized so their total matches the difference between the model outputs  
-  of the original and fully-masked inputs.
+    Final attributions are normalized so their total matches the difference between the model outputs  
+    of the original and fully-masked inputs.
 
 Algorithm
 ---------
 
 1. **Initialization**:
-   - Accepts the target model, background dataset, one-hot group definitions, masking strategy (default: zero),  
-     and device configuration.
+    - Accepts the target model, background dataset, one-hot group definitions, masking strategy (default: zero),  
+        and device configuration.
 
 2. **Coalition Sampling**:
-   - For each one-hot group or binary feature:
-     - Randomly sample subsets of other groups/features to form coalitions.
-     - For each coalition:
-       - Mask the selected features/groups in the input.
-       - Mask the coalition plus the current target group/feature.
-       - Compute the model outputs for both variants.
-       - Record the output difference.
+    - For each one-hot group or binary feature:
+        - Randomly sample subsets of other groups/features to form coalitions.
+        - For each coalition:
+            - Mask the selected features/groups in the input.
+            - Mask the coalition plus the current target group/feature.
+            - Compute the model outputs for both variants.
+            - Record the output difference.
 
 3. **SHAP Value Estimation**:
-   - Average the output differences over many sampled coalitions to approximate the Shapley value  
-     (i.e., the marginal contribution) of each group/feature.
+    - Average the output differences over many sampled coalitions to approximate the Shapley value  
+        (i.e., the marginal contribution) of each group/feature.
 
 4. **Normalization**:
-   - Scale all attributions so their sum equals the model output difference between  
-     the original and fully-masked inputs.
+    - Scale all attributions so their sum equals the model output difference between  
+        the original and fully-masked inputs.
 
 Use Case
 --------
 
 Ideal for models operating on:
-- Categorical variables represented via one-hot encoding.
-- Structured binary inputs (e.g., presence/absence features).
-- Sparse input spaces where validity and interpretability are critical.
+    - Categorical variables represented via one-hot encoding.
+    - Structured binary inputs (e.g., presence/absence features).
+    - Sparse input spaces where validity and interpretability are critical.
 """
 
 

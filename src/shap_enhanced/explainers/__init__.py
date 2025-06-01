@@ -39,15 +39,15 @@ Import individual explainers or use the package to programmatically register all
     from shap_enhanced.explainers import LatentSHAP, TimeSHAP, SurroSHAP
 """
 
-from .ABSHAP import ABSHAP
-from .AttnSHAP import AttnSHAP
-from .BSHAP import BSHAP
-from .CASHAP import CASHAP
-from .CMSHAP import CMSHAP
-from .ECSHAP import ECSHAP
-from .ERSHAP import ERSHAP
-from .ESSHAP import ESSHAP
-from .hSHAP import hSHAP
+from .ABSHAP import AdaptiveBaselineSHAPExplainer
+from .AttnSHAP import AttnSHAPExplainer
+from .BSHAP import BShapExplainer
+from .CASHAP import CoalitionAwareSHAPExplainer
+from .CMSHAP import ContextualMaskingSHAPExplainer
+from .ECSHAP import EmpiricalConditionalSHAPExplainer
+from .ERSHAP import ERSHAPExplainer
+from .ESSHAP import EnsembleSHAPWithNoise
+from .hSHAP import HShapExplainer
 from .LatentSHAP import LatentSHAPExplainer
 from .MBSHAP import NearestNeighborMultiBaselineSHAP
 from .RLSHAP import RLShapExplainer

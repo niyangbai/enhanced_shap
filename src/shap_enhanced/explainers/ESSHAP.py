@@ -17,41 +17,41 @@ Key Concepts
 ^^^^^^^^^^^^
 
 - **Ensemble Averaging**:  
-  The explainer is executed multiple times with noisy versions of the input/background.  
-  Attribution results are aggregated using the specified method (mean or median).
+    The explainer is executed multiple times with noisy versions of the input/background.  
+    Attribution results are aggregated using the specified method (mean or median).
 
 - **Noise Injection**:  
-  Gaussian noise is applied to:
-  - **Input**: Simulates perturbations in the sample to be explained.
-  - **Background**: Introduces variability into the reference distribution used for attribution.
-  - **Both**: Simulates end-to-end variability.
+    Gaussian noise is applied to:
+        - **Input**: Simulates perturbations in the sample to be explained.
+        - **Background**: Introduces variability into the reference distribution used for attribution.
+        - **Both**: Simulates end-to-end variability.
 
 - **Explainer Flexibility**:  
-  Compatible with all SHAP explainers (e.g., `DeepExplainer`, `KernelExplainer`) and custom user-defined explainers.  
-  Automatically adapts inputs to the required format (NumPy or PyTorch).
+    Compatible with all SHAP explainers (e.g., `DeepExplainer`, `KernelExplainer`) and custom user-defined explainers.  
+    Automatically adapts inputs to the required format (NumPy or PyTorch).
 
 - **Type Safety and Compatibility**:  
-  Automatically handles conversions between NumPy arrays and PyTorch tensors, depending on the explainer's requirements.
+    Automatically handles conversions between NumPy arrays and PyTorch tensors, depending on the explainer's requirements.
 
 Algorithm
 ---------
 
 1. **Initialization**:
-   - Accepts a model, background data, explainer class (default: `shap.DeepExplainer`), number of runs,  
-     noise level (`float`), target for noise injection (`'input'`, `'background'`, or `'both'`),  
-     aggregation method (`'mean'` or `'median'`), explainer kwargs, and device context.
+    - Accepts a model, background data, explainer class (default: `shap.DeepExplainer`), number of runs,  
+        noise level (`float`), target for noise injection (`'input'`, `'background'`, or `'both'`),  
+        aggregation method (`'mean'` or `'median'`), explainer kwargs, and device context.
 
 2. **Ensemble Loop**:
-   - For each of the specified number of runs:
-     - Inject Gaussian noise into the background and/or input, as specified.
-     - Convert noisy data into the appropriate type (NumPy or PyTorch).
-     - Instantiate the explainer using the noisy background.
-     - Compute SHAP values on the noisy input.
-     - Store the resulting attributions.
+    - For each of the specified number of runs:
+        - Inject Gaussian noise into the background and/or input, as specified.
+        - Convert noisy data into the appropriate type (NumPy or PyTorch).
+        - Instantiate the explainer using the noisy background.
+        - Compute SHAP values on the noisy input.
+        - Store the resulting attributions.
 
 3. **Aggregation**:
-   - Combine all attribution maps using the specified aggregation method (mean or median)  
-     to produce the final, noise-robust attribution result.
+    - Combine all attribution maps using the specified aggregation method (mean or median)  
+        to produce the final, noise-robust attribution result.
 """
 
 

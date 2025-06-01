@@ -16,36 +16,36 @@ Key Concepts
 ^^^^^^^^^^^^
 
 - **Attention-Guided Sampling**: When available, model attention weights (via `get_attention_weights`) are used  
-  to bias coalition sampling toward informative features.
+    to bias coalition sampling toward informative features.
 - **Proxy Attention**: If direct attention is unavailable, attention scores can be approximated using:
-  - **Gradient-based**: Magnitude of input gradients.
-  - **Input-based**: Magnitude of input values.
-  - **Perturbation-based**: Change in model output due to masking each individual feature.
+    - **Gradient-based**: Magnitude of input gradients.
+    - **Input-based**: Magnitude of input values.
+    - **Perturbation-based**: Change in model output due to masking each individual feature.
 - **Uniform Sampling**: Falls back to classical SHAP's uniform random sampling when attention is not used.
 - **Additivity Normalization**: Attribution values are scaled such that their sum equals the model output difference  
-  between the original and fully-masked inputs.
+    between the original and fully-masked inputs.
 
 Algorithm
 ---------
 
 1. **Initialization**:
-   - Takes a model, background dataset, a flag for using attention, a proxy attention strategy, and device context.
+    - Takes a model, background dataset, a flag for using attention, a proxy attention strategy, and device context.
 
 2. **Attention/Proxy Computation**:
-   - For each input:
-     - Retrieve model attention weights if available.
-     - Otherwise, compute proxy attention based on the configured method.
+    - For each input:
+        - Retrieve model attention weights if available.
+        - Otherwise, compute proxy attention based on the configured method.
 
 3. **Coalition Sampling**:
-   - For each feature:
-     - Repeatedly sample a subset (coalition) of other features, with probability weighted by attention (if applicable).
-     - Compute model output after masking the coalition.
-     - Compute model output after masking the coalition plus the target feature.
-     - Record the difference to estimate the marginal contribution.
+    - For each feature:
+        - Repeatedly sample a subset (coalition) of other features, with probability weighted by attention (if applicable).
+        - Compute model output after masking the coalition.
+        - Compute model output after masking the coalition plus the target feature.
+        - Record the difference to estimate the marginal contribution.
 
 4. **Normalization**:
-   - Normalize feature attributions so that their sum matches the model output difference  
-     between the unmasked input and a fully-masked input baseline.
+    - Normalize feature attributions so that their sum matches the model output difference  
+        between the unmasked input and a fully-masked input baseline.
 """
 
 

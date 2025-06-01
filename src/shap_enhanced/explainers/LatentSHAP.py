@@ -21,8 +21,8 @@ Key Components
 - **Conv1dEncoder / Conv1dDecoder**: Lightweight 1D convolutional autoencoder architecture for time-series encoding/decoding.
 - **LatentModelWrapper**: Wraps a downstream model and decoder into a latent-to-output computation graph for SHAP.
 - **LatentSHAPExplainer**:
-  - Runs SHAP (e.g., `GradientExplainer`) on the latent representation of input data.
-  - Projects latent attributions to input space using decoder Jacobians (optionally path-integrated).
+    - Runs SHAP (e.g., `GradientExplainer`) on the latent representation of input data.
+    - Projects latent attributions to input space using decoder Jacobians (optionally path-integrated).
 - **make_shap_explainer**: Utility that handles compatibility across SHAP versions and explainer signatures.
 - **train_conv1d_autoencoder**: Simple MSE-based training function for the autoencoder.
 
@@ -30,30 +30,30 @@ Algorithm
 ---------
 
 1. **Autoencoder Construction and Training**:
-   - Build a `Conv1dEncoder` and `Conv1dDecoder` for the desired input shape.
-   - Train them using standard MSE reconstruction loss.
+    - Build a `Conv1dEncoder` and `Conv1dDecoder` for the desired input shape.
+    - Train them using standard MSE reconstruction loss.
 
 2. **Latent Attribution via SHAP**:
-   - Encode the input and background into latent space.
-   - Run a base SHAP explainer (e.g., `GradientExplainer`) on the latent representations.
-   - Estimate input attributions by projecting SHAP values using the decoder's Jacobian:
+    - Encode the input and background into latent space.
+    - Run a base SHAP explainer (e.g., `GradientExplainer`) on the latent representations.
+    - Estimate input attributions by projecting SHAP values using the decoder's Jacobian:
    
-     .. math::
-         \phi_{\text{input}} = J_{\text{decoder}}(z) \cdot \phi_{\text{latent}}
+    .. math::
+        \phi_{\text{input}} = J_{\text{decoder}}(z) \cdot \phi_{\text{latent}}
 
 3. **Jacobian Projection Options**:
-   - Compute Jacobian at a single point (`z`) or along a path from baseline to `z` for smoother attribution.
+    - Compute Jacobian at a single point (`z`) or along a path from baseline to `z` for smoother attribution.
 
 4. **Normalization and Output**:
-   - Return attributions in the shape of the original input (e.g., `[T, F]` for time-series).
+    - Return attributions in the shape of the original input (e.g., `[T, F]` for time-series).
 
 Use Case
 --------
 
 This setup is ideal when:
-- Inputs are high-dimensional sequences or grids.
-- The model is highly non-linear or unstable with direct input perturbations.
-- Interpretability is needed at both latent and original input levels.
+    - Inputs are high-dimensional sequences or grids.
+    - The model is highly non-linear or unstable with direct input perturbations.
+    - Interpretability is needed at both latent and original input levels.
 
 Example
 -------
@@ -91,8 +91,9 @@ class Conv1dEncoder(nn.Module):
     of shape (B, T, F) into a fixed-dimensional latent representation.
 
     Architecture:
-    - 3 stacked Conv1d layers with ReLU activations.
-    - Output is flattened and linearly projected to latent_dim.
+    
+        - 3 stacked Conv1d layers with ReLU activations.
+        - Output is flattened and linearly projected to latent_dim.
 
     :param int input_features: Number of input features (F).
     :param int seq_len: Length of the input sequence (T).

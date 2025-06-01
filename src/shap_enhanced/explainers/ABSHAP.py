@@ -17,8 +17,8 @@ Key Concepts
 ^^^^^^^^^^^^
 
 - **Adaptive Masking**: Each feature’s masking method is chosen based on its distribution:
-  - Dense/continuous features use the mean value from the background dataset.
-  - Sparse/categorical features (e.g., those with >90% zeros) are replaced using values from real background examples.
+    - Dense/continuous features use the mean value from the background dataset.
+    - Sparse/categorical features (e.g., those with >90% zeros) are replaced using values from real background examples.
 - **Strategy Selection**: The masking approach can be assigned automatically per feature or manually specified by the user.
 - **Valid Perturbations**: All masked samples are guaranteed to lie within the original data distribution, preventing unrealistic inputs.
 
@@ -26,25 +26,25 @@ Algorithm
 ---------
 
 1. **Initialization**:
-   - Accepts a model, background dataset, number of baselines, masking strategy, and device.
-   - Automatically determines a masking strategy per feature or uses a user-specified configuration.
-   - Computes mean values for dense-feature masking.
+    - Accepts a model, background dataset, number of baselines, masking strategy, and device.
+    - Automatically determines a masking strategy per feature or uses a user-specified configuration.
+    - Computes mean values for dense-feature masking.
 
 2. **Masking**:
-   - For each coalition (a selected subset of features to mask), masked values are replaced with:
-     - The feature-wise mean (dense features), or
-     - A sampled value from a real background example (sparse features).
+    - For each coalition (a selected subset of features to mask), masked values are replaced with:
+        - The feature-wise mean (dense features), or
+        - A sampled value from a real background example (sparse features).
 
 3. **SHAP Value Estimation**:
-   - For each feature:
-     - Randomly sample subsets of other features to mask.
-     - For each sampled baseline:
-       - Compute model outputs on:
-         - Input with selected features masked.
-         - Input with selected features plus the current feature masked.
-       - Calculate the difference in model outputs.
-     - Average these differences to estimate the marginal contribution of the feature.
-   - Normalize the resulting attributions so their sum equals the difference between the original and fully-masked model outputs.
+    - For each feature:
+        - Randomly sample subsets of other features to mask.
+        - For each sampled baseline:
+            - Compute model outputs on:
+                - Input with selected features masked.
+                - Input with selected features plus the current feature masked.
+            - Calculate the difference in model outputs.
+        - Average these differences to estimate the marginal contribution of the feature.
+    - Normalize the resulting attributions so their sum equals the difference between the original and fully-masked model outputs.
 """
 
 

@@ -32,21 +32,21 @@ Algorithm
    - Accepts a model, a value range for feature sampling, the number of samples, masking strategy (`'random'`, `'noise'`, `'zero'`), and device context.
 
 2. **Masking**:
-   - For each coalition (a subset of features to mask), masked values are replaced by:
-     - Random values (uniform), or
-     - Gaussian noise, or
-     - Zeros, depending on the selected strategy.
+    - For each coalition (a subset of features to mask), masked values are replaced by:
+        - Random values (uniform), or
+        - Gaussian noise, or
+        - Zeros, depending on the selected strategy.
 
 3. **SHAP Value Estimation**:
-   - For each feature:
-     - Randomly select a subset of other features to mask.
-     - Compute model output for:
-       - The input with the coalition masked.
-       - The input with the coalition plus the current feature masked.
-     - Record and average the difference in outputs as the estimated contribution.
+    - For each feature:
+        - Randomly select a subset of other features to mask.
+        - Compute model output for:
+            - The input with the coalition masked.
+            - The input with the coalition plus the current feature masked.
+        - Record and average the difference in outputs as the estimated contribution.
 
 4. **Normalization**:
-   - Scale the attributions so that their sum equals the difference between the original and fully-masked model outputs.
+    - Scale the attributions so that their sum equals the difference between the original and fully-masked model outputs.
 
 References
 ----------

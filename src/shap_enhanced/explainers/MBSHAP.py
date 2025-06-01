@@ -17,43 +17,43 @@ Key Concepts
 ^^^^^^^^^^^^
 
 - **Multiple Baselines**:  
-  Each input is explained with respect to a set of baselines instead of just one. Baseline options include:
-  - Random background samples.
-  - Mean or centroid-based references.
-  - K nearest neighbors (local context).
-  - User-specified selections.
+    Each input is explained with respect to a set of baselines instead of just one. Baseline options include:
+        - Random background samples.
+        - Mean or centroid-based references.
+        - K nearest neighbors (local context).
+        - User-specified selections.
 
 - **Explainer Flexibility**:  
-  MB-SHAP is compatible with any SHAP-style explainer, including `DeepExplainer`, `GradientExplainer`, and `KernelExplainer`.  
-  It wraps the base explainer and runs it separately for each baseline.
+    MB-SHAP is compatible with any SHAP-style explainer, including `DeepExplainer`, `GradientExplainer`, and `KernelExplainer`.  
+    It wraps the base explainer and runs it separately for each baseline.
 
 - **Attribution Averaging**:  
-  For each input sample:
-  - SHAP values are computed with respect to each baseline.
-  - The resulting attribution vectors are averaged to yield a final, smoothed explanation.
+    For each input sample:
+        - SHAP values are computed with respect to each baseline.
+        - The resulting attribution vectors are averaged to yield a final, smoothed explanation.
 
 - **Local Fidelity**:  
-  Using per-input nearest neighbors as baselines helps improve explanation fidelity for local model behavior.
+    Using per-input nearest neighbors as baselines helps improve explanation fidelity for local model behavior.
 
 Algorithm
 ---------
 
 1. **Initialization**:
-   - Accepts a model, background dataset, number of baselines, baseline selection strategy (`'random'`, `'nearest'`, `'mean'`, `'kmeans'`, etc.),  
-     SHAP explainer class (e.g., `shap.DeepExplainer`), and device context.
+    - Accepts a model, background dataset, number of baselines, baseline selection strategy (`'random'`, `'nearest'`, `'mean'`, `'kmeans'`, etc.),  
+        SHAP explainer class (e.g., `shap.DeepExplainer`), and device context.
 
 2. **Baseline Selection**:
-   - For each input sample:
-     - Select multiple baseline samples from the background using the chosen strategy.
+    - For each input sample:   
+        - Select multiple baseline samples from the background using the chosen strategy.
 
 3. **SHAP Value Computation**:
-   - For each selected baseline:
-     - Instantiate the base SHAP explainer.
-     - Compute SHAP values for the input sample with respect to that baseline.
-   - Average the SHAP results across all baselines.
+    - For each selected baseline:
+        - Instantiate the base SHAP explainer.
+        - Compute SHAP values for the input sample with respect to that baseline.
+    - Average the SHAP results across all baselines.
 
 4. **Output**:
-   - Return the final attributions as averaged SHAP values, preserving shape and semantics of the model input.
+    - Return the final attributions as averaged SHAP values, preserving shape and semantics of the model input.
 """
 
 
