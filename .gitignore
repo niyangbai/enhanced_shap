@@ -277,3 +277,4 @@ docs/.pytest_cache
 
 # MacOS metadata
 .DS_Store
+CLAUDE.md

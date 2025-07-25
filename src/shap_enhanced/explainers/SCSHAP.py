@@ -29,54 +29,87 @@ Key Concepts
     Groups of mutually exclusive features (e.g., one-hot encodings) are masked by setting the entire group to zero,  
     simulating "no class selected."
 
-- **Binary Feature Support**:  
-    Element-wise masking is applied to binary features, allowing localized coalitions across time and features.
-
-- **Flexible Masking Strategies**:  
-    - Default: zero-masking.
-    - Extensible to other strategies (e.g., pattern sampling from background data).
+- **Binary Feature Masking**:  
+    Individual binary features are masked element-wise while respecting feature dependencies.
 
 - **Additivity Normalization**:  
-    Final attributions are normalized so their total matches the difference between the model outputs  
-    of the original and fully-masked inputs.
+    Final attributions are scaled such that their total equals the model output difference between  
+    the original and fully-masked inputs.
 
 Algorithm
 ---------
 
 1. **Initialization**:
-    - Accepts the target model, background dataset, one-hot group definitions, masking strategy (default: zero),  
-        and device configuration.
+    - Accepts a model, background dataset, optional one-hot group definitions, masking strategy, and device context.
 
-2. **Coalition Sampling**:
-    - For each one-hot group or binary feature:
-        - Randomly sample subsets of other groups/features to form coalitions.
-        - For each coalition:
-            - Mask the selected features/groups in the input.
-            - Mask the coalition plus the current target group/feature.
-            - Compute the model outputs for both variants.
-            - Record the output difference.
+2. **Sparse Coalition Sampling**:
+    - For one-hot groups: Sample coalitions of entire groups to mask.
+    - For individual features: Sample coalitions of feature-time pairs.
+    - Ensure all masked combinations respect sparsity constraints.
 
 3. **SHAP Value Estimation**:
-    - Average the output differences over many sampled coalitions to approximate the Shapley value  
-        (i.e., the marginal contribution) of each group/feature.
+    - For each feature or feature group:
+        - Repeatedly sample coalitions of other features/groups.
+        - Compute model output after masking the coalition.
+        - Compute model output after masking the coalition plus the target feature/group.
+        - Record the difference to estimate the marginal contribution.
+        - Average these differences across sampled coalitions.
 
 4. **Normalization**:
-    - Scale all attributions so their sum equals the model output difference between  
-        the original and fully-masked inputs.
+    - Scale the final attributions so their sum matches the model output difference  
+        between the unmasked and fully-masked input.
 
 Use Case
 --------
 
-Ideal for models operating on:
-    - Categorical variables represented via one-hot encoding.
-    - Structured binary inputs (e.g., presence/absence features).
-    - Sparse input spaces where validity and interpretability are critical.
+Ideal for:
+    - One-hot encoded categorical features.
+    - Binary indicators (presence/absence).
+    - Sparse high-dimensional data where only valid observed patterns should be used for attribution.
 """
-
 
 import numpy as np
 import torch
 from shap_enhanced.base_explainer import BaseExplainer
+from shap_enhanced.algorithms.coalition_sampling import RandomCoalitionSampler, create_all_positions
+from shap_enhanced.algorithms.masking import BaseMasker, ZeroMasker
+from shap_enhanced.algorithms.model_evaluation import ModelEvaluator
+from shap_enhanced.algorithms.normalization import AdditivityNormalizer
+from shap_enhanced.algorithms.data_processing import process_inputs
+
+
+class SparseCoalitionMasker(BaseMasker):
+    """Custom masker for sparse coalition SHAP with one-hot group support."""
+    
+    def __init__(self, onehot_groups=None):
+        self.onehot_groups = onehot_groups
+    
+    def mask_features(self, x, mask_positions):
+        """Apply sparse coalition masking."""
+        x_masked = x.copy()
+        
+        if self.onehot_groups is not None:
+            # Handle one-hot groups - mask_positions contains group indices
+            for group_idx in mask_positions:
+                if isinstance(group_idx, (list, tuple)):
+                    # Direct group indices
+                    for feature_idx in group_idx:
+                        x_masked[:, feature_idx] = 0
+                else:
+                    # Group index reference
+                    if group_idx < len(self.onehot_groups):
+                        for feature_idx in self.onehot_groups[group_idx]:
+                            x_masked[:, feature_idx] = 0
+        else:
+            # Handle individual (t, f) positions
+            for position in mask_positions:
+                if isinstance(position, tuple) and len(position) == 2:
+                    t, f = position
+                    if 0 <= t < x.shape[0] and 0 <= f < x.shape[1]:
+                        x_masked[t, f] = 0
+        
+        return x_masked
+
 
 class SparseCoalitionSHAPExplainer(BaseExplainer):
     r"""
@@ -85,10 +118,6 @@ class SparseCoalitionSHAPExplainer(BaseExplainer):
     This explainer approximates Shapley values by sampling valid sparse coalitions of features. 
     It ensures that perturbed inputs remain syntactically valid, especially for inputs with 
     structured sparsity such as one-hot encodings or binary indicator features.
-
-    .. note::
-        One-hot groups are masked as entire sets to simulate "no class selected".
-        General binary features are masked element-wise.
 
     :param model: Predictive model to explain.
     :type model: Any
@@ -110,23 +139,24 @@ class SparseCoalitionSHAPExplainer(BaseExplainer):
         device=None
     ):
         super().__init__(model, background)
-        self.onehot_groups = onehot_groups  # e.g., [[0,1,2],[3,4,5],...]
+        self.onehot_groups = onehot_groups
         self.mask_strategy = mask_strategy
         self.device = device or ("cuda" if torch.cuda.is_available() else "cpu")
+        
+        # Initialize common algorithm components
+        self.coalition_sampler = RandomCoalitionSampler()
+        self.masker = SparseCoalitionMasker(onehot_groups)
+        self.model_evaluator = ModelEvaluator(model, device)
+        self.normalizer = AdditivityNormalizer(model, device)
 
-    def _mask(self, x, groups_to_mask):
-        # x: (T, F)
-        x_masked = x.copy()
+    def _get_coalition_space(self, T, F):
+        """Get the appropriate coalition space based on one-hot groups."""
         if self.onehot_groups is not None:
-            # groups_to_mask: list of groups, each group is list of indices
-            for group in groups_to_mask:
-                for idx in group:
-                    x_masked[:, idx] = 0
+            # For one-hot groups, coalitions are group indices
+            return list(range(len(self.onehot_groups)))
         else:
-            # For general binary: groups_to_mask is a flat list of (t, f) tuples
-            for t, f in groups_to_mask:
-                x_masked[t, f] = 0
-        return x_masked
+            # For individual features, coalitions are (t, f) positions
+            return create_all_positions(T, F)
 
     def shap_values(
         self,
@@ -145,88 +175,112 @@ class SparseCoalitionSHAPExplainer(BaseExplainer):
         - Computes model output difference when adding the current feature/group to the coalition.
         - Averages these differences to estimate the Shapley value.
 
-        .. math::
-            \phi_i = \mathbb{E}_{S \subseteq N \setminus \{i\}} \left[
-                f(S \cup \{i\}) - f(S)
-            \right]
-
-        Final attributions are normalized such that:
-
-        .. math::
-            \sum_i \phi_i = f(x) - f(x_{\text{masked}})
-
         :param X: Input instance(s), shape (T, F) or (B, T, F).
-        :type X: np.ndarray or torch.Tensor
-        :param int nsamples: Number of coalition samples per feature/group.
-        :param bool check_additivity: If True, prints the additivity check.
-        :param int random_seed: Seed for reproducible sampling.
-        :return: SHAP attribution values, same shape as input.
-        :rtype: np.ndarray
+        :param nsamples: Number of coalition samples per feature/group.
+        :param check_additivity: Whether to print additivity diagnostic.
+        :param random_seed: Random seed for reproducibility.
+        :return: SHAP values with same shape as input.
         """
         np.random.seed(random_seed)
-        is_torch = hasattr(X, 'detach')
-        X_in = X.detach().cpu().numpy() if is_torch else np.asarray(X)
-        single = (X_in.ndim == 2)
-        if single:
-            X_in = X_in[None, ...]
-        B, T, F = X_in.shape
+        
+        # Process inputs using common algorithm
+        X_processed, is_single, _ = process_inputs(X)
+        B, T, F = X_processed.shape
+        
+        # Initialize SHAP values
+        if self.onehot_groups is not None:
+            # For one-hot groups, compute group-level SHAP values
+            n_groups = len(self.onehot_groups)
+            group_shap_vals = np.zeros((B, n_groups), dtype=float)
+        
         shap_vals = np.zeros((B, T, F), dtype=float)
-
+        coalition_space = self._get_coalition_space(T, F)
+        
         for b in range(B):
-            x = X_in[b]
+            x_orig = X_processed[b]
+            
             if self.onehot_groups is not None:
-                # One-hot masking
-                all_groups = self.onehot_groups
-                for group in all_groups:
-                    for idx in group:
-                        contribs = []
-                        groups_others = [g for g in all_groups if g != group]
-                        for _ in range(nsamples):
-                            # Sample random subset of other groups to mask
-                            k = np.random.randint(0, len(groups_others) + 1)
-                            C_idxs = np.random.choice(len(groups_others), size=k, replace=False)
-                            mask_groups = [groups_others[i] for i in C_idxs]
-                            # Mask C (other groups)
-                            x_C = self._mask(x, mask_groups)
-                            # Mask C + this group
-                            x_C_g = self._mask(x_C, [group])
-                            out_C = self.model(torch.tensor(x_C[None], dtype=torch.float32, device=self.device)).detach().cpu().numpy().squeeze()
-                            out_C_g = self.model(torch.tensor(x_C_g[None], dtype=torch.float32, device=self.device)).detach().cpu().numpy().squeeze()
-                            contribs.append(out_C - out_C_g)
-                        # Assign SHAP value to all features in this group equally (or just to idx)
-                        shap_vals[b, :, idx] = np.mean(contribs) / len(group)
+                # Compute SHAP values for one-hot groups
+                for group_idx in range(n_groups):
+                    marginal_contributions = []
+                    
+                    for _ in range(nsamples):
+                        # Sample coalition of other groups
+                        other_groups = [g for g in range(n_groups) if g != group_idx]
+                        if len(other_groups) > 0:
+                            k = np.random.randint(0, len(other_groups) + 1)
+                            coalition = np.random.choice(other_groups, k, replace=False).tolist()
+                        else:
+                            coalition = []
+                        
+                        # Evaluate model with coalition
+                        x_coalition = self.masker.mask_features(x_orig, coalition)
+                        pred_coalition = self.model_evaluator.evaluate_single(x_coalition)
+                        
+                        # Evaluate model with coalition + target group
+                        coalition_plus_target = coalition + [group_idx]
+                        x_coalition_plus = self.masker.mask_features(x_orig, coalition_plus_target)
+                        pred_coalition_plus = self.model_evaluator.evaluate_single(x_coalition_plus)
+                        
+                        # Marginal contribution
+                        contribution = pred_coalition_plus - pred_coalition
+                        marginal_contributions.append(contribution)
+                    
+                    group_shap_vals[b, group_idx] = np.mean(marginal_contributions)
+                
+                # Distribute group SHAP values to individual features
+                for group_idx, feature_indices in enumerate(self.onehot_groups):
+                    group_value = group_shap_vals[b, group_idx]
+                    # Distribute equally among group features (could be enhanced)
+                    for feature_idx in feature_indices:
+                        if feature_idx < F:
+                            shap_vals[b, :, feature_idx] = group_value / len(feature_indices)
+            
             else:
-                # General binary: per (t, f)
-                all_pos = [(t, f) for t in range(T) for f in range(F)]
+                # Standard individual feature SHAP computation
                 for t in range(T):
                     for f in range(F):
-                        contribs = []
-                        available = [idx for idx in all_pos if idx != (t, f)]
+                        marginal_contributions = []
+                        target_position = (t, f)
+                        
                         for _ in range(nsamples):
-                            # Mask random subset of others
-                            k = np.random.randint(0, len(available) + 1)
-                            C_idxs = np.random.choice(len(available), size=k, replace=False)
-                            mask_idxs = [available[i] for i in C_idxs]
-                            x_C = self._mask(x, mask_idxs)
-                            x_C_tf = self._mask(x_C, [(t, f)])
-                            out_C = self.model(torch.tensor(x_C[None], dtype=torch.float32, device=self.device)).detach().cpu().numpy().squeeze()
-                            out_C_tf = self.model(torch.tensor(x_C_tf[None], dtype=torch.float32, device=self.device)).detach().cpu().numpy().squeeze()
-                            contribs.append(out_C - out_C_tf)
-                        shap_vals[b, t, f] = np.mean(contribs)
-            # Additivity normalization
-            orig_pred = self.model(torch.tensor(x[None], dtype=torch.float32, device=self.device)).detach().cpu().numpy().squeeze()
+                            # Sample coalition excluding target feature
+                            coalition = self.coalition_sampler.sample_coalition(
+                                coalition_space, exclude=target_position
+                            )
+                            
+                            # Evaluate model with coalition
+                            x_coalition = self.masker.mask_features(x_orig, coalition)
+                            pred_coalition = self.model_evaluator.evaluate_single(x_coalition)
+                            
+                            # Evaluate model with coalition + target feature
+                            coalition_plus_target = coalition + [target_position]
+                            x_coalition_plus = self.masker.mask_features(x_orig, coalition_plus_target)
+                            pred_coalition_plus = self.model_evaluator.evaluate_single(x_coalition_plus)
+                            
+                            # Marginal contribution
+                            contribution = pred_coalition_plus - pred_coalition
+                            marginal_contributions.append(contribution)
+                        
+                        shap_vals[b, t, f] = np.mean(marginal_contributions)
+            
+            # Apply additivity normalization using common algorithm
             if self.onehot_groups is not None:
-                x_all_masked = self._mask(x, self.onehot_groups)
+                # For one-hot data, mask all groups
+                all_groups = list(range(len(self.onehot_groups)))
+                fully_masked = self.masker.mask_features(x_orig, all_groups)
             else:
-                all_pos = [(t, f) for t in range(T) for f in range(F)]
-                x_all_masked = self._mask(x, all_pos)
-            masked_pred = self.model(torch.tensor(x_all_masked[None], dtype=torch.float32, device=self.device)).detach().cpu().numpy().squeeze()
-            shap_sum = shap_vals[b].sum()
-            model_diff = orig_pred - masked_pred
-            if shap_sum != 0:
-                shap_vals[b] *= model_diff / shap_sum
-
-        shap_vals = shap_vals[0] if single else shap_vals
+                # For individual features, mask all positions
+                fully_masked = self.masker.mask_features(x_orig, coalition_space)
+            
+            shap_vals[b] = self.normalizer.normalize_additive(
+                shap_vals[b], x_orig, fully_masked
+            )
+        
+        # Return in original format
+        result = shap_vals[0] if is_single else shap_vals
+        
         if check_additivity:
-            print(f"[SparseCoalitionSHAP] sum(SHAP)={shap_vals.sum():.4f} | Model diff={float(orig_pred - masked_pred):.4f}")
-        return shap_vals
+            print(f"[SparseCoalitionSHAP] sum(SHAP)={result.sum():.4f}")
+        
+        return result

@@ -54,12 +54,11 @@ Algorithm
         to produce the final, noise-robust attribution result.
 """
 
-
 import numpy as np
 import torch
 import inspect
-import shap  # Requires SHAP package installed
 from shap_enhanced.base_explainer import BaseExplainer
+from shap_enhanced.algorithms.data_processing import process_inputs
 
 def _needs_torch(explainer_class):
     """Return True if explainer expects torch input/background."""
@@ -139,7 +138,17 @@ class EnsembleSHAPWithNoise(BaseExplainer):
         super().__init__(model, background)
         self.model = model
         self.background = background
-        self.explainer_class = explainer_class or shap.DeepExplainer
+        
+        # Handle explainer_class import for shap module
+        if explainer_class is None:
+            try:
+                import shap
+                self.explainer_class = shap.DeepExplainer
+            except ImportError:
+                raise ImportError("SHAP package is required for EnsembleSHAPWithNoise")
+        else:
+            self.explainer_class = explainer_class
+            
         self.explainer_kwargs = explainer_kwargs or {}
         self.n_runs = n_runs
         self.noise_level = noise_level
@@ -169,6 +178,7 @@ class EnsembleSHAPWithNoise(BaseExplainer):
         :rtype: np.ndarray
         """
         attributions = []
+        
         for run in range(self.n_runs):
             # Decide type for this explainer run
             if _needs_torch(self.explainer_class):
@@ -178,6 +188,7 @@ class EnsembleSHAPWithNoise(BaseExplainer):
             else:
                 # Default to numpy (most explainers)
                 typ = "numpy"
+                
             # Prepare background with noise (if needed), convert to type
             bg_noisy = self.background
             if self.noise_target in ("background", "both") and self.background is not None:
@@ -205,6 +216,7 @@ class EnsembleSHAPWithNoise(BaseExplainer):
             if isinstance(attr, list):  # SHAP DeepExplainer returns list for multi-output
                 attr = attr[0]
             attributions.append(np.array(attr))
+            
         attributions = np.stack(attributions, axis=0)
         if self.aggregation == "mean":
             return np.mean(attributions, axis=0)

@@ -62,6 +62,78 @@ Algorithm
 import numpy as np
 import torch
 from shap_enhanced.base_explainer import BaseExplainer
+from shap_enhanced.algorithms.coalition_sampling import RandomCoalitionSampler, create_all_positions
+from shap_enhanced.algorithms.masking import BaseMasker
+from shap_enhanced.algorithms.model_evaluation import ModelEvaluator
+from shap_enhanced.algorithms.normalization import AdditivityNormalizer
+from shap_enhanced.algorithms.data_processing import process_inputs, BackgroundProcessor
+
+
+class EmpiricalConditionalMasker(BaseMasker):
+    """Custom masker for empirical conditional SHAP with background matching."""
+    
+    def __init__(self, background_data, skip_unmatched=True, use_closest=False):
+        self.background_data = background_data
+        self.skip_unmatched = skip_unmatched
+        self.use_closest = use_closest
+        
+        # Compute mean baseline for fallback
+        self.mean_baseline = np.mean(background_data, axis=0)
+        
+        # Simple heuristic to detect continuous data
+        F = background_data.shape[-1]
+        continuous_features = []
+        for f in range(F):
+            unique_vals = np.unique(background_data[..., f])
+            continuous_features.append(len(unique_vals) > 30)
+        
+        self.is_continuous = np.mean(continuous_features) > 0.5
+        if self.is_continuous:
+            print("[EmpCondSHAP] WARNING: Detected continuous/tabular data. Will fallback to mean imputation where needed.")
+    
+    def _find_conditional_match(self, mask, x):
+        """Find background sample matching unmasked features."""
+        unmasked_flat = (~mask).reshape(-1)
+        x_flat = x.reshape(-1)
+        bg_flat = self.background_data.reshape(self.background_data.shape[0], -1)
+        
+        # Look for exact matches
+        match = np.all(bg_flat[:, unmasked_flat] == x_flat[unmasked_flat], axis=1)
+        idxs = np.where(match)[0]
+        
+        if len(idxs) > 0:
+            return np.random.choice(idxs)
+        elif self.use_closest and len(self.background_data) > 0:
+            # Use closest match by Hamming distance
+            diffs = np.sum(bg_flat[:, unmasked_flat] != x_flat[unmasked_flat], axis=1)
+            idx = np.argmin(diffs)
+            return idx
+        else:
+            return None
+    
+    def mask_features(self, x, mask_positions):
+        """Apply empirical conditional masking."""
+        # Create mask from positions
+        mask = np.zeros_like(x, dtype=bool)
+        for t, f in mask_positions:
+            if 0 <= t < x.shape[0] and 0 <= f < x.shape[1]:
+                mask[t, f] = True
+        
+        # Find conditional match
+        idx_match = self._find_conditional_match(mask, x)
+        
+        if idx_match is not None:
+            # Use matched background sample
+            x_masked = self.background_data[idx_match].copy()
+            # Keep unmasked features from original
+            x_masked[~mask] = x[~mask]
+        else:
+            # Fallback to mean imputation
+            x_masked = x.copy()
+            x_masked[mask] = self.mean_baseline[mask]
+        
+        return x_masked
+
 
 class EmpiricalConditionalSHAPExplainer(BaseExplainer):
     r"""
@@ -92,46 +164,20 @@ class EmpiricalConditionalSHAPExplainer(BaseExplainer):
         device=None
     ):
         super().__init__(model, background)
-        self.background = background.detach().cpu().numpy() if hasattr(background, 'detach') else np.asarray(background)
-        if self.background.ndim == 2:
-            self.background = self.background[:, None, :]  # (N, 1, F)
-        self.device = device or ("cuda" if torch.cuda.is_available() else "cpu")
+        
+        # Process background data
+        self.background = BackgroundProcessor.process_background(background)
         self.skip_unmatched = skip_unmatched
         self.use_closest = use_closest
-        # Simple check: treat data as "continuous" if >30 unique values per feature
-        self.is_continuous = np.mean([np.unique(self.background[..., f]).size > 30 for f in range(self.background.shape[-1])]) > 0.5
-        if self.is_continuous:
-            print("[EmpCondSHAP] WARNING: Detected continuous/tabular data. Empirical conditional imputation is not suitable. Will fallback to mean imputation where needed.")
-
-        self.mean_baseline = np.mean(self.background, axis=0)  # (T, F)
-
-    def _find_conditional_match(self, mask, x):
-        r"""
-        Find a background sample that matches the unmasked features of the input.
-
-        If `use_closest` is enabled, falls back to the nearest background match
-        (measured via Hamming distance) when no exact match is found.
-
-        :param mask: Boolean mask array indicating masked positions (True).
-        :type mask: np.ndarray
-        :param x: Input array to match against background samples.
-        :type x: np.ndarray
-        :return: Index of matched background sample or None.
-        :rtype: Optional[int]
-        """
-        unmasked_flat = (~mask).reshape(-1)
-        x_flat = x.reshape(-1)
-        bg_flat = self.background.reshape(self.background.shape[0], -1)
-        match = np.all(bg_flat[:, unmasked_flat] == x_flat[unmasked_flat], axis=1)
-        idxs = np.where(match)[0]
-        if len(idxs) > 0:
-            return np.random.choice(idxs)
-        elif self.use_closest and len(self.background) > 0:
-            diffs = np.sum(bg_flat[:, unmasked_flat] != x_flat[unmasked_flat], axis=1)
-            idx = np.argmin(diffs)
-            return idx
-        else:
-            return None
+        self.device = device or ("cuda" if torch.cuda.is_available() else "cpu")
+        
+        # Initialize common algorithm components
+        self.coalition_sampler = RandomCoalitionSampler()
+        self.masker = EmpiricalConditionalMasker(
+            self.background, skip_unmatched, use_closest
+        )
+        self.model_evaluator = ModelEvaluator(model, device)
+        self.normalizer = AdditivityNormalizer(model, device)
 
     def shap_values(
         self,
@@ -172,57 +218,55 @@ class EmpiricalConditionalSHAPExplainer(BaseExplainer):
         :rtype: np.ndarray
         """
         np.random.seed(random_seed)
-        is_torch = hasattr(X, 'detach')
-        X_in = X.detach().cpu().numpy() if is_torch else np.asarray(X)
-        if X_in.ndim == 2:
-            X_in = X_in[None, ...]
-        B, T, F = X_in.shape
+        
+        # Process inputs using common algorithm
+        X_processed, is_single, _ = process_inputs(X)
+        B, T, F = X_processed.shape
         shap_vals = np.zeros((B, T, F), dtype=float)
+        
+        all_positions = create_all_positions(T, F)
+        
         for b in range(B):
-            x = X_in[b]
-            all_pos = [(t, f) for t in range(T) for f in range(F)]
+            x_orig = X_processed[b]
+            
+            # Compute SHAP values for each position
             for t in range(T):
                 for f in range(F):
-                    mc = []
-                    available = [idx for idx in all_pos if idx != (t, f)]
+                    marginal_contributions = []
+                    target_position = (t, f)
+                    
                     for _ in range(nsamples):
-                        k = np.random.randint(1, len(available)+1)
-                        mask_idxs = [available[i] for i in np.random.choice(len(available), k, replace=False)]
-                        mask = np.zeros((T, F), dtype=bool)
-                        for tt, ff in mask_idxs:
-                            mask[tt, ff] = True
-                        idx_match = self._find_conditional_match(mask, x)
-                        if idx_match is not None:
-                            x_masked = self.background[idx_match].copy()
-                        else:
-                            # fallback: mean imputation for continuous data
-                            x_masked = self.mean_baseline.copy()
-                        mask2 = mask.copy()
-                        mask2[t, f] = True
-                        idx_match2 = self._find_conditional_match(mask2, x)
-                        if idx_match2 is not None:
-                            x_masked_tf = self.background[idx_match2].copy()
-                        else:
-                            x_masked_tf = self.mean_baseline.copy()
-                        # Evaluate
-                        out_masked = self.model(torch.tensor(x_masked[None], dtype=torch.float32, device=self.device)).detach().cpu().numpy().squeeze()
-                        out_masked_tf = self.model(torch.tensor(x_masked_tf[None], dtype=torch.float32, device=self.device)).detach().cpu().numpy().squeeze()
-                        mc.append(out_masked_tf - out_masked)
-                    if len(mc) > 0:
-                        shap_vals[b, t, f] = np.mean(mc)
-            # Additivity normalization
-            orig_pred = self.model(torch.tensor(x[None], dtype=torch.float32, device=self.device)).detach().cpu().numpy().squeeze()
-            mask_all = np.ones((T, F), dtype=bool)
-            idx_all = self._find_conditional_match(mask_all, x)
-            if idx_all is not None:
-                masked_pred = self.model(torch.tensor(self.background[idx_all][None], dtype=torch.float32, device=self.device)).detach().cpu().numpy().squeeze()
-            else:
-                masked_pred = self.model(torch.tensor(self.mean_baseline[None], dtype=torch.float32, device=self.device)).detach().cpu().numpy().squeeze()
-            shap_sum = shap_vals[b].sum()
-            model_diff = orig_pred - masked_pred
-            if shap_sum != 0:
-                shap_vals[b] *= model_diff / shap_sum
-        shap_vals = shap_vals[0] if X_in.shape[0] == 1 else shap_vals
+                        # Sample coalition excluding target feature
+                        coalition = self.coalition_sampler.sample_coalition(
+                            all_positions, exclude=target_position
+                        )
+                        
+                        # Evaluate model with coalition
+                        x_coalition = self.masker.mask_features(x_orig, coalition)
+                        pred_coalition = self.model_evaluator.evaluate_single(x_coalition)
+                        
+                        # Evaluate model with coalition + target feature
+                        coalition_plus_target = coalition + [target_position]
+                        x_coalition_plus = self.masker.mask_features(x_orig, coalition_plus_target)
+                        pred_coalition_plus = self.model_evaluator.evaluate_single(x_coalition_plus)
+                        
+                        # Marginal contribution (note: EC-SHAP computes different sign)
+                        contribution = pred_coalition_plus - pred_coalition
+                        marginal_contributions.append(contribution)
+                    
+                    if len(marginal_contributions) > 0:
+                        shap_vals[b, t, f] = np.mean(marginal_contributions)
+            
+            # Apply additivity normalization using common algorithm
+            fully_masked = self.masker.mask_features(x_orig, all_positions)
+            shap_vals[b] = self.normalizer.normalize_additive(
+                shap_vals[b], x_orig, fully_masked
+            )
+        
+        # Return in original format
+        result = shap_vals[0] if is_single else shap_vals
+        
         if check_additivity:
-            print(f"[EmpCondSHAP] sum(SHAP)={shap_vals.sum():.4f}")
-        return shap_vals
+            print(f"[EmpCondSHAP] sum(SHAP)={result.sum():.4f}")
+        
+        return result

@@ -42,7 +42,7 @@ Algorithm
 2. **Recursive Attribution**:
     - For each group in the hierarchy:
         - Sample coalitions of other groups.
-        - Estimate the group’s marginal contribution by masking:
+        - Estimate the group's marginal contribution by masking:
             - Only the coalition, and
             - The coalition plus the current group.
         - Compute the model output difference to get SHAP value.
@@ -54,10 +54,15 @@ Algorithm
         between the unmasked input and the fully-masked input.
 """
 
-
 import numpy as np
 import torch
 from shap_enhanced.base_explainer import BaseExplainer
+from shap_enhanced.algorithms.coalition_sampling import RandomCoalitionSampler
+from shap_enhanced.algorithms.masking import ZeroMasker, MeanMasker
+from shap_enhanced.algorithms.model_evaluation import ModelEvaluator
+from shap_enhanced.algorithms.normalization import AdditivityNormalizer
+from shap_enhanced.algorithms.data_processing import process_inputs, BackgroundProcessor
+
 
 def generate_hierarchical_groups(
     T, F, 
@@ -119,6 +124,28 @@ def generate_hierarchical_groups(
         return groups
 
 
+class HierarchicalMasker:
+    """Custom masker for hierarchical SHAP with group-based masking."""
+    
+    def __init__(self, mask_strategy="mean", background_mean=None):
+        self.mask_strategy = mask_strategy
+        self.background_mean = background_mean
+    
+    def mask_groups(self, x, group_positions):
+        """Apply hierarchical group-based masking."""
+        x_masked = x.copy()
+        
+        for group in group_positions:
+            for t, f in group:
+                if 0 <= t < x.shape[0] and 0 <= f < x.shape[1]:
+                    if self.mask_strategy == "zero":
+                        x_masked[t, f] = 0.0
+                    elif self.mask_strategy == "mean":
+                        x_masked[t, f] = self.background_mean[t, f]
+        
+        return x_masked
+
+
 class HShapExplainer(BaseExplainer):
     r"""
     HShapExplainer: Hierarchical SHAP Explainer
@@ -150,33 +177,22 @@ class HShapExplainer(BaseExplainer):
         self.hierarchy = hierarchy  # List of groups, or nested list
         self.mask_strategy = mask_strategy
         self.device = device or ("cuda" if torch.cuda.is_available() else "cpu")
+        
+        # Process background data
+        self.background = BackgroundProcessor.process_background(background)
+        
+        # Initialize common algorithm components
+        self.coalition_sampler = RandomCoalitionSampler()
+        self.model_evaluator = ModelEvaluator(model, device)
+        self.normalizer = AdditivityNormalizer(model, device)
+        
         if mask_strategy == "mean":
-            self._mean = background.mean(axis=0)
+            bg_stats = BackgroundProcessor.compute_background_statistics(self.background)
+            self.masker = HierarchicalMasker(mask_strategy, bg_stats['mean'])
         else:
-            self._mean = None
+            self.masker = HierarchicalMasker(mask_strategy)
 
-    def _impute(self, X, idxs):
-        r"""
-        Mask or impute features in `X` at the given (t, f) indices according to the configured strategy.
-
-        :param X: Input sample to be modified.
-        :type X: np.ndarray
-        :param idxs: List of (t, f) indices to mask.
-        :type idxs: list of tuples
-        :return: Modified input sample with masked/imputed values.
-        :rtype: np.ndarray
-        """
-        X_imp = X.copy()
-        for (t, f) in idxs:
-            if self.mask_strategy == "zero":
-                X_imp[t, f] = 0.0
-            elif self.mask_strategy == "mean":
-                X_imp[t, f] = self._mean[t, f]
-            else:
-                raise ValueError(f"Unknown mask_strategy: {self.mask_strategy}")
-        return X_imp
-
-    def _shap_group(self, x, group_idxs, rest_idxs, nsamples=50):
+    def _shap_group(self, x, group_idxs, rest_groups, nsamples=50):
         r"""
         Estimate the SHAP value of a feature group by computing its marginal contribution 
         compared to sampled subsets of other groups.
@@ -190,30 +206,37 @@ class HShapExplainer(BaseExplainer):
         :type x: np.ndarray
         :param group_idxs: Indices of the current group.
         :type group_idxs: list of tuples
-        :param rest_idxs: Indices of all other groups.
-        :type rest_idxs: list of tuples
+        :param rest_groups: List of other groups.
+        :type rest_groups: list of groups
         :param int nsamples: Number of random coalitions to sample for marginal estimation.
         :return: Estimated SHAP value for the group.
         :rtype: float
         """
-        contribs = []
-        all_idxs = group_idxs + rest_idxs
+        marginal_contributions = []
+        
         for _ in range(nsamples):
-            # Sample subset of rest to mask
-            k = np.random.randint(0, len(rest_idxs) + 1)
+            # Sample subset of rest groups to mask
+            k = np.random.randint(0, len(rest_groups) + 1)
             if k > 0:
-                idx_choices = np.random.choice(len(rest_idxs), size=k, replace=False)
-                rest_sample = [rest_idxs[i] for i in idx_choices]
+                idx_choices = np.random.choice(len(rest_groups), size=k, replace=False)
+                rest_sample = [rest_groups[i] for i in idx_choices]
             else:
                 rest_sample = []
-            # Mask: (rest_sample only), then (rest_sample + group)
-            x_rest = self._impute(x, rest_sample)
-            x_both = self._impute(x_rest, group_idxs)
-            out_rest = self.model(torch.tensor(x_rest[None], dtype=torch.float32, device=self.device)).detach().cpu().numpy().squeeze()
-            out_both = self.model(torch.tensor(x_both[None], dtype=torch.float32, device=self.device)).detach().cpu().numpy().squeeze()
-            contribs.append(out_rest - out_both)
-        return np.mean(contribs)
-
+            
+            # Evaluate model with coalition
+            x_coalition = self.masker.mask_groups(x, rest_sample)
+            pred_coalition = self.model_evaluator.evaluate_single(x_coalition)
+            
+            # Evaluate model with coalition + target group
+            coalition_plus_target = rest_sample + [group_idxs]
+            x_coalition_plus = self.masker.mask_groups(x, coalition_plus_target)
+            pred_coalition_plus = self.model_evaluator.evaluate_single(x_coalition_plus)
+            
+            # Marginal contribution
+            contribution = pred_coalition - pred_coalition_plus
+            marginal_contributions.append(contribution)
+            
+        return np.mean(marginal_contributions)
 
     def _explain_recursive(self, x, groups, nsamples=50, attributions=None):
         r"""
@@ -234,27 +257,26 @@ class HShapExplainer(BaseExplainer):
         """
         if attributions is None:
             attributions = {}
-        group_indices = []
+            
+        # Flatten nested groups for marginal computation
+        flattened_groups = []
         for group in groups:
-            if isinstance(group[0], (tuple, list)):
-                # group is a nested group, recurse
-                sub_attr = self._explain_recursive(x, group, nsamples, attributions)
-                # group_indices += flatten(group)
-                group_indices += [idx for g in group for idx in (g if isinstance(g[0], (tuple, list)) else [g])]
+            if isinstance(group[0], list):
+                # Nested group - flatten it
+                flat_group = [idx for subgroup in group for idx in subgroup]
+                flattened_groups.append(flat_group)
             else:
-                group_indices += [group]
-
-        # At this hierarchy level, estimate group SHAP for each group
-        for group in groups:
-            if isinstance(group[0], (tuple, list)):
-                flat_group = [idx for g in group for idx in (g if isinstance(g[0], (tuple, list)) else [g])]
-            else:
-                flat_group = [group]
-            rest = [idx for idx in group_indices if idx not in flat_group]
-            phi = self._shap_group(x, flat_group, rest, nsamples=nsamples)
-            # Split SHAP value equally among group members
-            for idx in flat_group:
-                attributions[idx] = attributions.get(idx, 0.0) + phi / len(flat_group)
+                flattened_groups.append(group)
+        
+        # Compute SHAP values for each group
+        for i, group in enumerate(flattened_groups):
+            rest_groups = [flattened_groups[j] for j in range(len(flattened_groups)) if j != i]
+            phi = self._shap_group(x, group, rest_groups, nsamples=nsamples)
+            
+            # Distribute SHAP value equally among group members
+            for t, f in group:
+                attributions[(t, f)] = attributions.get((t, f), 0.0) + phi / len(group)
+                
         return attributions
 
     def shap_values(
@@ -283,31 +305,33 @@ class HShapExplainer(BaseExplainer):
         :rtype: np.ndarray
         """
         np.random.seed(random_seed)
-        is_torch = hasattr(X, 'detach')
-        X_in = X.detach().cpu().numpy() if is_torch else np.asarray(X)
-        shape = X_in.shape
-        if len(shape) == 2:
-            X_in = X_in[None, ...]
-            single = True
-        else:
-            single = False
-        B, T, F = X_in.shape
+        
+        # Process inputs using common algorithm
+        X_processed, is_single, _ = process_inputs(X)
+        B, T, F = X_processed.shape
         shap_vals = np.zeros((B, T, F), dtype=float)
+        
         for b in range(B):
-            x = X_in[b]
-            attr = self._explain_recursive(x, self.hierarchy, nsamples=nsamples)
+            x_orig = X_processed[b]
+            
+            # Compute hierarchical SHAP attributions
+            attr = self._explain_recursive(x_orig, self.hierarchy, nsamples=nsamples)
+            
             for (t, f), v in attr.items():
-                shap_vals[b, t, f] = v
-            # Additivity normalization
-            orig_pred = self.model(torch.tensor(x[None], dtype=torch.float32, device=self.device)).detach().cpu().numpy().squeeze()
-            all_pos = [(t, f) for t in range(T) for f in range(F)]
-            x_all_masked = self._impute(x, all_pos)
-            masked_pred = self.model(torch.tensor(x_all_masked[None], dtype=torch.float32, device=self.device)).detach().cpu().numpy().squeeze()
-            shap_sum = shap_vals[b].sum()
-            model_diff = orig_pred - masked_pred
-            if shap_sum != 0:
-                shap_vals[b] *= model_diff / shap_sum
-        shap_vals = shap_vals[0] if single else shap_vals
+                if 0 <= t < T and 0 <= f < F:
+                    shap_vals[b, t, f] = v
+            
+            # Apply additivity normalization using common algorithm
+            all_positions = [(t, f) for t in range(T) for f in range(F)]
+            fully_masked = self.masker.mask_groups(x_orig, [all_positions])
+            shap_vals[b] = self.normalizer.normalize_additive(
+                shap_vals[b], x_orig, fully_masked
+            )
+        
+        # Return in original format
+        result = shap_vals[0] if is_single else shap_vals
+        
         if check_additivity:
-            print(f"[h-SHAP Additivity] sum(SHAP)={shap_vals.sum():.4f} | Model diff={float(orig_pred - masked_pred):.4f}")
-        return shap_vals
+            print(f"[h-SHAP Additivity] sum(SHAP)={result.sum():.4f}")
+        
+        return result

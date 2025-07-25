@@ -2,67 +2,17 @@
 MB-SHAP: Multi-Baseline SHAP Explainer
 ======================================
 
-Theoretical Explanation
------------------------
-
-Multi-Baseline SHAP (MB-SHAP) enhances the robustness of SHAP-based feature attribution  
-by computing SHAP values with respect to multiple baselines rather than a single reference.  
-This addresses a key limitation in standard SHAP explainers: their sensitivity to baseline selection.
-
-By averaging attributions from diverse or locally-relevant baselines (e.g., nearest neighbors, mean, k-means centroids),  
-MB-SHAP produces more stable, reliable, and representative explanations—particularly useful in domains with  
-heterogeneous data distributions or models that exhibit local nonlinearity.
-
-Key Concepts
-^^^^^^^^^^^^
-
-- **Multiple Baselines**:  
-    Each input is explained with respect to a set of baselines instead of just one. Baseline options include:
-        - Random background samples.
-        - Mean or centroid-based references.
-        - K nearest neighbors (local context).
-        - User-specified selections.
-
-- **Explainer Flexibility**:  
-    MB-SHAP is compatible with any SHAP-style explainer, including `DeepExplainer`, `GradientExplainer`, and `KernelExplainer`.  
-    It wraps the base explainer and runs it separately for each baseline.
-
-- **Attribution Averaging**:  
-    For each input sample:
-        - SHAP values are computed with respect to each baseline.
-        - The resulting attribution vectors are averaged to yield a final, smoothed explanation.
-
-- **Local Fidelity**:  
-    Using per-input nearest neighbors as baselines helps improve explanation fidelity for local model behavior.
-
-Algorithm
----------
-
-1. **Initialization**:
-    - Accepts a model, background dataset, number of baselines, baseline selection strategy (`'random'`, `'nearest'`, `'mean'`, `'kmeans'`, etc.),  
-        SHAP explainer class (e.g., `shap.DeepExplainer`), and device context.
-
-2. **Baseline Selection**:
-    - For each input sample:   
-        - Select multiple baseline samples from the background using the chosen strategy.
-
-3. **SHAP Value Computation**:
-    - For each selected baseline:
-        - Instantiate the base SHAP explainer.
-        - Compute SHAP values for the input sample with respect to that baseline.
-    - Average the SHAP results across all baselines.
-
-4. **Output**:
-    - Return the final attributions as averaged SHAP values, preserving shape and semantics of the model input.
+This explainer improves attribution robustness by selecting the K nearest neighbors 
+from a background dataset as baselines for each input sample, computing SHAP values 
+individually for each baseline, and then averaging the results.
 """
-
-
-
-from shap_enhanced.base_explainer import BaseExplainer
 
 import numpy as np
 import torch
 import inspect
+from shap_enhanced.base_explainer import BaseExplainer
+from shap_enhanced.algorithms.data_processing import process_inputs, BackgroundProcessor
+from shap_enhanced.algorithms.model_evaluation import ModelEvaluator
 
 class NearestNeighborMultiBaselineSHAP(BaseExplainer):
     r"""
@@ -72,20 +22,11 @@ class NearestNeighborMultiBaselineSHAP(BaseExplainer):
     from a background dataset as baselines for each input sample, computing SHAP values 
     individually for each baseline, and then averaging the results.
 
-    It is compatible with various SHAP explainers (e.g., `DeepExplainer`, `GradientExplainer`, `KernelExplainer`)
-    and automatically adapts input types and parameter formats accordingly.
-
-    .. note::
-        Baseline selection is input-dependent and done per sample using L2 distance in flattened input space.
-
     :param base_explainer_class: The SHAP explainer class to use (e.g., `shap.DeepExplainer`).
     :param model: The predictive model to explain.
-    :type model: Any
     :param background: Background dataset (N, ...) for nearest neighbor selection.
-    :type background: np.ndarray
     :param int n_baselines: Number of nearest neighbor baselines to use per sample.
     :param base_explainer_kwargs: Additional keyword arguments passed to the SHAP explainer.
-    :type base_explainer_kwargs: dict or None
     :param str device: Device context for torch-based explainers ('cpu' or 'cuda').
     """
     def __init__(
@@ -97,12 +38,14 @@ class NearestNeighborMultiBaselineSHAP(BaseExplainer):
         base_explainer_kwargs=None,
         device=None,
     ):
+        super().__init__(model, background)
         self.base_explainer_class = base_explainer_class
         self.model = model
-        self.background = np.asarray(background)
+        self.background = BackgroundProcessor.process_background(background)
         self.n_baselines = n_baselines
         self.base_explainer_kwargs = base_explainer_kwargs or {}
         self.device = device or ("cuda" if torch.cuda.is_available() else "cpu")
+        self.model_evaluator = ModelEvaluator(model, device)
 
     def _to_torch(self, arr):
         if isinstance(arr, torch.Tensor):
@@ -146,24 +89,18 @@ class NearestNeighborMultiBaselineSHAP(BaseExplainer):
         3. Computes SHAP values with respect to each baseline.
         4. Averages SHAP values across baselines to produce a robust explanation.
 
-        .. math::
-            \phi(x) = \frac{1}{K} \sum_{k=1}^{K} \text{SHAP}(x | b_k)
-
         :param X: Input samples to explain, shape (N, ...) or single sample (...).
-        :type X: np.ndarray
-        :param kwargs: Additional keyword arguments forwarded to the SHAP explainer.
         :return: Averaged SHAP attributions, shape (N, ...) or (...) for single input.
-        :rtype: np.ndarray
         """
-        X = np.asarray(X)
-        if X.ndim == 2:
-            X = X[None]
-        n_samples = X.shape[0]
+        # Process inputs using common algorithm
+        X_processed, is_single, _ = process_inputs(X)
+        B, T, F = X_processed.shape
+        
         bg_flat = self.background.reshape(self.background.shape[0], -1)
         attributions = []
 
-        for i in range(n_samples):
-            x = X[i]
+        for b in range(B):
+            x = X_processed[b]
             x_flat = x.reshape(-1)
             # K nearest neighbors in background
             dists = np.linalg.norm(bg_flat - x_flat, axis=1)
@@ -193,7 +130,6 @@ class NearestNeighborMultiBaselineSHAP(BaseExplainer):
                 sample_avg = attr[0]  # (T, F) or similar
 
             attributions.append(sample_avg)
+            
         attributions = np.stack(attributions, axis=0)
-        if attributions.shape[0] == 1:
-            return attributions[0]
-        return attributions
+        return attributions[0] if is_single else attributions

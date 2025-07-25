@@ -52,6 +52,12 @@ Algorithm
 import numpy as np
 import torch
 from shap_enhanced.base_explainer import BaseExplainer
+from shap_enhanced.algorithms.coalition_sampling import WeightedCoalitionSampler, RandomCoalitionSampler, create_all_positions
+from shap_enhanced.algorithms.masking import ZeroMasker
+from shap_enhanced.algorithms.model_evaluation import ModelEvaluator
+from shap_enhanced.algorithms.normalization import AdditivityNormalizer
+from shap_enhanced.algorithms.data_processing import process_inputs
+from shap_enhanced.algorithms.attention import GradientAttention, InputMagnitudeAttention, PerturbationAttention
 
 class AttnSHAPExplainer(BaseExplainer):
     r"""
@@ -80,23 +86,31 @@ class AttnSHAPExplainer(BaseExplainer):
         self.use_attention = use_attention
         self.proxy_attention = proxy_attention
         self.device = device or ("cuda" if torch.cuda.is_available() else "cpu")
+        
+        # Initialize common algorithm components
+        self.masker = ZeroMasker()
+        self.model_evaluator = ModelEvaluator(model, device)
+        self.normalizer = AdditivityNormalizer(model, device)
+        
+        # Initialize attention computer based on proxy type
+        if proxy_attention == "gradient":
+            self.attention_computer = GradientAttention(device)
+        elif proxy_attention == "input":
+            self.attention_computer = InputMagnitudeAttention(aggregation="sum")
+        elif proxy_attention == "perturb":
+            self.attention_computer = PerturbationAttention(device=device)
+        else:
+            self.attention_computer = None
 
     def _get_attention_weights(self, x):
         r"""
         Computes attention weights for a single input.
 
         Uses native model attention if available. Otherwise, calculates proxy attention scores
-        based on gradients, input magnitude, or perturbation sensitivity.
-
-        .. math::
-            \text{Gradient proxy: } \alpha_t = \frac{\sum_{f=1}^F |\frac{\partial y}{\partial x_{t,f}}|}{\sum_{t'=1}^T \sum_{f=1}^F |\frac{\partial y}{\partial x_{t',f}}| + \epsilon}
-
-            \text{Input proxy: } \alpha_t = \frac{\sum_{f=1}^F |x_{t,f}|}{\sum_{t'=1}^T \sum_{f=1}^F |x_{t',f}| + \epsilon}
-
-            \text{Perturb proxy: } \alpha_t = \frac{|y - y_{(-t)}|}{\sum_{t'=1}^T |y - y_{(-t')}| + \epsilon}
+        using the common attention algorithms.
 
         :param x: Input array of shape (T, F)
-        :return: Attention weights as a numpy array of shape (T,) or (T, F)
+        :return: Attention weights as a numpy array of shape (T, F)
         :rtype: np.ndarray
         """
         # Try to use model's attention method if exists
@@ -105,36 +119,16 @@ class AttnSHAPExplainer(BaseExplainer):
                 x_in = torch.tensor(x[None], dtype=torch.float32, device=self.device)
                 attn = self.model.get_attention_weights(x_in)
             attn = attn.squeeze().detach().cpu().numpy()
-            # If (T, 1), squeeze
-            if attn.ndim == 2 and attn.shape[1] == 1:
-                attn = attn[:, 0]
+            # Ensure shape is (T, F)
+            if attn.ndim == 1:  # (T,) -> (T, 1) -> (T, F)
+                attn = np.broadcast_to(attn[:, None], x.shape)
+            elif attn.ndim == 2 and attn.shape[1] == 1:  # (T, 1) -> (T, F)
+                attn = np.broadcast_to(attn, x.shape)
             return attn
-        # Else, use proxy method
-        if self.proxy_attention == "gradient":
-            x_tensor = torch.tensor(x[None], dtype=torch.float32, device=self.device, requires_grad=True)
-            output = self.model(x_tensor)
-            out_scalar = output.view(-1)[0]
-            out_scalar.backward()
-            attn = x_tensor.grad.abs().detach().cpu().numpy()[0]  # (T, F)
-            attn_norm = attn / (attn.sum() + 1e-8)
-            # Optionally, sum over features to get (T,)
-            attn_time = attn_norm.sum(axis=-1)
-            return attn_time
-        elif self.proxy_attention == "input":
-            attn = np.abs(x).sum(axis=-1)  # (T,)
-            attn = attn / (attn.sum() + 1e-8)
-            return attn
-        elif self.proxy_attention == "perturb":
-            base_pred = self.model(torch.tensor(x[None], dtype=torch.float32, device=self.device)).detach().cpu().numpy().squeeze()
-            T, F = x.shape
-            attn = np.zeros(T)
-            for t in range(T):
-                x_masked = x.copy()
-                x_masked[t, :] = 0
-                pred = self.model(torch.tensor(x_masked[None], dtype=torch.float32, device=self.device)).detach().cpu().numpy().squeeze()
-                attn[t] = abs(base_pred - pred)
-            attn = attn / (attn.sum() + 1e-8)
-            return attn
+        
+        # Use proxy method via common attention algorithms
+        if self.attention_computer is not None:
+            return self.attention_computer.compute_attention(x, self.model)
         else:
             raise RuntimeError("No attention or proxy_attention available.")
 
@@ -154,67 +148,72 @@ class AttnSHAPExplainer(BaseExplainer):
         model outputs when the feature is masked vs. when it is included in a masked coalition.
         Sampling is optionally biased using attention scores.
 
-        The final attributions are normalized to satisfy SHAP's additivity constraint:
-
-        .. math::
-            \sum_{t=1}^T \sum_{f=1}^F \phi_{t,f} \approx f(x) - f(x_{masked})
-
         :param X: Input data of shape (B, T, F) or (T, F)
-        :type X: np.ndarray or torch.Tensor
-        :param int nsamples: Number of coalitions sampled per feature.
-        :param int coalition_size: Number of features in each sampled coalition.
-        :param bool check_additivity: Whether to print additivity check results.
-        :param int random_seed: Seed for reproducible coalition sampling.
+        :param nsamples: Number of coalitions sampled per feature.
+        :param coalition_size: Number of features in each sampled coalition.
+        :param check_additivity: Whether to print additivity check results.
+        :param random_seed: Seed for reproducible coalition sampling.
         :return: SHAP values of shape (T, F) for single input or (B, T, F) for batch.
-        :rtype: np.ndarray
         """
         np.random.seed(random_seed)
-        is_torch = hasattr(X, 'detach')
-        X_in = X.detach().cpu().numpy() if is_torch else np.asarray(X)
-        single = len(X_in.shape) == 2
-        if single:
-            X_in = X_in[None, ...]
-        B, T, F = X_in.shape
+        
+        # Process inputs using common algorithm
+        X_processed, is_single, _ = process_inputs(X)
+        B, T, F = X_processed.shape
         shap_vals = np.zeros((B, T, F), dtype=float)
+        
+        all_positions = create_all_positions(T, F)
+        
         for b in range(B):
-            x_orig = X_in[b]
+            x_orig = X_processed[b]
+            
+            # Get attention weights if enabled
             attn = self._get_attention_weights(x_orig) if self.use_attention else None
+            
+            # Setup coalition sampler based on attention availability
             if attn is not None:
-                attn_flat = attn.flatten() if attn.ndim == 1 else attn.sum(axis=1)
-                attn_flat = attn_flat / (attn_flat.sum() + 1e-8)
-            all_pos = [(t, f) for t in range(T) for f in range(F)]
+                coalition_sampler = WeightedCoalitionSampler(attn)
+            else:
+                coalition_sampler = RandomCoalitionSampler()
+            
+            # Compute SHAP values for each position
             for t in range(T):
                 for f in range(F):
-                    mc = []
-                    available = [idx for idx in all_pos if idx != (t, f)]
+                    marginal_contributions = []
+                    target_position = (t, f)
+                    
                     for _ in range(nsamples):
-                        # Attention-guided sampling if available
-                        if attn is not None:
-                            attn_prob = np.array([attn[t_] if attn.ndim == 1 else attn[t_, f_] for (t_, f_) in available])
-                            attn_prob = attn_prob / (attn_prob.sum() + 1e-8)
-                            sel_idxs = np.random.choice(len(available), coalition_size, replace=False, p=attn_prob)
-                        else:
-                            sel_idxs = np.random.choice(len(available), coalition_size, replace=False)
-                        mask_idxs = [available[i] for i in sel_idxs]
-                        x_masked = x_orig.copy()
-                        for (tt, ff) in mask_idxs:
-                            x_masked[tt, ff] = 0
-                        # Also mask (t, f)
-                        x_masked_tf = x_masked.copy()
-                        x_masked_tf[t, f] = 0
-                        out_masked = self.model(torch.tensor(x_masked[None], dtype=torch.float32, device=self.device)).detach().cpu().numpy().squeeze()
-                        out_masked_tf = self.model(torch.tensor(x_masked_tf[None], dtype=torch.float32, device=self.device)).detach().cpu().numpy().squeeze()
-                        mc.append(out_masked_tf - out_masked)
-                    shap_vals[b, t, f] = np.mean(mc)
-            # Additivity normalization
-            orig_pred = self.model(torch.tensor(x_orig[None], dtype=torch.float32, device=self.device)).detach().cpu().numpy().squeeze()
-            x_all_masked = np.zeros_like(x_orig)
-            masked_pred = self.model(torch.tensor(x_all_masked[None], dtype=torch.float32, device=self.device)).detach().cpu().numpy().squeeze()
-            shap_sum = shap_vals[b].sum()
-            model_diff = orig_pred - masked_pred
-            if shap_sum != 0:
-                shap_vals[b] *= model_diff / shap_sum
-        shap_vals = shap_vals[0] if single else shap_vals
+                        # Sample coalition excluding target feature
+                        coalition = coalition_sampler.sample_coalition(
+                            all_positions, exclude=target_position,
+                            size_range=(coalition_size, coalition_size)
+                        )
+                        
+                        # Evaluate model with coalition
+                        x_coalition = self.masker.mask_features(x_orig, coalition)
+                        pred_coalition = self.model_evaluator.evaluate_single(x_coalition)
+                        
+                        # Evaluate model with coalition + target feature
+                        coalition_plus_target = coalition + [target_position]
+                        x_coalition_plus = self.masker.mask_features(x_orig, coalition_plus_target)
+                        pred_coalition_plus = self.model_evaluator.evaluate_single(x_coalition_plus)
+                        
+                        # Marginal contribution
+                        contribution = pred_coalition_plus - pred_coalition
+                        marginal_contributions.append(contribution)
+                    
+                    shap_vals[b, t, f] = np.mean(marginal_contributions)
+            
+            # Apply additivity normalization using common algorithm
+            fully_masked = self.masker.mask_features(x_orig, all_positions)
+            shap_vals[b] = self.normalizer.normalize_additive(
+                shap_vals[b], x_orig, fully_masked
+            )
+        
+        # Return in original format
+        result = shap_vals[0] if is_single else shap_vals
+        
         if check_additivity:
-            print(f"[AttnSHAP] sum(SHAP)={shap_vals.sum():.4f}")
-        return shap_vals
+            print(f"[AttnSHAP] sum(SHAP)={result.sum():.4f}")
+        
+        return result

@@ -53,6 +53,40 @@ import torch
 from typing import Any, Union, Sequence
 
 from shap_enhanced.base_explainer import BaseExplainer
+from shap_enhanced.algorithms.coalition_sampling import RandomCoalitionSampler, create_all_positions
+from shap_enhanced.algorithms.masking import BaseMasker, MeanMasker, BackgroundSamplingMasker
+from shap_enhanced.algorithms.model_evaluation import ModelEvaluator
+from shap_enhanced.algorithms.normalization import AdditivityNormalizer
+from shap_enhanced.algorithms.data_processing import process_inputs, BackgroundProcessor
+
+class AdaptiveFeatureMasker(BaseMasker):
+    """Adaptive masker that chooses strategy per feature based on sparsity."""
+    
+    def __init__(self, background_data, feature_strategies, mean_baseline):
+        self.background_data = background_data
+        self.feature_strategies = feature_strategies
+        self.mean_baseline = mean_baseline
+        self.N = len(background_data)
+        
+    def mask_features(self, x, mask_positions):
+        """Apply adaptive masking based on feature-specific strategies."""
+        x_masked = x.copy()
+        
+        for t, f in mask_positions:
+            if 0 <= t < x.shape[0] and 0 <= f < x.shape[1]:
+                strategy = self.feature_strategies[f]
+                
+                if strategy == "mean":
+                    x_masked[t, f] = self.mean_baseline[t, f]
+                elif strategy == "adaptive":
+                    # Sample from background data
+                    bg_idx = np.random.choice(self.N)
+                    x_masked[t, f] = self.background_data[bg_idx, t, f]
+                else:
+                    raise ValueError(f"Unknown strategy: {strategy}")
+                    
+        return x_masked
+
 
 class AdaptiveBaselineSHAPExplainer(BaseExplainer):
     r"""
@@ -85,12 +119,13 @@ class AdaptiveBaselineSHAPExplainer(BaseExplainer):
         device: str = None
     ):
         super().__init__(model, background)
-        bg = background.detach().cpu().numpy() if hasattr(background, "detach") else np.asarray(background)
-        self.background = bg if bg.ndim == 3 else bg[:, None, :]  # (N, T, F)
+        
+        # Process background data
+        self.background = BackgroundProcessor.process_background(background)
         self.N, self.T, self.F = self.background.shape
         self.n_baselines = n_baselines
         self.device = device or ("cuda" if torch.cuda.is_available() else "cpu")
-
+        
         # Determine masking strategy per feature
         if mask_strategy == "auto":
             # For each feature, if >90% zeros in background, use 'adaptive' masking, else 'mean'
@@ -107,57 +142,18 @@ class AdaptiveBaselineSHAPExplainer(BaseExplainer):
             self.feature_strategies = [mask_strategy] * self.F
         else:
             raise ValueError(f"Invalid mask_strategy: {mask_strategy}")
+        
+        # Compute mean baseline
+        bg_stats = BackgroundProcessor.compute_background_statistics(self.background)
+        self.mean_baseline = bg_stats['mean']
+        
+        # Initialize common algorithm components
+        self.coalition_sampler = RandomCoalitionSampler()
+        self.model_evaluator = ModelEvaluator(model, device)
+        self.normalizer = AdditivityNormalizer(model, device)
+        self.masker = AdaptiveFeatureMasker(self.background, self.feature_strategies, self.mean_baseline)
 
-        self.mean_baseline = np.mean(self.background, axis=0)  # (T, F)
 
-    def _select_baselines(self, x: np.ndarray, n: int) -> np.ndarray:
-        r"""
-        Randomly selects `n` baseline samples from the background dataset.
-
-        :param np.ndarray x: Input instance for context (unused directly).
-        :param int n: Number of baselines to sample.
-        :return np.ndarray: Sampled baseline instances of shape (n, T, F).
-        """
-        idx = np.random.choice(self.N, n, replace=True)
-        return self.background[idx]  # (n, T, F)
-
-    def _mask_input(self, x: np.ndarray, baseline: np.ndarray, mask: list) -> np.ndarray:
-        r"""
-        Applies feature-wise masking to the input sample `x`.
-
-        If the feature is continuous, replaces with the mean; if categorical/sparse, uses baseline sample.
-
-        :param np.ndarray x: Original input of shape (T, F).
-        :param np.ndarray baseline: Baseline sample used for masking.
-        :param list mask: List of (t, f) tuples indicating which positions to mask.
-        :return np.ndarray: Masked input of shape (T, F).
-        """
-        x_masked = x.copy()
-        for (t, f) in mask:
-            if self.feature_strategies[f] == "mean":
-                x_masked[t, f] = self.mean_baseline[t, f]
-            else:  # "adaptive"
-                x_masked[t, f] = baseline[t, f]
-        return x_masked
-
-    def _full_mask(self, x: np.ndarray) -> np.ndarray:
-        r"""
-        Returns a fully-masked version of the input `x` for normalization purposes.
-
-        Continuous features are mean-masked, sparse features use a single baseline sample.
-
-        :param np.ndarray x: Input to be masked, of shape (T, F).
-        :return np.ndarray: Fully-masked version of `x`.
-        """
-        x_masked = x.copy()
-        baseline = self._select_baselines(x, 1)[0]
-        for t in range(self.T):
-            for f in range(self.F):
-                if self.feature_strategies[f] == "mean":
-                    x_masked[t, f] = self.mean_baseline[t, f]
-                else:
-                    x_masked[t, f] = baseline[t, f]
-        return x_masked
 
     def shap_values(
         self,
@@ -172,49 +168,61 @@ class AdaptiveBaselineSHAPExplainer(BaseExplainer):
         For each feature (t, f), estimates its marginal contribution by comparing model
         outputs with and without the feature masked, averaging over sampled coalitions and baselines.
 
-        .. math::
-            \phi_{i} = \mathbb{E}_{S \subseteq N \setminus \{i\}} \left[ f(x_{S \cup \{i\}}) - f(x_S) \right]
-
-        The attributions are then normalized to match the output difference between the original and
-        fully-masked prediction.
-
-        :param Union[np.ndarray, torch.Tensor] X: Input samples, shape (B, T, F) or (T, F).
-        :param int nsamples: Number of masking combinations per feature. Default is 100.
-        :param int random_seed: Seed for reproducibility. Default is 42.
-        :return np.ndarray: SHAP values of shape (T, F) or (B, T, F).
+        :param X: Input samples, shape (B, T, F) or (T, F).
+        :param nsamples: Number of masking combinations per feature. Default is 100.
+        :param random_seed: Seed for reproducibility. Default is 42.
+        :return: SHAP values of shape (T, F) or (B, T, F).
         """
         np.random.seed(random_seed)
-        X = X.detach().cpu().numpy() if hasattr(X, "detach") else np.asarray(X)
-        single = (X.ndim == 2)
-        X = X[None, ...] if single else X  # (B, T, F)
-        B, T, F = X.shape
-        out = np.zeros((B, T, F), dtype=np.float32)
-
+        
+        # Process inputs using common algorithm
+        X_processed, is_single, _ = process_inputs(X)
+        B, T, F = X_processed.shape
+        shap_vals = np.zeros((B, T, F), dtype=np.float32)
+        
+        all_positions = create_all_positions(T, F)
+        
         for b in range(B):
-            x = X[b]
-            all_pos = [(t, f) for t in range(T) for f in range(F)]
+            x_orig = X_processed[b]
+            
+            # Compute SHAP values for each position
             for t in range(T):
                 for f in range(F):
-                    vals = []
-                    other_pos = [p for p in all_pos if p != (t, f)]
+                    marginal_contributions = []
+                    target_position = (t, f)
+                    
                     for _ in range(nsamples):
-                        k = np.random.randint(1, len(other_pos) + 1)
-                        mask_idxs = [other_pos[i] for i in np.random.choice(len(other_pos), k, replace=False)]
-                        for baseline in self._select_baselines(x, self.n_baselines):
-                            x_masked = self._mask_input(x, baseline, mask_idxs)
-                            x_masked_plus = self._mask_input(x_masked, baseline, [(t, f)])
-                            pred_masked = float(self.model(torch.tensor(x_masked[None], dtype=torch.float32, device=self.device)).detach().cpu().numpy().squeeze())
-                            pred_masked_plus = float(self.model(torch.tensor(x_masked_plus[None], dtype=torch.float32, device=self.device)).detach().cpu().numpy().squeeze())
-                            vals.append(pred_masked_plus - pred_masked)
-                    out[b, t, f] = np.mean(vals)
-
-            # Normalize attributions to match output difference (SHAP style)
-            orig_pred = float(self.model(torch.tensor(x[None], dtype=torch.float32, device=self.device)).detach().cpu().numpy().squeeze())
-            full_masked = self._full_mask(x)
-            full_pred = float(self.model(torch.tensor(full_masked[None], dtype=torch.float32, device=self.device)).detach().cpu().numpy().squeeze())
-            diff = orig_pred - full_pred
-            summ = out[b].sum()
-            if np.abs(summ) > 1e-8:
-                out[b] *= diff / summ
-
-        return out[0] if single else out
+                        # Sample coalition excluding target feature
+                        coalition = self.coalition_sampler.sample_coalition(
+                            all_positions, exclude=target_position
+                        )
+                        
+                        # For ABSHAP, evaluate across multiple baselines
+                        baseline_contributions = []
+                        for _ in range(self.n_baselines):  # Sample multiple baselines
+                            # Evaluate model with coalition
+                            x_coalition = self.masker.mask_features(x_orig, coalition)
+                            pred_coalition = self.model_evaluator.evaluate_single(x_coalition)
+                            
+                            # Evaluate model with coalition + target feature
+                            coalition_plus_target = coalition + [target_position]
+                            x_coalition_plus = self.masker.mask_features(x_orig, coalition_plus_target)
+                            pred_coalition_plus = self.model_evaluator.evaluate_single(x_coalition_plus)
+                            
+                            # Marginal contribution for this baseline
+                            contribution = pred_coalition_plus - pred_coalition
+                            baseline_contributions.append(contribution)
+                        
+                        # Average across baselines
+                        marginal_contributions.append(np.mean(baseline_contributions))
+                    
+                    shap_vals[b, t, f] = np.mean(marginal_contributions)
+            
+            # Apply additivity normalization using common algorithm
+            fully_masked = self.masker.mask_features(x_orig, all_positions)
+            shap_vals[b] = self.normalizer.normalize_additive(
+                shap_vals[b], x_orig, fully_masked
+            )
+        
+        # Return in original format
+        return shap_vals[0] if is_single else shap_vals

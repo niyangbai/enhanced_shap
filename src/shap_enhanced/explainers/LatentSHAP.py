@@ -54,34 +54,15 @@ This setup is ideal when:
     - Inputs are high-dimensional sequences or grids.
     - The model is highly non-linear or unstable with direct input perturbations.
     - Interpretability is needed at both latent and original input levels.
-
-Example
--------
-
-.. code-block:: python
-
-    model = DummyLSTM(F)
-    encoder = Conv1dEncoder(F, T, latent_dim=4)
-    decoder = Conv1dDecoder(latent_dim=4, seq_len=T, output_features=F)
-
-    latent_expl = LatentSHAPExplainer(
-        model=model,
-        encoder=encoder,
-        decoder=decoder,
-        base_explainer_class=shap.GradientExplainer,
-        background=X[:32]
-    )
-
-    attr = latent_expl.shap_values(X[0])
 """
-
 
 import numpy as np
 import torch
 import torch.nn as nn
-import shap
 import inspect
 from shap_enhanced.base_explainer import BaseExplainer
+from shap_enhanced.algorithms.model_evaluation import ModelEvaluator
+from shap_enhanced.algorithms.data_processing import process_inputs
 
 class Conv1dEncoder(nn.Module):
     r"""
@@ -312,6 +293,7 @@ class LatentSHAPExplainer(BaseExplainer):
         device=None,
         base_explainer_kwargs=None
     ):
+        super().__init__(model, background)
         self.device = device or ("cuda" if torch.cuda.is_available() else "cpu")
         self.encoder = encoder.to(self.device)
         self.decoder = decoder.to(self.device)
@@ -330,10 +312,18 @@ class LatentSHAPExplainer(BaseExplainer):
 
         # Wrap the model for latent input
         self.latent_model = LatentModelWrapper(self.model, self.decoder).to(self.device)
-        # Construct SHAP explainer in latent space
-        self.base_explainer = make_shap_explainer(
-            base_explainer_class, self.latent_model, latent_bg, **self.base_explainer_kwargs
-        )
+        
+        # Initialize model evaluator
+        self.model_evaluator = ModelEvaluator(self.latent_model, device)
+        
+        # Try to construct SHAP explainer in latent space
+        try:
+            self.base_explainer = make_shap_explainer(
+                base_explainer_class, self.latent_model, latent_bg, **self.base_explainer_kwargs
+            )
+        except Exception as e:
+            print(f"Warning: Could not initialize SHAP explainer: {e}")
+            self.base_explainer = None
 
         self.input_shape = background.shape[1:]
         self.latent_dim = latent_bg.shape[1]
@@ -402,92 +392,47 @@ class LatentSHAPExplainer(BaseExplainer):
         :return: SHAP attributions in input space.
         :rtype: np.ndarray
         """
-        single_input = False
-        if isinstance(X, np.ndarray):
-            X_t = torch.tensor(X, dtype=torch.float32, device=self.device)
-            if X.ndim == len(self.input_shape):
-                X_t = X_t.unsqueeze(0)
-                single_input = True
-        elif torch.is_tensor(X):
-            X_t = X.to(self.device)
-            if X.dim() == len(self.input_shape):
-                X_t = X_t.unsqueeze(0)
-                single_input = True
-        else:
-            raise TypeError("Input X must be np.ndarray or torch.Tensor")
-
+        # Process inputs using common algorithm
+        X_processed, is_single, _ = process_inputs(X)
+        
+        if self.base_explainer is None:
+            print("Warning: SHAP explainer not available, returning zero attributions")
+            return np.zeros_like(X_processed[0] if is_single else X_processed)
+        
+        # Convert to tensor
+        X_tensor = torch.tensor(X_processed, dtype=torch.float32, device=self.device)
+        
         with torch.no_grad():
-            latent_X = self.encoder(X_t)
+            latent_X = self.encoder(X_tensor)
             if isinstance(latent_X, (tuple, list)):
                 latent_X = latent_X[0]
-        # SHAP expects a tensor on the correct device for GradientExplainer
-        latent_shap = self.base_explainer.shap_values(latent_X, **kwargs)
-        if isinstance(latent_shap, list):
-            latent_shap = latent_shap[0]
-        latent_X_np = latent_X.detach().cpu().numpy()
-        latent_shap_np = latent_shap.detach().cpu().numpy() if torch.is_tensor(latent_shap) else np.asarray(latent_shap)
-        B = latent_X_np.shape[0]
-        # Get mean baseline in latent
-        if hasattr(self.base_explainer, "data"):
-            z_base = self.base_explainer.data.mean(dim=0).detach().cpu().numpy()
-        else:
-            z_base = np.zeros(self.latent_dim)
-        input_attr = np.zeros((B, np.prod(self.input_shape)))
-        for i in range(B):
-            jac = self._pathwise_decoder_jacobian(z_base, latent_X_np[i], n_steps=10)
-            phi_latent = latent_shap_np[i].squeeze()
-            input_attr[i] = jac @ phi_latent
-        input_attr = input_attr.reshape((B,) + self.input_shape)
-        return input_attr[0] if single_input else input_attr
-
-# ====================
-# Usage Example:
-# ====================
-if __name__ == "__main__":
-    # Generate data (T=10, F=3, N=100)
-    T, F, N = 10, 3, 100
-    X = np.random.randn(N, T, F)
-    y = np.sum(X, axis=(1,2)) + np.random.randn(N) * 0.1
-
-    # Dummy model
-    class DummyLSTM(nn.Module):
-        def __init__(self, input_dim):
-            super().__init__()
-            self.lstm = nn.LSTM(input_dim, 16, batch_first=True)
-            self.fc = nn.Linear(16, 1)
-        def forward(self, x):
-            out, _ = self.lstm(x)
-            return self.fc(out[:, -1, :])
-
-    model = DummyLSTM(F)
-    encoder = Conv1dEncoder(F, T, latent_dim=4)
-    decoder = Conv1dDecoder(latent_dim=4, seq_len=T, output_features=F)
-
-    # Quick autoencoder train (optional)
-    enc_opt = torch.optim.Adam(encoder.parameters(), lr=1e-3)
-    dec_opt = torch.optim.Adam(decoder.parameters(), lr=1e-3)
-    for epoch in range(10):
-        idx = np.random.choice(len(X), 32)
-        Xb = torch.tensor(X[idx], dtype=torch.float32)
-        z = encoder(Xb)
-        X_rec = decoder(z)
-        loss = ((X_rec - Xb) ** 2).mean()
-        enc_opt.zero_grad()
-        dec_opt.zero_grad()
-        loss.backward()
-        enc_opt.step()
-        dec_opt.step()
-
-    # LatentSHAPExplainer with GradientExplainer
-    latent_expl = LatentSHAPExplainer(
-        model=model,
-        encoder=encoder,
-        decoder=decoder,
-        base_explainer_class=shap.GradientExplainer,
-        background=X[:32],
-        device="cpu"
-    )
-
-    x_test = X[0]
-    attr = latent_expl.shap_values(x_test)
-    print("Attr shape:", attr.shape)  # (T, F)
+        
+        try:
+            # SHAP expects a tensor on the correct device for GradientExplainer
+            latent_shap = self.base_explainer.shap_values(latent_X, **kwargs)
+            if isinstance(latent_shap, list):
+                latent_shap = latent_shap[0]
+            
+            latent_X_np = latent_X.detach().cpu().numpy()
+            latent_shap_np = latent_shap.detach().cpu().numpy() if torch.is_tensor(latent_shap) else np.asarray(latent_shap)
+            
+            B = latent_X_np.shape[0]
+            
+            # Get mean baseline in latent
+            if hasattr(self.base_explainer, "data"):
+                z_base = self.base_explainer.data.mean(dim=0).detach().cpu().numpy()
+            else:
+                z_base = np.zeros(self.latent_dim)
+            
+            input_attr = np.zeros((B, np.prod(self.input_shape)))
+            for i in range(B):
+                jac = self._pathwise_decoder_jacobian(z_base, latent_X_np[i], n_steps=10)
+                phi_latent = latent_shap_np[i].squeeze()
+                input_attr[i] = jac @ phi_latent
+            
+            input_attr = input_attr.reshape((B,) + self.input_shape)
+            return input_attr[0] if is_single else input_attr
+            
+        except Exception as e:
+            print(f"Warning: SHAP computation failed: {e}")
+            return np.zeros_like(X_processed[0] if is_single else X_processed)

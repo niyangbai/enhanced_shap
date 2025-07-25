@@ -59,6 +59,41 @@ References
 import numpy as np
 import torch
 from shap_enhanced.base_explainer import BaseExplainer
+from shap_enhanced.algorithms.coalition_sampling import RandomCoalitionSampler, create_all_positions
+from shap_enhanced.algorithms.masking import BaseMasker
+from shap_enhanced.algorithms.model_evaluation import ModelEvaluator
+from shap_enhanced.algorithms.normalization import AdditivityNormalizer
+from shap_enhanced.algorithms.data_processing import process_inputs
+
+class BShapDistributionFreeMasker(BaseMasker):
+    """Custom masker for BShap distribution-free strategies."""
+    
+    def __init__(self, strategy="random", input_range=None):
+        self.strategy = strategy
+        self.input_range = input_range
+    
+    def mask_features(self, x, mask_positions):
+        """Apply distribution-free masking."""
+        x_masked = x.copy()
+        for t, f in mask_positions:
+            if 0 <= t < x.shape[0] and 0 <= f < x.shape[1]:
+                if self.strategy == "random":
+                    if self.input_range is not None:
+                        mn, mx = self.input_range
+                        if isinstance(mn, np.ndarray):
+                            x_masked[t, f] = np.random.uniform(mn[f], mx[f])
+                        else:
+                            x_masked[t, f] = np.random.uniform(mn, mx)
+                    else:
+                        x_masked[t, f] = np.random.uniform(-1, 1)
+                elif self.strategy == "noise":
+                    x_masked[t, f] = x[t, f] + np.random.normal(0, 0.5)
+                elif self.strategy == "zero":
+                    x_masked[t, f] = 0.0
+                else:
+                    raise ValueError(f"Unknown mask_strategy: {self.strategy}")
+        return x_masked
+
 
 class BShapExplainer(BaseExplainer):
     r"""
@@ -88,43 +123,13 @@ class BShapExplainer(BaseExplainer):
         self.n_samples = n_samples
         self.mask_strategy = mask_strategy
         self.device = device or ("cuda" if torch.cuda.is_available() else "cpu")
+        
+        # Initialize common algorithm components
+        self.coalition_sampler = RandomCoalitionSampler()
+        self.masker = BShapDistributionFreeMasker(mask_strategy, input_range)
+        self.model_evaluator = ModelEvaluator(model, device)
+        self.normalizer = AdditivityNormalizer(model, device)
 
-    def _mask(self, x, mask_idxs):
-        r"""
-        Apply masking to the input at specified (t, f) indices.
-
-        Masked values are replaced using the selected masking strategy:
-        - 'random': Sampled uniformly from input_range or [-1, 1].
-        - 'noise': Original value plus Gaussian noise.
-        - 'zero': Set to zero.
-
-        :param x: Input sample of shape (T, F).
-        :type x: np.ndarray
-        :param mask_idxs: List of (t, f) index pairs to mask.
-        :type mask_idxs: list[tuple[int, int]]
-        :return: Masked input.
-        :rtype: np.ndarray
-        """
-        x_masked = x.copy()
-        T, F = x.shape
-        for (t, f) in mask_idxs:
-            if self.mask_strategy == "random":
-                # Per-feature min/max or fallback
-                if self.input_range is not None:
-                    mn, mx = self.input_range
-                    if isinstance(mn, np.ndarray):
-                        x_masked[t, f] = np.random.uniform(mn[f], mx[f])
-                    else:
-                        x_masked[t, f] = np.random.uniform(mn, mx)
-                else:
-                    x_masked[t, f] = np.random.uniform(-1, 1)
-            elif self.mask_strategy == "noise":
-                x_masked[t, f] = x[t, f] + np.random.normal(0, 0.5)
-            elif self.mask_strategy == "zero":
-                x_masked[t, f] = 0.0
-            else:
-                raise ValueError("Unknown mask_strategy")
-        return x_masked
 
     def shap_values(
         self,
@@ -141,10 +146,7 @@ class BShapExplainer(BaseExplainer):
         under masked coalitions. Uses synthetic masking based on the configured strategy
         without any reliance on background data statistics.
 
-        Final attributions are normalized to satisfy the SHAP additivity constraint:
-
-        .. math::
-            \sum_{t=1}^T \sum_{f=1}^F \phi_{t,f} \approx f(x) - f(x_{\text{masked}})
+        Final attributions are normalized to satisfy the SHAP additivity constraint.
 
         :param X: Input of shape (T, F) or (B, T, F)
         :type X: np.ndarray or torch.Tensor
@@ -157,40 +159,54 @@ class BShapExplainer(BaseExplainer):
         np.random.seed(random_seed)
         if nsamples is None:
             nsamples = self.n_samples
-        is_torch = hasattr(X, 'detach')
-        X_in = X.detach().cpu().numpy() if is_torch else np.asarray(X)
-        single = len(X_in.shape) == 2
-        if single:
-            X_in = X_in[None, ...]
-        B, T, F = X_in.shape
+            
+        # Process inputs using common algorithm
+        X_processed, is_single, _ = process_inputs(X)
+        B, T, F = X_processed.shape
         shap_vals = np.zeros((B, T, F), dtype=float)
-        all_pos = [(t, f) for t in range(T) for f in range(F)]
+        
+        all_positions = create_all_positions(T, F)
+        
         for b in range(B):
-            x = X_in[b]
+            x = X_processed[b]
+            
+            # Compute SHAP values for each position
             for t in range(T):
                 for f in range(F):
-                    mc = []
-                    available = [idx for idx in all_pos if idx != (t, f)]
+                    marginal_contributions = []
+                    target_position = (t, f)
+                    
                     for _ in range(nsamples):
-                        k = np.random.randint(1, len(available)+1)
-                        mask_idxs = [available[i] for i in np.random.choice(len(available), k, replace=False)]
-                        x_masked = self._mask(x, mask_idxs)
-                        x_masked_tf = self._mask(x_masked, [(t, f)])
-                        out_masked = self.model(torch.tensor(x_masked[None], dtype=torch.float32, device=self.device)).detach().cpu().numpy().squeeze()
-                        out_masked_tf = self.model(torch.tensor(x_masked_tf[None], dtype=torch.float32, device=self.device)).detach().cpu().numpy().squeeze()
-                        out_masked = float(np.ravel(out_masked)[0]) # ensure scalar
-                        out_masked_tf = float(np.ravel(out_masked_tf)[0])
-                        mc.append(out_masked_tf - out_masked)
-                    shap_vals[b, t, f] = np.mean(mc)
-            # Additivity normalization
-            orig_pred = float(np.ravel(self.model(torch.tensor(x[None], dtype=torch.float32, device=self.device)).detach().cpu().numpy())[0])
-            x_all_masked = self._mask(x, all_pos)
-            masked_pred = float(np.ravel(self.model(torch.tensor(x_all_masked[None], dtype=torch.float32, device=self.device)).detach().cpu().numpy())[0])
-            shap_sum = shap_vals[b].sum()
-            model_diff = orig_pred - masked_pred
-            if np.abs(shap_sum) > 1e-8:
-                shap_vals[b] *= model_diff / shap_sum
-        shap_vals = shap_vals[0] if single else shap_vals
+                        # Sample coalition excluding target feature
+                        coalition = self.coalition_sampler.sample_coalition(
+                            all_positions, exclude=target_position
+                        )
+                        
+                        # Evaluate model with coalition
+                        x_coalition = self.masker.mask_features(x, coalition)
+                        pred_coalition = self.model_evaluator.evaluate_single(x_coalition)
+                        
+                        # Evaluate model with coalition + target feature
+                        coalition_plus_target = coalition + [target_position]
+                        x_coalition_plus = self.masker.mask_features(x, coalition_plus_target)
+                        pred_coalition_plus = self.model_evaluator.evaluate_single(x_coalition_plus)
+                        
+                        # Marginal contribution
+                        contribution = pred_coalition_plus - pred_coalition
+                        marginal_contributions.append(contribution)
+                    
+                    shap_vals[b, t, f] = np.mean(marginal_contributions)
+            
+            # Apply additivity normalization using common algorithm
+            fully_masked = self.masker.mask_features(x, all_positions)
+            shap_vals[b] = self.normalizer.normalize_additive(
+                shap_vals[b], x, fully_masked
+            )
+        
+        # Return in original format
+        result = shap_vals[0] if is_single else shap_vals
+        
         if check_additivity:
-            print(f"[BShap] sum(SHAP)={shap_vals.sum():.4f} (should match model diff)")
-        return shap_vals
+            print(f"[BShap] sum(SHAP)={result.sum():.4f} (should match model diff)")
+        
+        return result

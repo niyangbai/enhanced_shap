@@ -55,10 +55,15 @@ Algorithm
         between the original input and a fully-masked baseline.
 """
 
-
 import numpy as np
 import torch
 from shap_enhanced.base_explainer import BaseExplainer
+from shap_enhanced.algorithms.coalition_sampling import WeightedCoalitionSampler, create_all_positions
+from shap_enhanced.algorithms.masking import ZeroMasker, MeanMasker
+from shap_enhanced.algorithms.model_evaluation import ModelEvaluator
+from shap_enhanced.algorithms.normalization import AdditivityNormalizer
+from shap_enhanced.algorithms.data_processing import process_inputs, BackgroundProcessor
+
 
 class ERSHAPExplainer(BaseExplainer):
     """
@@ -99,57 +104,27 @@ class ERSHAPExplainer(BaseExplainer):
         self.weighting = weighting
         self.feature_importance = feature_importance
         self.device = device or ("cuda" if torch.cuda.is_available() else "cpu")
-        if mask_strategy == "mean":
-            self._mean = background.mean(axis=0)
+        
+        # Process background data
+        self.background = BackgroundProcessor.process_background(background)
+        
+        # Initialize common algorithm components
+        if weighting == "uniform":
+            from shap_enhanced.algorithms.coalition_sampling import RandomCoalitionSampler
+            self.coalition_sampler = RandomCoalitionSampler()
         else:
-            self._mean = None
-
-    def _impute(self, X, idxs):
-        r"""
-        Apply masking strategy to selected (t, f) indices in input.
-
-        - 'zero': Replace with 0.0.
-        - 'mean': Use mean value from background dataset.
-
-        :param X: Input sample of shape (T, F).
-        :type X: np.ndarray
-        :param idxs: List of (t, f) pairs to mask.
-        :type idxs: list[tuple[int, int]]
-        :return: Masked/imputed version of X.
-        :rtype: np.ndarray
-        """
-        X_imp = X.copy()
-        for (t, f) in idxs:
-            if self.mask_strategy == "zero":
-                X_imp[t, f] = 0.0
-            elif self.mask_strategy == "mean":
-                X_imp[t, f] = self._mean[t, f]
-            else:
-                raise ValueError(f"Unknown mask_strategy: {self.mask_strategy}")
-        return X_imp
-
-    def _sample_coalition(self, available, k, weights=None):
-        """
-        Sample a coalition of k positions from the available list.
-
-        If weights are provided, sampling is weighted; otherwise, uniform.
-
-        :param available: List of available (t, f) pairs.
-        :type available: list[tuple[int, int]]
-        :param k: Number of elements to sample.
-        :type k: int
-        :param weights: Sampling probabilities aligned with `available`.
-        :type weights: Optional[np.ndarray]
-        :return: List of sampled (t, f) pairs.
-        :rtype: list[tuple[int, int]]
-        """
-        if weights is not None:
-            weights = np.array([weights[idx] for idx in available])
-            weights = weights / (weights.sum() + 1e-8)
-            idxs = np.random.choice(len(available), size=k, replace=False, p=weights)
+            self.coalition_sampler = WeightedCoalitionSampler(feature_importance)
+        
+        if mask_strategy == "zero":
+            self.masker = ZeroMasker()
+        elif mask_strategy == "mean":
+            bg_stats = BackgroundProcessor.compute_background_statistics(self.background)
+            self.masker = MeanMasker(bg_stats['mean'])
         else:
-            idxs = np.random.choice(len(available), size=k, replace=False)
-        return [available[i] for i in idxs]
+            raise ValueError(f"Unknown mask_strategy: {mask_strategy}")
+        
+        self.model_evaluator = ModelEvaluator(model, device)
+        self.normalizer = AdditivityNormalizer(model, device)
 
     def shap_values(
         self,
@@ -178,57 +153,54 @@ class ERSHAPExplainer(BaseExplainer):
         :rtype: np.ndarray
         """
         np.random.seed(random_seed)
-        is_torch = hasattr(X, 'detach')
-        X_in = X.detach().cpu().numpy() if is_torch else np.asarray(X)
-        shape = X_in.shape
-        if len(shape) == 2:
-            X_in = X_in[None, ...]
-            single = True
-        else:
-            single = False
-        B, T, F = X_in.shape
+        
+        # Process inputs using common algorithm
+        X_processed, is_single, _ = process_inputs(X)
+        B, T, F = X_processed.shape
         shap_vals = np.zeros((B, T, F), dtype=float)
-
+        
+        all_positions = create_all_positions(T, F)
+        
         for b in range(B):
-            x_orig = X_in[b]
-            all_pos = [(t, f) for t in range(T) for f in range(F)]
-            shap_matrix = np.zeros((T, F))
+            x_orig = X_processed[b]
+            
+            # Compute SHAP values for each position
             for t in range(T):
                 for f in range(F):
-                    mc = []
-                    available = [idx for idx in all_pos if idx != (t, f)]
-                    # Define weights for coalition sampling
-                    weights = None
-                    if self.weighting == "importance" and self.feature_importance is not None:
-                        flat_imp = self.feature_importance.flatten()
-                        idx_map = {idx: i for i, idx in enumerate(all_pos)}
-                        weights = np.array([flat_imp[idx_map[idx]] for idx in available])
-                        weights = weights / (weights.sum() + 1e-8)
-                    elif self.weighting == "frequency":
-                        weights = None  # Implemented as uniform, could use prior freq
-
+                    marginal_contributions = []
+                    target_position = (t, f)
+                    
                     for _ in range(self.n_coalitions):
-                        # Uniform or weighted coalition size (avoid full/empty)
-                        k = np.random.randint(1, len(available)+1)
-                        C_idxs = self._sample_coalition(available, k, weights)
-                        x_C = self._impute(x_orig, C_idxs)
-                        x_C_tf = self._impute(x_C, [(t, f)])
-                        out_C = self.model(torch.tensor(x_C[None], dtype=torch.float32, device=self.device)).detach().cpu().numpy().squeeze()
-                        out_C_tf = self.model(torch.tensor(x_C_tf[None], dtype=torch.float32, device=self.device)).detach().cpu().numpy().squeeze()
-                        mc.append(out_C_tf - out_C)
-                    shap_matrix[t, f] = np.mean(mc)
-            shap_vals[b] = shap_matrix
-
-            # Additivity normalization per sample
-            orig_pred = self.model(torch.tensor(x_orig[None], dtype=torch.float32, device=self.device)).detach().cpu().numpy().squeeze()
-            x_all_masked = self._impute(x_orig, all_pos)
-            masked_pred = self.model(torch.tensor(x_all_masked[None], dtype=torch.float32, device=self.device)).detach().cpu().numpy().squeeze()
-            shap_sum = shap_vals[b].sum()
-            model_diff = orig_pred - masked_pred
-            if shap_sum != 0:
-                shap_vals[b] *= model_diff / shap_sum
-
-        shap_vals = shap_vals[0] if single else shap_vals
+                        # Sample coalition excluding target feature
+                        coalition = self.coalition_sampler.sample_coalition(
+                            all_positions, exclude=target_position
+                        )
+                        
+                        # Evaluate model with coalition
+                        x_coalition = self.masker.mask_features(x_orig, coalition)
+                        pred_coalition = self.model_evaluator.evaluate_single(x_coalition)
+                        
+                        # Evaluate model with coalition + target feature
+                        coalition_plus_target = coalition + [target_position]
+                        x_coalition_plus = self.masker.mask_features(x_orig, coalition_plus_target)
+                        pred_coalition_plus = self.model_evaluator.evaluate_single(x_coalition_plus)
+                        
+                        # Marginal contribution
+                        contribution = pred_coalition_plus - pred_coalition
+                        marginal_contributions.append(contribution)
+                    
+                    shap_vals[b, t, f] = np.mean(marginal_contributions)
+            
+            # Apply additivity normalization using common algorithm
+            fully_masked = self.masker.mask_features(x_orig, all_positions)
+            shap_vals[b] = self.normalizer.normalize_additive(
+                shap_vals[b], x_orig, fully_masked
+            )
+        
+        # Return in original format
+        result = shap_vals[0] if is_single else shap_vals
+        
         if check_additivity:
-            print(f"[ERSHAP Additivity] sum(SHAP)={shap_vals.sum():.4f} | Model diff={float(orig_pred - masked_pred):.4f}")
-        return shap_vals
+            print(f"[ERSHAP Additivity] sum(SHAP)={result.sum():.4f}")
+        
+        return result

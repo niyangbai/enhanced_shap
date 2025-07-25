@@ -74,6 +74,49 @@ Ideal for:
 import numpy as np
 import torch
 from shap_enhanced.base_explainer import BaseExplainer
+from shap_enhanced.algorithms.coalition_sampling import RandomCoalitionSampler, create_all_positions
+from shap_enhanced.algorithms.masking import BaseMasker, MeanMasker
+from shap_enhanced.algorithms.model_evaluation import ModelEvaluator
+from shap_enhanced.algorithms.normalization import AdditivityNormalizer
+from shap_enhanced.algorithms.data_processing import process_inputs, BackgroundProcessor
+
+class SupportPreservingMasker(BaseMasker):
+    """Custom masker for support-preserving SHAP."""
+    
+    def __init__(self, background_data, skip_unmatched=True):
+        self.background_data = background_data
+        self.skip_unmatched = skip_unmatched
+        self.bg_support = (background_data != 0)
+        
+    def mask_features(self, x, mask_positions):
+        """Apply support-preserving masking."""
+        x_masked = x.copy()
+        for t, f in mask_positions:
+            if 0 <= t < x.shape[0] and 0 <= f < x.shape[1]:
+                x_masked[t, f] = 0
+        
+        # Find matching background sample with same support
+        support_mask = (x_masked != 0)
+        idx = self._find_matching_sample(support_mask)
+        
+        if idx is None:
+            if self.skip_unmatched:
+                return x_masked  # Return zero-masked version if no match
+            else:
+                raise ValueError("No matching sample found for support pattern!")
+        
+        return self.background_data[idx]
+    
+    def _find_matching_sample(self, support_mask):
+        """Find background sample with matching support pattern."""
+        support_mask = support_mask[None, ...] if support_mask.ndim == 2 else support_mask
+        matches = np.all(self.bg_support == support_mask, axis=(1, 2))
+        idxs = np.where(matches)[0]
+        if len(idxs) > 0:
+            return np.random.choice(idxs)
+        else:
+            return None
+
 
 class SupportPreservingSHAPExplainer(BaseExplainer):
     r"""
@@ -102,28 +145,34 @@ class SupportPreservingSHAPExplainer(BaseExplainer):
         device=None
     ):
         super().__init__(model, background)
-        self.background = background.detach().cpu().numpy() if hasattr(background, 'detach') else np.asarray(background)
-        if self.background.ndim == 2:
-            self.background = self.background[:, None, :]  # (N, 1, F)
+        
+        # Process background data
+        self.background = BackgroundProcessor.process_background(background)
         self.skip_unmatched = skip_unmatched
         self.device = device or ("cuda" if torch.cuda.is_available() else "cpu")
-        self.bg_support = (self.background != 0)
+        
+        # Check if data is one-hot/binary
         data_flat = self.background.reshape(-1, self.background.shape[-1])
         is_binary = np.all((data_flat == 0) | (data_flat == 1))
         is_onehot = np.all(np.sum(data_flat, axis=1) == 1)
         self.is_onehot = bool(is_binary and is_onehot)
+        
         if not self.is_onehot:
             print("[SupportPreservingSHAP] WARNING: Data is not one-hot. Will use classic mean-masking SHAP fallback.")
-        self.mean_baseline = np.mean(self.background, axis=0)  # (T, F)
-
-    def _find_matching_sample(self, support_mask):
-        support_mask = support_mask[None, ...] if support_mask.ndim == 2 else support_mask
-        matches = np.all(self.bg_support == support_mask, axis=(1,2))
-        idxs = np.where(matches)[0]
-        if len(idxs) > 0:
-            return np.random.choice(idxs)
+        
+        # Initialize common algorithm components
+        self.coalition_sampler = RandomCoalitionSampler()
+        self.model_evaluator = ModelEvaluator(model, device)
+        self.normalizer = AdditivityNormalizer(model, device)
+        
+        # Setup masker based on data type
+        if self.is_onehot:
+            self.masker = SupportPreservingMasker(self.background, skip_unmatched)
         else:
-            return None
+            # Fallback to mean masking for non-sparse data
+            bg_stats = BackgroundProcessor.compute_background_statistics(self.background)
+            self.masker = MeanMasker(bg_stats['mean'])
+
 
     def shap_values(
         self,
@@ -136,107 +185,93 @@ class SupportPreservingSHAPExplainer(BaseExplainer):
         r"""
         Compute SHAP values by evaluating only valid support-preserving perturbations.
 
-        For sparse inputs (e.g., one-hot or binary):
-        
-            - For each feature, sample coalitions of other features.
-            - Construct masked inputs and locate matching background samples with same nonzero support.
-            - Evaluate model differences with and without the feature of interest.
-            - Average differences to estimate SHAP values.
-
-        For dense inputs:
-        - Fallback to standard mean-based masking for each feature individually.
-
-        .. math::
-            \phi_i = \mathbb{E}_{S \subseteq N \setminus \{i\}} \left[
-                f(x_{S \cup \{i\}}) - f(x_S)
-            \right]
-
-        Final attributions are normalized such that:
-
-        .. math::
-            \sum_i \phi_i = f(x) - f(x_{\text{masked}})
+        For sparse inputs (e.g., one-hot or binary), uses support-preserving masking.
+        For dense inputs, falls back to standard mean-based masking.
 
         :param X: Input sample or batch of shape (T, F) or (B, T, F).
-        :type X: np.ndarray or torch.Tensor
-        :param int nsamples: Number of coalition samples per feature.
-        :param bool check_additivity: If True, prints sum of SHAP vs model output difference.
-        :param int random_seed: Seed for reproducibility.
+        :param nsamples: Number of coalition samples per feature.
+        :param check_additivity: If True, prints sum of SHAP vs model output difference.
+        :param random_seed: Seed for reproducibility.
         :return: SHAP attributions with same shape as input.
-        :rtype: np.ndarray
         """
         np.random.seed(random_seed)
-        is_torch = hasattr(X, 'detach')
-        X_in = X.detach().cpu().numpy() if is_torch else np.asarray(X)
-        if X_in.ndim == 2:
-            X_in = X_in[None, ...]
-        B, T, F = X_in.shape
+        
+        # Process inputs using common algorithm
+        X_processed, is_single, _ = process_inputs(X)
+        B, T, F = X_processed.shape
         shap_vals = np.zeros((B, T, F), dtype=float)
+        
+        all_positions = create_all_positions(T, F)
+        
         for b in range(B):
-            x = X_in[b]
+            x_orig = X_processed[b]
+            
             if self.is_onehot:
-                # Original support-preserving logic
-                all_pos = [(t, f) for t in range(T) for f in range(F)]
+                # Support-preserving SHAP logic using common algorithms
                 for t in range(T):
                     for f in range(F):
-                        mc = []
-                        available = [idx for idx in all_pos if idx != (t, f)]
+                        marginal_contributions = []
+                        target_position = (t, f)
+                        
                         for _ in range(nsamples):
-                            k = np.random.randint(1, len(available)+1)
-                            mask_idxs = [available[i] for i in np.random.choice(len(available), k, replace=False)]
-                            x_masked = x.copy()
-                            for (tt, ff) in mask_idxs:
-                                x_masked[tt, ff] = 0
-                            support_mask = (x_masked != 0)
-                            idx = self._find_matching_sample(support_mask)
-                            if idx is None:
+                            # Sample coalition excluding target feature
+                            coalition = self.coalition_sampler.sample_coalition(
+                                all_positions, exclude=target_position
+                            )
+                            
+                            try:
+                                # Evaluate model with coalition (support-preserving masking)
+                                x_coalition = self.masker.mask_features(x_orig, coalition)
+                                pred_coalition = self.model_evaluator.evaluate_single(x_coalition)
+                                
+                                # Evaluate model with coalition + target feature
+                                coalition_plus_target = coalition + [target_position]
+                                x_coalition_plus = self.masker.mask_features(x_orig, coalition_plus_target)
+                                pred_coalition_plus = self.model_evaluator.evaluate_single(x_coalition_plus)
+                                
+                                # Marginal contribution
+                                contribution = pred_coalition_plus - pred_coalition
+                                marginal_contributions.append(contribution)
+                                
+                            except ValueError:
+                                # Skip if no matching support pattern found
                                 if self.skip_unmatched:
                                     continue
                                 else:
-                                    raise ValueError("No matching sample found for support pattern!")
-                            x_replacement = self.background[idx]
-                            # Now mask (t, f) as well
-                            x_masked_tf = x_masked.copy()
-                            x_masked_tf[t, f] = 0
-                            support_mask_tf = (x_masked_tf != 0)
-                            idx_tf = self._find_matching_sample(support_mask_tf)
-                            if idx_tf is None:
-                                if self.skip_unmatched:
-                                    continue
-                                else:
-                                    raise ValueError("No matching sample found for tf-masked support pattern!")
-                            x_replacement_tf = self.background[idx_tf]
-                            # Model evaluations
-                            out_masked = self.model(torch.tensor(x_replacement[None], dtype=torch.float32, device=self.device)).detach().cpu().numpy().squeeze()
-                            out_masked_tf = self.model(torch.tensor(x_replacement_tf[None], dtype=torch.float32, device=self.device)).detach().cpu().numpy().squeeze()
-                            mc.append(out_masked_tf - out_masked)
-                        if len(mc) > 0:
-                            shap_vals[b, t, f] = np.mean(mc)
+                                    raise
+                        
+                        if len(marginal_contributions) > 0:
+                            shap_vals[b, t, f] = np.mean(marginal_contributions)
             else:
-                # Classic SHAP fallback (mean masking): for each feature, mask just that feature
+                # Classic SHAP fallback using mean masking
                 for t in range(T):
                     for f in range(F):
-                        x_masked = x.copy()
-                        x_masked[t, f] = self.mean_baseline[t, f]
-                        out_masked = self.model(torch.tensor(x_masked[None], dtype=torch.float32, device=self.device)).detach().cpu().numpy().squeeze()
-                        out_orig = self.model(torch.tensor(x[None], dtype=torch.float32, device=self.device)).detach().cpu().numpy().squeeze()
-                        shap_vals[b, t, f] = out_orig - out_masked
-
-            # Additivity normalization
-            orig_pred = self.model(torch.tensor(x[None], dtype=torch.float32, device=self.device)).detach().cpu().numpy().squeeze()
+                        # Direct evaluation for individual features
+                        x_masked = self.masker.mask_features(x_orig, [(t, f)])
+                        pred_masked = self.model_evaluator.evaluate_single(x_masked)
+                        pred_orig = self.model_evaluator.evaluate_single(x_orig)
+                        shap_vals[b, t, f] = pred_orig - pred_masked
+            
+            # Apply additivity normalization using common algorithm
             if self.is_onehot:
-                all_masked = np.zeros_like(x)
-                idx_all = self._find_matching_sample((all_masked != 0))
-                if idx_all is not None:
-                    masked_pred = self.model(torch.tensor(self.background[idx_all][None], dtype=torch.float32, device=self.device)).detach().cpu().numpy().squeeze()
-                else:
-                    masked_pred = self.model(torch.tensor(self.mean_baseline[None], dtype=torch.float32, device=self.device)).detach().cpu().numpy().squeeze()
+                # For one-hot data, try to find zero support pattern match
+                try:
+                    fully_masked = self.masker.mask_features(x_orig, all_positions)
+                except ValueError:
+                    # If no match for all-zero pattern, use mean baseline
+                    bg_stats = BackgroundProcessor.compute_background_statistics(self.background)
+                    fully_masked = bg_stats['mean']
             else:
-                masked_pred = self.model(torch.tensor(self.mean_baseline[None], dtype=torch.float32, device=self.device)).detach().cpu().numpy().squeeze()
-            shap_sum = shap_vals[b].sum()
-            model_diff = orig_pred - masked_pred
-            if shap_sum != 0:
-                shap_vals[b] *= model_diff / shap_sum
-        shap_vals = shap_vals[0] if X_in.shape[0] == 1 else shap_vals
+                fully_masked = self.masker.mask_features(x_orig, all_positions)
+            
+            shap_vals[b] = self.normalizer.normalize_additive(
+                shap_vals[b], x_orig, fully_masked
+            )
+        
+        # Return in original format
+        result = shap_vals[0] if is_single else shap_vals
+        
         if check_additivity:
-            print(f"[SupportPreservingSHAP] sum(SHAP)={shap_vals.sum():.4f}")
-        return shap_vals
+            print(f"[SupportPreservingSHAP] sum(SHAP)={result.sum():.4f}")
+        
+        return result
