@@ -22,7 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Import organization and consistency
 - Package metadata completeness
 
-## [0.0.1a3] - 2024-XX-XX
+## [0.0.1a4] - 2024-XX-XX
 
 ### Added
 - Enhanced SHAP explainers collection with 16 different explainer variants

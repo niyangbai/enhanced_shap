@@ -16,8 +16,8 @@ sys.path.insert(0, os.path.abspath('../../'))
 project = 'Enhanced SHAP'
 copyright = '2025, Niyang Bai'
 author = 'Niyang Bai'
-release = '0.0.1a3'
-version = '0.0.1a3'
+release = '0.0.1a4'
+version = '0.0.1a4'
 
 extensions = [
     'sphinx.ext.autodoc',

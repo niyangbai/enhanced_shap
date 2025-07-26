@@ -12,7 +12,7 @@ class TestInit(unittest.TestCase):
     def test_version_exists(self):
         # Test that version is defined
         self.assertTrue(hasattr(shap_enhanced, "__version__"))
-        self.assertEqual(shap_enhanced.__version__, "0.0.1a3")
+        self.assertEqual(shap_enhanced.__version__, "0.0.1a4")
 
     def test_base_explainer_import(self):
         # Test that BaseExplainer can be imported from main package

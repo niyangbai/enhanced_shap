@@ -52,7 +52,7 @@ body:
       label: Version
       description: What version of shap-enhanced are you running?
       options:
-        - 0.0.1a3 (Latest)
+        - 0.0.1a4 (Latest)
         - 0.0.1a2
         - 0.0.1a1
         - Other (please specify in additional context)

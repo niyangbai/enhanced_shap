@@ -174,7 +174,7 @@ Options:
 
 4. **"Tag already exists"**
    - Update version in `pyproject.toml`
-   - Or delete existing tag: `git tag -d v0.0.1a3 && git push origin :refs/tags/v0.0.1a3`
+   - Or delete existing tag: `git tag -d v0.0.1a4 && git push origin :refs/tags/v0.0.1a4`
 
 5. **"GitHub CLI not authenticated"**
    - Run: `gh auth login` and follow prompts
