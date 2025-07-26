@@ -40,3 +40,18 @@ from .visulization import (
     plot_3d_bars,
     plot_feature_comparison
 )
+
+__all__ = [
+    "Comparison",
+    "generate_synthetic_seqregression",
+    "generate_synthetic_tabular", 
+    "compute_shapley_gt_seq",
+    "compute_shapley_gt_tabular",
+    "RealisticLSTM",
+    "TabularMLP",
+    "Timer",
+    "plot_mse_pearson",
+    "plot_3d_surface", 
+    "plot_3d_bars",
+    "plot_feature_comparison",
+]

@@ -55,3 +55,22 @@ from .SCSHAP import SparseCoalitionSHAPExplainer
 from .SPSHAP import SupportPreservingSHAPExplainer
 from .SurroSHAP import SurrogateSHAPExplainer
 from .TimeSHAP import TimeSHAPExplainer
+
+__all__ = [
+    "AdaptiveBaselineSHAPExplainer",
+    "AttnSHAPExplainer", 
+    "BShapExplainer",
+    "CoalitionAwareSHAPExplainer",
+    "ContextualMaskingSHAPExplainer",
+    "EmpiricalConditionalSHAPExplainer",
+    "ERSHAPExplainer",
+    "EnsembleSHAPWithNoise",
+    "HShapExplainer",
+    "LatentSHAPExplainer",
+    "NearestNeighborMultiBaselineSHAP",
+    "RLShapExplainer",
+    "SparseCoalitionSHAPExplainer",
+    "SupportPreservingSHAPExplainer",
+    "SurrogateSHAPExplainer",
+    "TimeSHAPExplainer",
+]

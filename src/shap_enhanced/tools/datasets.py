@@ -50,6 +50,8 @@ Example
 
 import numpy as np
 
+__all__ = ["generate_synthetic_seqregression", "generate_synthetic_tabular"]
+
 def generate_synthetic_seqregression(seq_len=10, n_features=3, n_samples=200, seed=0):
     r"""
     Generate synthetic multivariate time-series data for sequence-to-scalar regression.

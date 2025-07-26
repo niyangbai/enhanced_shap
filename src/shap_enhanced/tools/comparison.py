@@ -47,6 +47,8 @@ Example
 import numpy as np
 from scipy.stats import pearsonr
 
+__all__ = ["Comparison"]
+
 class Comparison:
     r"""
     Comparison: SHAP Attribution Evaluation Utility

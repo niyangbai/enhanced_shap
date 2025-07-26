@@ -61,8 +61,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D  # noqa: F401
 
-import matplotlib.pyplot as plt
-import numpy as np
+__all__ = ["plot_mse_pearson", "plot_3d_surface", "plot_3d_bars", "plot_feature_comparison"]
 
 def plot_mse_pearson(
     results,

@@ -32,6 +32,8 @@ Useful for timing:
 
 import time
 
+__all__ = ["Timer"]
+
 
 class Timer:
     r"""

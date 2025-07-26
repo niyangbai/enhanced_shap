@@ -38,6 +38,8 @@ from abc import ABC, abstractmethod
 from typing import Any, Optional, Union
 import numpy as np
 
+__all__ = ["BaseExplainer"]
+
 class BaseExplainer(ABC):
     r"""
     BaseExplainer: Abstract Interface for SHAP-style Explainers

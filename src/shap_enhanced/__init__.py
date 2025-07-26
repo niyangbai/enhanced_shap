@@ -54,4 +54,4 @@ from . import tools
 
 __all__ = ["explainers", "tools", "BaseExplainer"]
 
-__version__ = "0.0.1"
+__version__ = "0.0.1a3"

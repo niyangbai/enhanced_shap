@@ -55,6 +55,8 @@ Example
 import numpy as np
 import torch
 
+__all__ = ["compute_shapley_gt_seq", "compute_shapley_gt_tabular"]
+
 def compute_shapley_gt_seq(model, x, baseline, nsamples=200, device="cpu"):
     r"""
     Estimate ground-truth Shapley values for a sequential input using Monte Carlo sampling.

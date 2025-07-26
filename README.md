@@ -4,23 +4,32 @@
 
 # SHAP-Enhanced: Advanced Explainability Toolkit
 
-<a href="https://www.gnu.org/licenses/agpl-3.0">
-    <img src="https://img.shields.io/badge/License-AGPL%20v3-blue.svg?logo=open-source-initiative" alt="License: AGPL-3.0"/>
+<a href="https://pypi.org/project/shap-enhanced/">
+    <img src="https://img.shields.io/pypi/v/shap-enhanced.svg?logo=python&label=PyPI" alt="PyPI version"/>
 </a>
 <a href="https://www.python.org/">
     <img src="https://img.shields.io/badge/Python-3.10%2B-blue.svg?logo=python" alt="Python Version"/>
 </a>
-<a href="https://git-scm.com/">
-    <img src="https://img.shields.io/badge/Git-Repository-orange.svg?logo=git" alt="Git"/>
+<a href="https://github.com/niyangbai/enhanced_shap/actions/workflows/ci.yml">
+    <img src="https://github.com/niyangbai/enhanced_shap/workflows/CI/badge.svg" alt="CI Status"/>
 </a>
-<a href="https://pypi.org/project/shap-enhanced/">
-    <img src="https://img.shields.io/pypi/v/shap-enhanced.svg?logo=python&label=PyPI" alt="PyPI version"/>
+<a href="https://codecov.io/gh/niyangbai/enhanced_shap">
+    <img src="https://codecov.io/gh/niyangbai/enhanced_shap/branch/main/graph/badge.svg" alt="Coverage"/>
+</a>
+<a href="https://github.com/psf/black">
+    <img src="https://img.shields.io/badge/code%20style-black-000000.svg" alt="Code style: black"/>
+</a>
+<a href="https://github.com/charliermarsh/ruff">
+    <img src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/charliermarsh/ruff/main/assets/badge/v2.json" alt="Ruff"/>
+</a>
+<a href="https://mypy-lang.org/">
+    <img src="https://img.shields.io/badge/mypy-checked-blue.svg" alt="MyPy checked"/>
+</a>
+<a href="https://www.gnu.org/licenses/agpl-3.0">
+    <img src="https://img.shields.io/badge/License-AGPL%20v3-blue.svg?logo=open-source-initiative" alt="License: AGPL-3.0"/>
 </a>
 <a href="https://niyangbai.github.io/enhanced_shap/">
     <img src="https://img.shields.io/badge/docs-GitHub%20Pages-brightgreen?logo=github" alt="Docs: GitHub Pages"/>
-</a>
-<a href="https://www.sphinx-doc.org/">
-    <img src="https://img.shields.io/badge/built%20with-Sphinx-89e?logo=sphinx" alt="Built with Sphinx"/>
 </a>
 
 
@@ -47,40 +56,65 @@ Documentation is automatically generated from the source code and kept up to dat
 
 ## Installation
 
-You can install directly from PyPI (recommended if available):
+### PyPI Installation (Recommended)
+
+Install the latest stable version from PyPI:
 
 ```sh
 pip install shap-enhanced
 ```
 
-Or build the package locally:
+### Optional Dependencies
+
+Install with additional features:
+
+```sh
+# Development dependencies (testing, linting, type checking)
+pip install "shap-enhanced[dev]"
+
+# Documentation dependencies
+pip install "shap-enhanced[docs]"
+
+# Example dependencies (Jupyter, visualization tools)
+pip install "shap-enhanced[examples]"
+
+# All dependencies
+pip install "shap-enhanced[dev,docs,examples]"
+```
+
+### Development Installation
+
+For contributing or local development:
 
 ```sh
 git clone https://github.com/niyangbai/enhanced_shap.git
 cd enhanced_shap
-pip install -r requirements.txt
-pip install .
+pip install -e ".[dev]"
 ```
 
-## Contribution
+## Contributing
 
-We welcome contributions to <b>SHAP-Enhanced</b>! To contribute, please follow these steps:
+We welcome contributions to **SHAP-Enhanced**! Whether you're fixing bugs, adding features, or improving documentation, your help is appreciated.
 
-<ul>
-    <li><b>Fork</b> this repository and clone your fork.</li>
-    <li><b>Create a branch</b> for your feature or bugfix.</li>
-    <li>Add or update tests, and run <code>pytest</code> to ensure they pass.</li>
-    <li><b>Commit</b> and <b>push</b> your changes, then open a <b>pull request</b> with a clear description.</li>
-</ul>
+### Quick Start for Contributors
 
-<b>General Guidelines:</b>
-<ul>
-    <li>Follow the <b>PEP8 coding style</b>.</li>
-    <li>Document all public methods, classes, and modules using <b>Sphinx-style docstrings</b>.</li>
-    <li>Ensure your code is <b>properly typed</b> and includes type hints.</li>
-    <li>Write clear and concise commit messages.</li>
-    <li>Be respectful and collaborative in code reviews.</li>
-</ul>
+1. **Fork** this repository and clone your fork
+2. **Set up development environment**: `pip install -e ".[dev]"`
+3. **Create a branch** for your feature or bugfix
+4. **Make changes** and add tests
+5. **Run quality checks**: `black src tests && ruff check src tests && mypy src`
+6. **Run tests**: `pytest`
+7. **Submit a pull request**
+
+For detailed contribution guidelines, please see [CONTRIBUTING.md](https://github.com/niyangbai/enhanced_shap/blob/main/CONTRIBUTING.md).
+
+### Code Quality Standards
+
+- **Code Style**: We use [Black](https://github.com/psf/black) for formatting
+- **Linting**: [Ruff](https://github.com/charliermarsh/ruff) for fast Python linting
+- **Type Checking**: [MyPy](https://mypy-lang.org/) for static type analysis
+- **Testing**: [Pytest](https://pytest.org/) with coverage reporting
+- **Documentation**: Google-style docstrings with Sphinx
 
 
 ## License

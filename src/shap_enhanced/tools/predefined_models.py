@@ -49,6 +49,8 @@ Example
 import torch
 import torch.nn as nn
 
+__all__ = ["RealisticLSTM", "TabularMLP"]
+
 class RealisticLSTM(nn.Module):
     r"""
     Bidirectional LSTM model with temporal attention for sequential input.
