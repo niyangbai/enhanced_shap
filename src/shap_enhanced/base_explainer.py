@@ -5,40 +5,45 @@ Enhanced SHAP Base Interface
 Overview
 --------
 
-This module defines the abstract base class for all SHAP-style explainers  
-within the Enhanced SHAP framework. It enforces a common API across all implementations  
+This module defines the abstract base class for all SHAP-style explainers
+within the Enhanced SHAP framework. It enforces a common API across all implementations
 to ensure consistency, flexibility, and SHAP compatibility.
 
-Any explainer that inherits from `BaseExplainer` must implement the `shap_values` method,  
-which computes SHAP attributions given input data and optional arguments.  
-The class also provides useful aliases such as `explain` and a callable `__call__` interface  
+Any explainer that inherits from `BaseExplainer` must implement the `shap_values` method,
+which computes SHAP attributions given input data and optional arguments.
+The class also provides useful aliases such as `explain` and a callable `__call__` interface
 to align with `shap.Explainer` behavior.
 
 Key Concepts
 ^^^^^^^^^^^^
 
-- **Abstract SHAP API**:  
+- **Abstract SHAP API**:
   All custom explainers must subclass this interface and define `shap_values`.
 
-- **Compatibility Wrappers**:  
+- **Compatibility Wrappers**:
   Methods like `explain` and `__call__` make the interface flexible for different usage styles.
 
-- **Expected Value Access**:  
+- **Expected Value Access**:
   The `expected_value` property allows subclasses to expose the model’s mean output over background data.
 
 Use Case
 --------
 
-`BaseExplainer` is the foundation of the enhanced SHAP ecosystem, supporting custom attribution algorithms  
-like TimeSHAP, Multi-Baseline SHAP, or Surrogate SHAP. By inheriting from this interface, all explainers  
+`BaseExplainer` is the foundation of the enhanced SHAP ecosystem, supporting custom attribution algorithms
+like TimeSHAP, Multi-Baseline SHAP, or Surrogate SHAP. By inheriting from this interface, all explainers
 can be used interchangeably and plugged into benchmarking, visualization, or evaluation tools.
 """
 
 from abc import ABC, abstractmethod
-from typing import Any, Optional, Union
+from typing import TYPE_CHECKING, Any, Union
+
+if TYPE_CHECKING:
+    import torch
+
 import numpy as np
 
 __all__ = ["BaseExplainer"]
+
 
 class BaseExplainer(ABC):
     r"""
@@ -52,17 +57,18 @@ class BaseExplainer(ABC):
     :param Any model: The model to explain (e.g., PyTorch or scikit-learn model).
     :param Optional[Any] background: Background data for imputation or marginalization (used in SHAP computation).
     """
-    def __init__(self, model: Any, background: Optional[Any] = None):
+
+    def __init__(self, model: Any, background: Any | None = None):
         self.model = model
         self.background = background
 
     @abstractmethod
     def shap_values(
-        self, 
-        X: Union[np.ndarray, 'torch.Tensor', list], 
-        check_additivity: bool = True, 
-        **kwargs
-    ) -> Union[np.ndarray, list]:
+        self,
+        X: Union[np.ndarray, "torch.Tensor", list],
+        check_additivity: bool = True,
+        **kwargs,
+    ) -> np.ndarray | list:
         r"""
         Abstract method to compute SHAP values for input samples.
 
@@ -79,10 +85,8 @@ class BaseExplainer(ABC):
         pass
 
     def explain(
-        self, 
-        X: Union[np.ndarray, 'torch.Tensor', list], 
-        **kwargs
-    ) -> Union[np.ndarray, list]:
+        self, X: Union[np.ndarray, "torch.Tensor", list], **kwargs
+    ) -> np.ndarray | list:
         r"""
         Alias to `shap_values` for flexibility and API compatibility.
 

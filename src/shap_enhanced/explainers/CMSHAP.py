@@ -22,10 +22,10 @@ Algorithm
 
 1. **Initialization**:
     - Accepts a model and device.
-    
+
 2. **Contextual Masking**:
     - For each coalition (subset of features to mask), masked positions are replaced by the average of their immediate temporal neighbors.
-    
+
 3. **SHAP Value Estimation**:
     - For each feature-time position ``(t, f)``, repeatedly:
         - Sample a random coalition of other positions.
@@ -33,15 +33,17 @@ Algorithm
         - Mask the coalition plus ``(t, f)`` using contextual interpolation.
         - Compute the model output difference.
         - Average these differences to estimate the marginal contribution of ``(t, f)``.
-        
+
     - Normalize attributions so their sum matches the difference between the original and fully-masked model output.
 """
 
-from typing import Any, Optional, Union
+from typing import Any
+
 import numpy as np
 import torch
 
 from shap_enhanced.base_explainer import BaseExplainer
+
 
 class ContextualMaskingSHAPExplainer(BaseExplainer):
     r"""
@@ -57,7 +59,7 @@ class ContextualMaskingSHAPExplainer(BaseExplainer):
     :type device: Optional[str]
     """
 
-    def __init__(self, model: Any, device: Optional[str] = None):
+    def __init__(self, model: Any, device: str | None = None):
         super().__init__(model, background=None)
         self.device = device or ("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -78,7 +80,7 @@ class ContextualMaskingSHAPExplainer(BaseExplainer):
         """
         X_interp = X.copy() if isinstance(X, np.ndarray) else X.clone()
         T, F = X_interp.shape
-        for (t, f) in idxs:
+        for t, f in idxs:
             if t == 0:
                 X_interp[t, f] = X_interp[t + 1, f]
             elif t == T - 1:
@@ -111,11 +113,11 @@ class ContextualMaskingSHAPExplainer(BaseExplainer):
 
     def shap_values(
         self,
-        X: Union[np.ndarray, torch.Tensor],
+        X: np.ndarray | torch.Tensor,
         nsamples: int = 100,
         check_additivity: bool = True,
         random_seed: int = 42,
-        **kwargs
+        **kwargs,
     ) -> np.ndarray:
         r"""
         Estimate SHAP values using contextual (interpolated) masking.
@@ -128,7 +130,7 @@ class ContextualMaskingSHAPExplainer(BaseExplainer):
         values with averages of adjacent time steps:
 
         .. math::
-            x_{t,f}^{masked} = 
+            x_{t,f}^{masked} =
             \begin{cases}
                 x_{t+1,f}, & \text{if } t = 0 \\
                 x_{t-1,f}, & \text{if } t = T-1 \\
@@ -167,7 +169,9 @@ class ContextualMaskingSHAPExplainer(BaseExplainer):
             for t in range(T):
                 for f in range(F):
                     contribs = []
-                    all_pos = [(i, j) for i in range(T) for j in range(F) if (i, j) != (t, f)]
+                    all_pos = [
+                        (i, j) for i in range(T) for j in range(F) if (i, j) != (t, f)
+                    ]
                     for _ in range(nsamples):
                         # Sample random coalition
                         k = np.random.randint(1, len(all_pos) + 1)
@@ -187,7 +191,9 @@ class ContextualMaskingSHAPExplainer(BaseExplainer):
 
             # Additivity normalization
             orig_pred = self._get_model_output(x_orig[None])[0]
-            x_all_masked = self._interpolate_mask(x_orig, [(ti, fi) for ti in range(T) for fi in range(F)])
+            x_all_masked = self._interpolate_mask(
+                x_orig, [(ti, fi) for ti in range(T) for fi in range(F)]
+            )
             masked_pred = self._get_model_output(x_all_masked[None])[0]
             shap_sum = shap_vals[b].sum()
             model_diff = orig_pred - masked_pred
@@ -197,6 +203,8 @@ class ContextualMaskingSHAPExplainer(BaseExplainer):
         shap_vals = shap_vals[0] if len(shape) == 2 else shap_vals
 
         if check_additivity:
-            print(f"[CM-SHAP Additivity] sum(SHAP)={shap_vals.sum():.4f} | Model diff={float(orig_pred - masked_pred):.4f}")
+            print(
+                f"[CM-SHAP Additivity] sum(SHAP)={shap_vals.sum():.4f} | Model diff={float(orig_pred - masked_pred):.4f}"
+            )
 
         return shap_vals

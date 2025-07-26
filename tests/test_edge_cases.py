@@ -1,6 +1,8 @@
 import unittest
+from unittest.mock import Mock
+
 import numpy as np
-from unittest.mock import Mock, patch
+
 import shap_enhanced
 from shap_enhanced.base_explainer import BaseExplainer
 
@@ -13,7 +15,7 @@ class EdgeCaseMockExplainer(BaseExplainer):
             return np.array([])
         if isinstance(X, np.ndarray):
             return np.zeros_like(X)
-        return [0] * len(X) if hasattr(X, '__len__') else 0
+        return [0] * len(X) if hasattr(X, "__len__") else 0
 
 
 class TestEdgeCases(unittest.TestCase):
@@ -116,57 +118,56 @@ class TestPackageEdgeCases(unittest.TestCase):
         all_exports = shap_enhanced.__all__
         self.assertIsInstance(all_exports, list)
         self.assertTrue(len(all_exports) > 0)
-        
+
         # All exports should be strings
         for export in all_exports:
             self.assertIsInstance(export, str)
-            
+
         # All exports should be available in the module
         for export in all_exports:
-            self.assertTrue(hasattr(shap_enhanced, export),
-                          f"Export {export} not found in module")
+            self.assertTrue(
+                hasattr(shap_enhanced, export), f"Export {export} not found in module"
+            )
 
     def test_circular_import_protection(self):
         """Test that imports don't create circular dependencies"""
         # This test ensures we can import multiple times without issues
-        import shap_enhanced
-        import shap_enhanced.explainers
-        import shap_enhanced.tools
-        import shap_enhanced.base_explainer
-        
         # Re-importing should work fine
         import shap_enhanced
+        import shap_enhanced.base_explainer
+        import shap_enhanced.explainers
+        import shap_enhanced.tools
+
         self.assertIsNotNone(shap_enhanced)
 
     def test_memory_cleanup(self):
         """Test that objects can be garbage collected properly"""
         import gc
-        
+
         # Create some objects
         model = Mock()
         explainer = EdgeCaseMockExplainer(model)
         large_data = np.random.random((1000, 1000))
-        
+
         # Use them
         result = explainer.shap_values(large_data[:10, :10])
-        
+
         # Delete references
         del model, explainer, large_data, result
-        
+
         # Force garbage collection
         gc.collect()
-        
+
         # Test should complete without memory errors
         self.assertTrue(True)
 
     def test_thread_safety_basic(self):
         """Basic test for thread safety concerns"""
         import threading
-        import time
-        
+
         results = []
         errors = []
-        
+
         def worker():
             try:
                 explainer = EdgeCaseMockExplainer(Mock())
@@ -175,18 +176,18 @@ class TestPackageEdgeCases(unittest.TestCase):
                 results.append(result.shape)
             except Exception as e:
                 errors.append(e)
-        
+
         # Create multiple threads
         threads = [threading.Thread(target=worker) for _ in range(5)]
-        
+
         # Start all threads
         for thread in threads:
             thread.start()
-        
+
         # Wait for completion
         for thread in threads:
             thread.join()
-        
+
         # Check results
         self.assertEqual(len(errors), 0, f"Thread errors: {errors}")
         self.assertEqual(len(results), 5)
@@ -194,5 +195,5 @@ class TestPackageEdgeCases(unittest.TestCase):
             self.assertEqual(shape, (10, 5))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

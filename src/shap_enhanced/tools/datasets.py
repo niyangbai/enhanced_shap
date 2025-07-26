@@ -5,26 +5,26 @@ Synthetic Data Generators for Regression Benchmarks
 Overview
 --------
 
-This module provides utility functions for generating synthetic datasets  
-for benchmarking SHAP and other model explainability techniques in both sequential  
+This module provides utility functions for generating synthetic datasets
+for benchmarking SHAP and other model explainability techniques in both sequential
 and tabular regression settings.
 
 Two types of data generators are included:
 
-- **Sequential Regression Generator**: Produces multivariate time-series inputs with  
+- **Sequential Regression Generator**: Produces multivariate time-series inputs with
   sinusoidal targets based on cumulative temporal signals.
-  
-- **Tabular Regression Generator**: Supports sparse or dense tabular inputs, with configurable linear  
+
+- **Tabular Regression Generator**: Supports sparse or dense tabular inputs, with configurable linear
   or nonlinear target mappings. Also outputs ground-truth feature weights.
 
 Key Functions
 ^^^^^^^^^^^^^
 
-- **generate_synthetic_seqregression**:  
+- **generate_synthetic_seqregression**:
   Creates a synthetic sequence-to-scalar regression dataset using sinusoidal logic.
 
-- **generate_synthetic_tabular**:  
-  Produces sparse or dense tabular data with a tunable regression function.  
+- **generate_synthetic_tabular**:
+  Produces sparse or dense tabular data with a tunable regression function.
   Returns both the dataset and the true underlying feature weights used to generate targets.
 
 Use Case
@@ -47,16 +47,16 @@ Example
     X_tab, y_tab, w = generate_synthetic_tabular(n_samples=200, n_features=6, sparse=True, model_type="nonlinear")
 """
 
-
 import numpy as np
 
 __all__ = ["generate_synthetic_seqregression", "generate_synthetic_tabular"]
+
 
 def generate_synthetic_seqregression(seq_len=10, n_features=3, n_samples=200, seed=0):
     r"""
     Generate synthetic multivariate time-series data for sequence-to-scalar regression.
 
-    Each target is constructed using a sinusoidal function over the cumulative sum  
+    Each target is constructed using a sinusoidal function over the cumulative sum
     of the first feature across timesteps.
 
     .. math::
@@ -74,13 +74,14 @@ def generate_synthetic_seqregression(seq_len=10, n_features=3, n_samples=200, se
     y = np.sin(X[:, :, 0].sum(axis=1)) + 0.1 * rng.standard_normal(n_samples)
     return X, y
 
+
 def generate_synthetic_tabular(
     n_samples=500,
     n_features=5,
     sparse=True,
     model_type="nonlinear",  # "linear" or "nonlinear"
-    sparsity=0.85,           # Default to 85% zeros if sparse
-    random_seed=42
+    sparsity=0.85,  # Default to 85% zeros if sparse
+    random_seed=42,
 ):
     r"""
     Generate synthetic tabular data with optional sparsity and a configurable regression function.
@@ -114,5 +115,5 @@ def generate_synthetic_tabular(
         y = X.dot(true_w)
     else:
         y = X.dot(true_w)
-        y = np.tanh(y) + 0.1 * (y ** 2) + 0.1 * rng.normal(size=n_samples)
+        y = np.tanh(y) + 0.1 * (y**2) + 0.1 * rng.normal(size=n_samples)
     return X, y, true_w

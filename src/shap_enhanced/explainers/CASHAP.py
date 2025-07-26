@@ -5,24 +5,24 @@ CASHAP: Coalition-Aware SHAP Explainer
 Theoretical Explanation
 -----------------------
 
-CASHAP (Coalition-Aware SHAP) is a Shapley value estimation framework tailored for models that process sequential or structured inputs, such as LSTMs.  
-Unlike classical SHAP methods that treat features independently, CASHAP considers **feature-time pairs**—enabling attribution of both spatial and temporal components.  
+CASHAP (Coalition-Aware SHAP) is a Shapley value estimation framework tailored for models that process sequential or structured inputs, such as LSTMs.
+Unlike classical SHAP methods that treat features independently, CASHAP considers **feature-time pairs**—enabling attribution of both spatial and temporal components.
 
-By explicitly sampling coalitions (subsets) of feature-time pairs and measuring marginal contributions, CASHAP provides granular, context-aware explanations.  
+By explicitly sampling coalitions (subsets) of feature-time pairs and measuring marginal contributions, CASHAP provides granular, context-aware explanations.
 It also supports multiple imputation strategies to ensure the perturbed inputs remain valid and interpretable.
 
 Key Concepts
 ^^^^^^^^^^^^
 
-- **Coalition Sampling**: For every feature-time pair \((t, f)\), random subsets of all other positions are sampled.  
-    The contribution of \((t, f)\) is assessed by adding it to each coalition and measuring the change in model output.
+- **Coalition Sampling**: For every feature-time pair \\((t, f)\\), random subsets of all other positions are sampled.
+    The contribution of \\((t, f)\\) is assessed by adding it to each coalition and measuring the change in model output.
 - **Masking/Imputation Strategies**:
     - **Zero masking**: Replace masked values with zero.
     - **Mean imputation**: Use feature-wise means from background data.
     - **Custom imputers**: Support for user-defined imputation functions.
-- **Model-Agnostic & Domain-General**: While ideal for time-series and sequential models, CASHAP can also be applied to tabular data  
+- **Model-Agnostic & Domain-General**: While ideal for time-series and sequential models, CASHAP can also be applied to tabular data
     wherever structured coalition masking is appropriate.
-- **Additivity Normalization**: Attribution scores are scaled such that their total sum equals the difference in model output  
+- **Additivity Normalization**: Attribution scores are scaled such that their total sum equals the difference in model output
     between the original input and a fully-masked version.
 
 Algorithm
@@ -32,28 +32,29 @@ Algorithm
     - Accepts a model, background data for imputation, masking strategy, optional custom imputer, and device context.
 
 2. **Coalition Sampling**:
-    - For each feature-time pair \((t, f)\):
-        - Sample coalitions \( C \subseteq (T \times F) \setminus \{(t, f)\} \).
-        - For each coalition \( C \):
-            - Impute features in \( C \) using the chosen strategy.
-            - Impute features in \( C \cup \{(t, f)\} \).
+    - For each feature-time pair \\((t, f)\\):
+        - Sample coalitions \\( C \\subseteq (T \times F) \\setminus \\{(t, f)\\} \\).
+        - For each coalition \\( C \\):
+            - Impute features in \\( C \\) using the chosen strategy.
+            - Impute features in \\( C \\cup \\{(t, f)\\} \\).
             - Compute and record the model output difference.
 
 3. **Attribution Estimation**:
-    - Average the output differences across coalitions to estimate the marginal contribution of \((t, f)\).
+    - Average the output differences across coalitions to estimate the marginal contribution of \\((t, f)\\).
 
 4. **Normalization**:
-    - Normalize attributions so that their total matches the difference between the model's prediction  
+    - Normalize attributions so that their total matches the difference between the model's prediction
         on the original and the fully-masked input.
 """
 
-
-from typing import Any, Optional, Union
 from collections.abc import Callable
+from typing import Any
+
 import numpy as np
 import torch
 
 from shap_enhanced.base_explainer import BaseExplainer
+
 
 class CoalitionAwareSHAPExplainer(BaseExplainer):
     """
@@ -78,10 +79,10 @@ class CoalitionAwareSHAPExplainer(BaseExplainer):
     def __init__(
         self,
         model: Any,
-        background: Optional[Union[np.ndarray, torch.Tensor]] = None,
+        background: np.ndarray | torch.Tensor | None = None,
         mask_strategy: str = "zero",
-        imputer: Optional[Callable] = None,
-        device: Optional[str] = None
+        imputer: Callable | None = None,
+        device: str | None = None,
     ):
         super().__init__(model, background)
         self.mask_strategy = mask_strategy
@@ -93,7 +94,8 @@ class CoalitionAwareSHAPExplainer(BaseExplainer):
             if background is None:
                 raise ValueError("Mean imputation requires background data.")
             self._mean = (
-                background.mean(axis=0) if isinstance(background, np.ndarray)
+                background.mean(axis=0)
+                if isinstance(background, np.ndarray)
                 else background.float().mean(dim=0)
             )
         else:
@@ -112,7 +114,7 @@ class CoalitionAwareSHAPExplainer(BaseExplainer):
         :rtype: Same as input type
         """
         X_masked = X.copy() if isinstance(X, np.ndarray) else X.clone()
-        for (t, f) in idxs:
+        for t, f in idxs:
             if isinstance(X_masked, np.ndarray):
                 X_masked[t, f] = value if value is not None else 0.0
             else:
@@ -139,11 +141,12 @@ class CoalitionAwareSHAPExplainer(BaseExplainer):
             return self._mask(X, idxs, value=0.0)
         elif self.mask_strategy == "mean":
             mean_val = (
-                self._mean if isinstance(X, np.ndarray)
+                self._mean
+                if isinstance(X, np.ndarray)
                 else self._mean.unsqueeze(0).expand_as(X)
             )
             X_imp = X.copy() if isinstance(X, np.ndarray) else X.clone()
-            for (t, f) in idxs:
+            for t, f in idxs:
                 if isinstance(X_imp, np.ndarray):
                     X_imp[t, f] = mean_val[t, f]
                 else:
@@ -173,31 +176,31 @@ class CoalitionAwareSHAPExplainer(BaseExplainer):
             return out.cpu().numpy() if hasattr(out, "cpu") else np.asarray(out)
 
     def shap_values(
-        self, 
-        X: Union[np.ndarray, torch.Tensor], 
+        self,
+        X: np.ndarray | torch.Tensor,
         nsamples: int = 100,
-        coalition_size: Optional[int] = None,
-        mask_strategy: Optional[str] = None,
+        coalition_size: int | None = None,
+        mask_strategy: str | None = None,
         check_additivity: bool = True,
         random_seed: int = 42,
-        **kwargs
+        **kwargs,
     ) -> np.ndarray:
         """
         Compute CASHAP Shapley values for structured inputs via coalition-aware sampling.
 
-        For each feature-time pair \((t, f)\), randomly sample coalitions excluding \((t, f)\),
+        For each feature-time pair \\((t, f)\\), randomly sample coalitions excluding \\((t, f)\\),
         compute model outputs with and without the pair added, and average the marginal contributions.
         Attribution values are normalized so their total matches the model output difference
         between the original and fully-masked input.
 
         .. math::
-            \phi_{t,f} \approx \mathbb{E}_{C \subseteq (T \times F) \setminus \{(t,f)\}} \left[
-                f(C \cup \{(t,f)\}) - f(C)
+            \\phi_{t,f} \approx \\mathbb{E}_{C \\subseteq (T \times F) \\setminus \\{(t,f)\\}} \\left[
+                f(C \\cup \\{(t,f)\\}) - f(C)
             \right]
 
         .. note::
             Normalization ensures:
-            \sum_{t=1}^T \sum_{f=1}^F \phi_{t,f} \approx f(x) - f(x_{\text{masked}})
+            \\sum_{t=1}^T \\sum_{f=1}^F \\phi_{t,f} \approx f(x) - f(x_{\text{masked}})
 
         :param X: Input sample of shape (T, F) or batch (B, T, F).
         :type X: np.ndarray or torch.Tensor
@@ -231,14 +234,18 @@ class CoalitionAwareSHAPExplainer(BaseExplainer):
             for t in range(T):
                 for f in range(F):
                     contribs = []
-                    all_pos = [(i, j) for i in range(T) for j in range(F) if (i, j) != (t, f)]
+                    all_pos = [
+                        (i, j) for i in range(T) for j in range(F) if (i, j) != (t, f)
+                    ]
                     for _ in range(nsamples):
                         # Improved: Systematic coalition size
                         if coalition_size is not None:
                             k = coalition_size
                         else:
                             k = np.random.randint(1, len(all_pos) + 1)
-                        C_idxs = list(np.random.choice(len(all_pos), size=k, replace=False))
+                        C_idxs = list(
+                            np.random.choice(len(all_pos), size=k, replace=False)
+                        )
                         C_idxs = [all_pos[idx] for idx in C_idxs]
 
                         # Mask coalition (C) only
@@ -256,7 +263,9 @@ class CoalitionAwareSHAPExplainer(BaseExplainer):
 
             # Additivity correction per sample
             orig_pred = self._get_model_output(x_orig[None])[0]
-            x_all_masked = self._impute(x_orig, [(ti, fi) for ti in range(T) for fi in range(F)])
+            x_all_masked = self._impute(
+                x_orig, [(ti, fi) for ti in range(T) for fi in range(F)]
+            )
             masked_pred = self._get_model_output(x_all_masked[None])[0]
             shap_sum = shap_vals[b].sum()
             model_diff = orig_pred - masked_pred
@@ -266,14 +275,17 @@ class CoalitionAwareSHAPExplainer(BaseExplainer):
         shap_vals = shap_vals[0] if len(shape) == 2 else shap_vals
 
         if check_additivity:
-            print(f"[CASHAP Additivity] sum(SHAP)={shap_vals.sum():.4f} | Model diff={float(orig_pred - masked_pred):.4f}")
+            print(
+                f"[CASHAP Additivity] sum(SHAP)={shap_vals.sum():.4f} | Model diff={float(orig_pred - masked_pred):.4f}"
+            )
 
         return shap_vals
 
+
 if __name__ == "__main__":
+    import numpy as np
     import torch
     import torch.nn as nn
-    import numpy as np
 
     # --- Dummy LSTM model for demo ---
     class DummyLSTM(nn.Module):
@@ -305,17 +317,15 @@ if __name__ == "__main__":
     model.eval()
 
     explainer = CoalitionAwareSHAPExplainer(
-        model=model,
-        background=train_X,
-        mask_strategy="mean"
+        model=model, background=train_X, mask_strategy="mean"
     )
 
     # --- Compute SHAP values ---
     shap_vals = explainer.shap_values(
-        test_X,           # (B, T, F)
-        nsamples=10,      # small for demo, increase for quality
-        coalition_size=4, # mask 4 pairs at a time
-        check_additivity=True
+        test_X,  # (B, T, F)
+        nsamples=10,  # small for demo, increase for quality
+        coalition_size=4,  # mask 4 pairs at a time
+        check_additivity=True,
     )
 
     print("SHAP values shape:", shap_vals.shape)

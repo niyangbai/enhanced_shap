@@ -5,8 +5,8 @@ SHAP Explainers Collection
 Overview
 --------
 
-This subpackage contains a suite of SHAP-style explainers, each designed to handle different data structures,  
-baseline strategies, and attribution mechanisms for interpretable machine learning. These explainers extend  
+This subpackage contains a suite of SHAP-style explainers, each designed to handle different data structures,
+baseline strategies, and attribution mechanisms for interpretable machine learning. These explainers extend
 beyond standard SHAP to provide specialized techniques for:
 
 - Temporal and sequential data (e.g., `TimeSHAP`, `LatentSHAP`)
@@ -58,7 +58,7 @@ from .TimeSHAP import TimeSHAPExplainer
 
 __all__ = [
     "AdaptiveBaselineSHAPExplainer",
-    "AttnSHAPExplainer", 
+    "AttnSHAPExplainer",
     "BShapExplainer",
     "CoalitionAwareSHAPExplainer",
     "ContextualMaskingSHAPExplainer",

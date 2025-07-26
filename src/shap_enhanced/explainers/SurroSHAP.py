@@ -5,30 +5,30 @@ SurroSHAP: Surrogate Model SHAP Explainer
 Theoretical Explanation
 -----------------------
 
-**SurroSHAP** is a surrogate modeling approach to SHAP that accelerates feature attribution  
-by training a regression model to **mimic SHAP values** produced by a base explainer.  
-Once trained, the surrogate regressor can produce fast, approximate SHAP values for new inputs,  
+**SurroSHAP** is a surrogate modeling approach to SHAP that accelerates feature attribution
+by training a regression model to **mimic SHAP values** produced by a base explainer.
+Once trained, the surrogate regressor can produce fast, approximate SHAP values for new inputs,
 bypassing the computational expense of re-running the base SHAP explainer.
 
-This method is particularly useful for large datasets, expensive black-box models, or scenarios  
+This method is particularly useful for large datasets, expensive black-box models, or scenarios
 where near-real-time interpretability is needed.
 
 Key Concepts
 ^^^^^^^^^^^^
 
-- **Surrogate Regression**:  
-    A regression model (e.g., Random Forest, Kernel Ridge, MLP) is trained to predict SHAP attributions  
+- **Surrogate Regression**:
+    A regression model (e.g., Random Forest, Kernel Ridge, MLP) is trained to predict SHAP attributions
     using inputs as features and base SHAP values as targets.
 
-- **Base SHAP Explainer**:  
-    Any standard SHAP-style explainer (e.g., `DeepExplainer`, `GradientExplainer`, `KernelExplainer`)  
+- **Base SHAP Explainer**:
+    Any standard SHAP-style explainer (e.g., `DeepExplainer`, `GradientExplainer`, `KernelExplainer`)
     can be used to generate training labels (pseudo-ground-truth SHAP values).
 
-- **Optional Scaling**:  
+- **Optional Scaling**:
     Input features and/or SHAP attributions can be standardized to improve the surrogate's learning performance.
 
-- **Fast Inference**:  
-    Once trained, the surrogate model can rapidly produce SHAP attributions for unseen inputs  
+- **Fast Inference**:
+    Once trained, the surrogate model can rapidly produce SHAP attributions for unseen inputs
     without invoking the base SHAP explainer again.
 
 Algorithm
@@ -67,16 +67,16 @@ SurroSHAP is best suited for:
     - Situations where approximate explanations are acceptable in exchange for speed.
 """
 
-
+import inspect
+from typing import Any
 
 import numpy as np
 import torch
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.preprocessing import StandardScaler
-from typing import Any, Union
-import inspect
 
 from shap_enhanced.base_explainer import BaseExplainer
+
 
 def ensure_shap_input(x, explainer, device="cpu"):
     r"""
@@ -115,6 +115,7 @@ def ensure_shap_input(x, explainer, device="cpu"):
         raise TypeError("Unsupported type for SHAP input.")
     return x
 
+
 def shap_values_with_nsamples(base_explainer, x, nsamples, **kwargs):
     r"""
     Safely compute SHAP values with optional support for `nsamples` argument.
@@ -137,7 +138,9 @@ def shap_values_with_nsamples(base_explainer, x, nsamples, **kwargs):
     # Try nsamples if supported
     if "nsamples" in params:
         try:
-            return base_explainer.shap_values(x, nsamples=nsamples, check_additivity=False, **kwargs)
+            return base_explainer.shap_values(
+                x, nsamples=nsamples, check_additivity=False, **kwargs
+            )
         except TypeError:
             try:
                 return base_explainer.shap_values(x, nsamples=nsamples, **kwargs)
@@ -149,15 +152,16 @@ def shap_values_with_nsamples(base_explainer, x, nsamples, **kwargs):
         except TypeError:
             return base_explainer.shap_values(x, **kwargs)
 
+
 class SurrogateSHAPExplainer(BaseExplainer):
     r"""
     SurrogateSHAPExplainer: Fast SHAP Approximation via Supervised Regression
 
-    SurroSHAP accelerates SHAP attribution by training a surrogate regression model that maps 
-    input features to SHAP attributions. This is useful when repeated SHAP computation is too 
+    SurroSHAP accelerates SHAP attribution by training a surrogate regression model that maps
+    input features to SHAP attributions. This is useful when repeated SHAP computation is too
     costly or when near-instant explanations are needed for deployment.
 
-    The surrogate model is trained on a background dataset where "true" SHAP values are first computed 
+    The surrogate model is trained on a background dataset where "true" SHAP values are first computed
     using a base explainer (e.g., `DeepExplainer`, `KernelExplainer`), and then used as regression targets.
 
     .. note::
@@ -179,6 +183,7 @@ class SurrogateSHAPExplainer(BaseExplainer):
     :param device: Torch device (e.g., 'cpu' or 'cuda').
     :type device: str or torch.device
     """
+
     def __init__(
         self,
         model: Any,
@@ -189,7 +194,7 @@ class SurrogateSHAPExplainer(BaseExplainer):
         nsamples_base=100,
         scale_inputs=True,
         scale_outputs=False,
-        device=None
+        device=None,
     ):
         super().__init__(model, background)
         self.device = device or ("cuda" if torch.cuda.is_available() else "cpu")
@@ -210,11 +215,13 @@ class SurrogateSHAPExplainer(BaseExplainer):
         Y_shap = []
         for i, x in enumerate(X_bg):
             x_shap = ensure_shap_input(x, self.base_explainer, device=self.device)
-            shap_val = shap_values_with_nsamples(self.base_explainer, x_shap, self.nsamples_base)
+            shap_val = shap_values_with_nsamples(
+                self.base_explainer, x_shap, self.nsamples_base
+            )
             if isinstance(shap_val, list):
                 shap_val = shap_val[0]
             Y_shap.append(shap_val.flatten())
-            if (i+1) % 10 == 0 or i == len(X_bg)-1:
+            if (i + 1) % 10 == 0 or i == len(X_bg) - 1:
                 print(f"  {i+1}/{len(X_bg)} attributions done...")
         Y_shap = np.stack(Y_shap, axis=0)  # (N, T*F)
         X_feat = X_bg.reshape(X_bg.shape[0], -1)
@@ -232,12 +239,12 @@ class SurrogateSHAPExplainer(BaseExplainer):
         self.regressor = reg
         print("[SurroSHAP] Surrogate trained.")
 
-    def shap_values(self, X: Union[np.ndarray, torch.Tensor], **kwargs) -> np.ndarray:
+    def shap_values(self, X: np.ndarray | torch.Tensor, **kwargs) -> np.ndarray:
         r"""
         Predict SHAP attributions for new inputs using the trained surrogate model.
 
-        The input is reshaped and (optionally) standardized to match the format used 
-        during surrogate training, and the predicted SHAP values are inverse-transformed 
+        The input is reshaped and (optionally) standardized to match the format used
+        during surrogate training, and the predicted SHAP values are inverse-transformed
         (if scaling was applied).
 
         .. note::
@@ -248,7 +255,7 @@ class SurrogateSHAPExplainer(BaseExplainer):
         :return: Approximated SHAP attributions, same shape as input.
         :rtype: np.ndarray
         """
-        is_torch = hasattr(X, 'detach')
+        is_torch = hasattr(X, "detach")
         X_np = X.detach().cpu().numpy() if is_torch else np.asarray(X)
         single = False
         if X_np.ndim == 2:  # (T, F)

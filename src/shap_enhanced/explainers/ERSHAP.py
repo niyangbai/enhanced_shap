@@ -5,60 +5,61 @@ ER-SHAP: Ensemble of Random SHAP Explainer
 Theoretical Explanation
 -----------------------
 
-ER-SHAP is a computationally efficient, ensemble-based approximation of Shapley values, designed for  
-both sequential and tabular models. Instead of exhaustively enumerating all possible coalitions,  
-ER-SHAP repeatedly samples random subsets of feature–timestep positions and estimates their  
+ER-SHAP is a computationally efficient, ensemble-based approximation of Shapley values, designed for
+both sequential and tabular models. Instead of exhaustively enumerating all possible coalitions,
+ER-SHAP repeatedly samples random subsets of feature–timestep positions and estimates their
 marginal contributions to model output.
 
-This stochastic approach significantly accelerates SHAP estimation while maintaining interpretability,  
-especially in high-dimensional or temporal settings. ER-SHAP also allows prior knowledge (e.g., feature importance)  
+This stochastic approach significantly accelerates SHAP estimation while maintaining interpretability,
+especially in high-dimensional or temporal settings. ER-SHAP also allows prior knowledge (e.g., feature importance)
 to guide coalition sampling through weighted schemes.
 
 Key Concepts
 ^^^^^^^^^^^^
 
-- **Random Coalition Sampling**:  
-    For each position \((t, f)\), sample coalitions \( C \subseteq (T \times F) \setminus \{(t, f)\} \)  
-    and estimate the marginal contribution of \((t, f)\) by measuring its impact on model output.
+- **Random Coalition Sampling**:
+    For each position \\((t, f)\\), sample coalitions \\( C \\subseteq (T \times F) \\setminus \\{(t, f)\\} \\)
+    and estimate the marginal contribution of \\((t, f)\\) by measuring its impact on model output.
 
-- **Weighted Sampling**:  
-    Coalition sampling can be uniform or weighted based on prior feature importance scores  
+- **Weighted Sampling**:
+    Coalition sampling can be uniform or weighted based on prior feature importance scores
     or positional frequency, allowing informed, efficient sampling.
 
-- **Flexible Masking**:  
+- **Flexible Masking**:
     Masked features are imputed using:
         - Zeros (hard masking).
         - Feature-wise means from the background dataset (soft masking).
 
-- **Additivity Normalization**:  
-    Final attributions are scaled so that their sum matches the model output difference  
+- **Additivity Normalization**:
+    Final attributions are scaled so that their sum matches the model output difference
     between the original and fully-masked input.
 
 Algorithm
 ---------
 
 1. **Initialization**:
-    - Accepts a model, background dataset for imputation, number of sampled coalitions,  
+    - Accepts a model, background dataset for imputation, number of sampled coalitions,
         masking strategy (`'zero'` or `'mean'`), weighting scheme, optional feature importance, and device context.
 
 2. **Coalition Sampling**:
-    - For each feature–timestep pair \((t, f)\):
-        - Sample coalitions \( C \subseteq (T \times F) \setminus \{(t, f)\} \), either uniformly or using weights.
+    - For each feature–timestep pair \\((t, f)\\):
+        - Sample coalitions \\( C \\subseteq (T \times F) \\setminus \\{(t, f)\\} \\), either uniformly or using weights.
         - For each coalition:
-            - Impute the coalition \( C \) in the input.
-            - Impute the coalition \( C \cup \{(t, f)\} \).
+            - Impute the coalition \\( C \\) in the input.
+            - Impute the coalition \\( C \\cup \\{(t, f)\\} \\).
             - Compute the model output difference.
-        - Average these differences to estimate the marginal contribution of \((t, f)\).
+        - Average these differences to estimate the marginal contribution of \\((t, f)\\).
 
 3. **Normalization**:
-    - Scale the final attributions so that their total equals the difference in model output  
+    - Scale the final attributions so that their total equals the difference in model output
         between the original input and a fully-masked baseline.
 """
 
-
 import numpy as np
 import torch
+
 from shap_enhanced.base_explainer import BaseExplainer
+
 
 class ERSHAPExplainer(BaseExplainer):
     """
@@ -83,6 +84,7 @@ class ERSHAPExplainer(BaseExplainer):
     :param device: Device identifier, 'cpu' or 'cuda'.
     :type device: str
     """
+
     def __init__(
         self,
         model,
@@ -91,7 +93,7 @@ class ERSHAPExplainer(BaseExplainer):
         mask_strategy="mean",
         weighting="uniform",
         feature_importance=None,
-        device=None
+        device=None,
     ):
         super().__init__(model, background)
         self.n_coalitions = n_coalitions
@@ -119,7 +121,7 @@ class ERSHAPExplainer(BaseExplainer):
         :rtype: np.ndarray
         """
         X_imp = X.copy()
-        for (t, f) in idxs:
+        for t, f in idxs:
             if self.mask_strategy == "zero":
                 X_imp[t, f] = 0.0
             elif self.mask_strategy == "mean":
@@ -151,13 +153,7 @@ class ERSHAPExplainer(BaseExplainer):
             idxs = np.random.choice(len(available), size=k, replace=False)
         return [available[i] for i in idxs]
 
-    def shap_values(
-        self,
-        X,
-        check_additivity=True,
-        random_seed=42,
-        **kwargs
-    ):
+    def shap_values(self, X, check_additivity=True, random_seed=42, **kwargs):
         r"""
         Compute SHAP values via random coalition sampling.
 
@@ -178,7 +174,7 @@ class ERSHAPExplainer(BaseExplainer):
         :rtype: np.ndarray
         """
         np.random.seed(random_seed)
-        is_torch = hasattr(X, 'detach')
+        is_torch = hasattr(X, "detach")
         X_in = X.detach().cpu().numpy() if is_torch else np.asarray(X)
         shape = X_in.shape
         if len(shape) == 2:
@@ -199,30 +195,75 @@ class ERSHAPExplainer(BaseExplainer):
                     available = [idx for idx in all_pos if idx != (t, f)]
                     # Define weights for coalition sampling
                     weights = None
-                    if self.weighting == "importance" and self.feature_importance is not None:
+                    if (
+                        self.weighting == "importance"
+                        and self.feature_importance is not None
+                    ):
                         flat_imp = self.feature_importance.flatten()
                         idx_map = {idx: i for i, idx in enumerate(all_pos)}
-                        weights = np.array([flat_imp[idx_map[idx]] for idx in available])
+                        weights = np.array(
+                            [flat_imp[idx_map[idx]] for idx in available]
+                        )
                         weights = weights / (weights.sum() + 1e-8)
                     elif self.weighting == "frequency":
                         weights = None  # Implemented as uniform, could use prior freq
 
                     for _ in range(self.n_coalitions):
                         # Uniform or weighted coalition size (avoid full/empty)
-                        k = np.random.randint(1, len(available)+1)
+                        k = np.random.randint(1, len(available) + 1)
                         C_idxs = self._sample_coalition(available, k, weights)
                         x_C = self._impute(x_orig, C_idxs)
                         x_C_tf = self._impute(x_C, [(t, f)])
-                        out_C = self.model(torch.tensor(x_C[None], dtype=torch.float32, device=self.device)).detach().cpu().numpy().squeeze()
-                        out_C_tf = self.model(torch.tensor(x_C_tf[None], dtype=torch.float32, device=self.device)).detach().cpu().numpy().squeeze()
+                        out_C = (
+                            self.model(
+                                torch.tensor(
+                                    x_C[None], dtype=torch.float32, device=self.device
+                                )
+                            )
+                            .detach()
+                            .cpu()
+                            .numpy()
+                            .squeeze()
+                        )
+                        out_C_tf = (
+                            self.model(
+                                torch.tensor(
+                                    x_C_tf[None],
+                                    dtype=torch.float32,
+                                    device=self.device,
+                                )
+                            )
+                            .detach()
+                            .cpu()
+                            .numpy()
+                            .squeeze()
+                        )
                         mc.append(out_C_tf - out_C)
                     shap_matrix[t, f] = np.mean(mc)
             shap_vals[b] = shap_matrix
 
             # Additivity normalization per sample
-            orig_pred = self.model(torch.tensor(x_orig[None], dtype=torch.float32, device=self.device)).detach().cpu().numpy().squeeze()
+            orig_pred = (
+                self.model(
+                    torch.tensor(x_orig[None], dtype=torch.float32, device=self.device)
+                )
+                .detach()
+                .cpu()
+                .numpy()
+                .squeeze()
+            )
             x_all_masked = self._impute(x_orig, all_pos)
-            masked_pred = self.model(torch.tensor(x_all_masked[None], dtype=torch.float32, device=self.device)).detach().cpu().numpy().squeeze()
+            masked_pred = (
+                self.model(
+                    torch.tensor(
+                        x_all_masked[None], dtype=torch.float32, device=self.device
+                    )
+                )
+                .detach()
+                .cpu()
+                .numpy()
+                .squeeze()
+            )
             shap_sum = shap_vals[b].sum()
             model_diff = orig_pred - masked_pred
             if shap_sum != 0:
@@ -230,5 +271,7 @@ class ERSHAPExplainer(BaseExplainer):
 
         shap_vals = shap_vals[0] if single else shap_vals
         if check_additivity:
-            print(f"[ERSHAP Additivity] sum(SHAP)={shap_vals.sum():.4f} | Model diff={float(orig_pred - masked_pred):.4f}")
+            print(
+                f"[ERSHAP Additivity] sum(SHAP)={shap_vals.sum():.4f} | Model diff={float(orig_pred - masked_pred):.4f}"
+            )
         return shap_vals

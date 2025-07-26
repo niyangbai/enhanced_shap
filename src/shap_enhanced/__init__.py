@@ -2,8 +2,8 @@
 Enhanced SHAP Explainers
 =========================
 
-This package provides a collection of advanced SHAP-style explainers and supporting tools 
-designed for structured, sequential, and tabular data. It extends traditional SHAP 
+This package provides a collection of advanced SHAP-style explainers and supporting tools
+designed for structured, sequential, and tabular data. It extends traditional SHAP
 methodology with interpretable, efficient, and domain-aware enhancements.
 
 Core Modules
@@ -28,7 +28,7 @@ Core Modules
     - Benchmark comparisons and profiling
 
 - **base_explainer**:
-  Abstract base class (`BaseExplainer`) that defines the core interface 
+  Abstract base class (`BaseExplainer`) that defines the core interface
   for all SHAP-style explainers in this package.
 
 Usage
@@ -48,9 +48,8 @@ Example:
   shap_values = explainer.shap_values(X[0])
 """
 
+from . import explainers, tools
 from .base_explainer import BaseExplainer
-from . import explainers
-from . import tools
 
 __all__ = ["explainers", "tools", "BaseExplainer"]
 

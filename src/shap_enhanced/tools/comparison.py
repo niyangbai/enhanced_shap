@@ -5,8 +5,8 @@ Attribution Comparison Utility for SHAP Explainers
 Overview
 --------
 
-This module provides a utility class for quantitatively comparing SHAP attributions  
-from multiple explainers against a reference ground truth. It is intended for use in benchmarking  
+This module provides a utility class for quantitatively comparing SHAP attributions
+from multiple explainers against a reference ground truth. It is intended for use in benchmarking
 or evaluating new SHAP-based methods by computing standard performance metrics.
 
 Currently supported evaluation metrics include:
@@ -43,11 +43,11 @@ Example
     mse_scores, pearson_scores = comp.calculate_kpis()
 """
 
-
 import numpy as np
 from scipy.stats import pearsonr
 
 __all__ = ["Comparison"]
+
 
 class Comparison:
     r"""
@@ -64,6 +64,7 @@ class Comparison:
     :param np.ndarray ground_truth: Ground-truth SHAP values of shape (T, F).
     :param dict shap_models: Dictionary mapping explainer names to their SHAP attribution arrays.
     """
+
     def __init__(self, ground_truth, shap_models):
         self.ground_truth = ground_truth
         self.shap_models = shap_models

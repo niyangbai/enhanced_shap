@@ -2,8 +2,8 @@
 Tools Module
 ============
 
-The tools module provides utilities for model evaluation, visualization, benchmarking, 
-and synthetic data generation. These tools are designed to support SHAP explainer development, 
+The tools module provides utilities for model evaluation, visualization, benchmarking,
+and synthetic data generation. These tools are designed to support SHAP explainer development,
 interpretability experiments, and reproducible performance analysis.
 
 Included Utilities
@@ -35,23 +35,23 @@ from .evaluation import compute_shapley_gt_seq, compute_shapley_gt_tabular
 from .predefined_models import RealisticLSTM, TabularMLP
 from .timer import Timer
 from .visulization import (
-    plot_mse_pearson,
-    plot_3d_surface,
     plot_3d_bars,
-    plot_feature_comparison
+    plot_3d_surface,
+    plot_feature_comparison,
+    plot_mse_pearson,
 )
 
 __all__ = [
     "Comparison",
     "generate_synthetic_seqregression",
-    "generate_synthetic_tabular", 
+    "generate_synthetic_tabular",
     "compute_shapley_gt_seq",
     "compute_shapley_gt_tabular",
     "RealisticLSTM",
     "TabularMLP",
     "Timer",
     "plot_mse_pearson",
-    "plot_3d_surface", 
+    "plot_3d_surface",
     "plot_3d_bars",
     "plot_feature_comparison",
 ]

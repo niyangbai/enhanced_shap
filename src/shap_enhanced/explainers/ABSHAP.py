@@ -5,12 +5,12 @@ Adaptive Baseline SHAP (Sparse)
 Theoretical Explanation
 -----------------------
 
-Adaptive Baseline SHAP (ABSHAP) is a feature attribution method built upon the SHAP framework.  
-It is specifically designed to yield valid, interpretable explanations for both dense (e.g., continuous or tabular)  
+Adaptive Baseline SHAP (ABSHAP) is a feature attribution method built upon the SHAP framework.
+It is specifically designed to yield valid, interpretable explanations for both dense (e.g., continuous or tabular)
 and sparse (e.g., categorical or one-hot encoded) input data.
 
-Unlike traditional SHAP methods that use static baselines (such as zeros or means), ABSHAP dynamically samples baselines  
-for masked features from real observed background samples. This helps avoid out-of-distribution perturbations,  
+Unlike traditional SHAP methods that use static baselines (such as zeros or means), ABSHAP dynamically samples baselines
+for masked features from real observed background samples. This helps avoid out-of-distribution perturbations,
 which is particularly critical for sparse or categorical data where unrealistic combinations can easily arise.
 
 Key Concepts
@@ -47,12 +47,14 @@ Algorithm
     - Normalize the resulting attributions so their sum equals the difference between the original and fully-masked model outputs.
 """
 
+from collections.abc import Sequence
+from typing import Any
 
 import numpy as np
 import torch
-from typing import Any, Union, Sequence
 
 from shap_enhanced.base_explainer import BaseExplainer
+
 
 class AdaptiveBaselineSHAPExplainer(BaseExplainer):
     r"""
@@ -79,13 +81,17 @@ class AdaptiveBaselineSHAPExplainer(BaseExplainer):
     def __init__(
         self,
         model: Any,
-        background: Union[np.ndarray, torch.Tensor],
+        background: np.ndarray | torch.Tensor,
         n_baselines: int = 10,
-        mask_strategy: Union[str, Sequence[str]] = "auto",
-        device: str = None
+        mask_strategy: str | Sequence[str] = "auto",
+        device: str = None,
     ):
         super().__init__(model, background)
-        bg = background.detach().cpu().numpy() if hasattr(background, "detach") else np.asarray(background)
+        bg = (
+            background.detach().cpu().numpy()
+            if hasattr(background, "detach")
+            else np.asarray(background)
+        )
         self.background = bg if bg.ndim == 3 else bg[:, None, :]  # (N, T, F)
         self.N, self.T, self.F = self.background.shape
         self.n_baselines = n_baselines
@@ -98,8 +104,10 @@ class AdaptiveBaselineSHAPExplainer(BaseExplainer):
             for f in range(self.F):
                 bg_feat = self.background[..., f].flatten()
                 zero_frac = np.mean(bg_feat == 0)
-                self.feature_strategies.append("adaptive" if zero_frac > 0.9 else "mean")
-        elif isinstance(mask_strategy, (list, tuple, np.ndarray)):
+                self.feature_strategies.append(
+                    "adaptive" if zero_frac > 0.9 else "mean"
+                )
+        elif isinstance(mask_strategy, list | tuple | np.ndarray):
             assert len(mask_strategy) == self.F
             self.feature_strategies = list(mask_strategy)
         elif isinstance(mask_strategy, str):
@@ -121,7 +129,9 @@ class AdaptiveBaselineSHAPExplainer(BaseExplainer):
         idx = np.random.choice(self.N, n, replace=True)
         return self.background[idx]  # (n, T, F)
 
-    def _mask_input(self, x: np.ndarray, baseline: np.ndarray, mask: list) -> np.ndarray:
+    def _mask_input(
+        self, x: np.ndarray, baseline: np.ndarray, mask: list
+    ) -> np.ndarray:
         r"""
         Applies feature-wise masking to the input sample `x`.
 
@@ -133,7 +143,7 @@ class AdaptiveBaselineSHAPExplainer(BaseExplainer):
         :return np.ndarray: Masked input of shape (T, F).
         """
         x_masked = x.copy()
-        for (t, f) in mask:
+        for t, f in mask:
             if self.feature_strategies[f] == "mean":
                 x_masked[t, f] = self.mean_baseline[t, f]
             else:  # "adaptive"
@@ -161,10 +171,10 @@ class AdaptiveBaselineSHAPExplainer(BaseExplainer):
 
     def shap_values(
         self,
-        X: Union[np.ndarray, torch.Tensor],
+        X: np.ndarray | torch.Tensor,
         nsamples: int = 100,
         random_seed: int = 42,
-        **kwargs
+        **kwargs,
     ) -> np.ndarray:
         r"""
         Estimates SHAP values for the given input `X` using the ABSHAP algorithm.
@@ -185,7 +195,7 @@ class AdaptiveBaselineSHAPExplainer(BaseExplainer):
         """
         np.random.seed(random_seed)
         X = X.detach().cpu().numpy() if hasattr(X, "detach") else np.asarray(X)
-        single = (X.ndim == 2)
+        single = X.ndim == 2
         X = X[None, ...] if single else X  # (B, T, F)
         B, T, F = X.shape
         out = np.zeros((B, T, F), dtype=np.float32)
@@ -199,19 +209,66 @@ class AdaptiveBaselineSHAPExplainer(BaseExplainer):
                     other_pos = [p for p in all_pos if p != (t, f)]
                     for _ in range(nsamples):
                         k = np.random.randint(1, len(other_pos) + 1)
-                        mask_idxs = [other_pos[i] for i in np.random.choice(len(other_pos), k, replace=False)]
+                        mask_idxs = [
+                            other_pos[i]
+                            for i in np.random.choice(len(other_pos), k, replace=False)
+                        ]
                         for baseline in self._select_baselines(x, self.n_baselines):
                             x_masked = self._mask_input(x, baseline, mask_idxs)
-                            x_masked_plus = self._mask_input(x_masked, baseline, [(t, f)])
-                            pred_masked = float(self.model(torch.tensor(x_masked[None], dtype=torch.float32, device=self.device)).detach().cpu().numpy().squeeze())
-                            pred_masked_plus = float(self.model(torch.tensor(x_masked_plus[None], dtype=torch.float32, device=self.device)).detach().cpu().numpy().squeeze())
+                            x_masked_plus = self._mask_input(
+                                x_masked, baseline, [(t, f)]
+                            )
+                            pred_masked = float(
+                                self.model(
+                                    torch.tensor(
+                                        x_masked[None],
+                                        dtype=torch.float32,
+                                        device=self.device,
+                                    )
+                                )
+                                .detach()
+                                .cpu()
+                                .numpy()
+                                .squeeze()
+                            )
+                            pred_masked_plus = float(
+                                self.model(
+                                    torch.tensor(
+                                        x_masked_plus[None],
+                                        dtype=torch.float32,
+                                        device=self.device,
+                                    )
+                                )
+                                .detach()
+                                .cpu()
+                                .numpy()
+                                .squeeze()
+                            )
                             vals.append(pred_masked_plus - pred_masked)
                     out[b, t, f] = np.mean(vals)
 
             # Normalize attributions to match output difference (SHAP style)
-            orig_pred = float(self.model(torch.tensor(x[None], dtype=torch.float32, device=self.device)).detach().cpu().numpy().squeeze())
+            orig_pred = float(
+                self.model(
+                    torch.tensor(x[None], dtype=torch.float32, device=self.device)
+                )
+                .detach()
+                .cpu()
+                .numpy()
+                .squeeze()
+            )
             full_masked = self._full_mask(x)
-            full_pred = float(self.model(torch.tensor(full_masked[None], dtype=torch.float32, device=self.device)).detach().cpu().numpy().squeeze())
+            full_pred = float(
+                self.model(
+                    torch.tensor(
+                        full_masked[None], dtype=torch.float32, device=self.device
+                    )
+                )
+                .detach()
+                .cpu()
+                .numpy()
+                .squeeze()
+            )
             diff = orig_pred - full_pred
             summ = out[b].sum()
             if np.abs(summ) > 1e-8:

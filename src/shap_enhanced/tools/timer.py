@@ -5,20 +5,20 @@ Timing Utility for Code Execution
 Overview
 --------
 
-This module provides a lightweight utility class `Timer` for measuring the execution time  
-of arbitrary blocks of Python code using a context manager (`with` block). It is intended  
+This module provides a lightweight utility class `Timer` for measuring the execution time
+of arbitrary blocks of Python code using a context manager (`with` block). It is intended
 for profiling and monitoring performance during development, benchmarking, or debugging.
 
 Features
 ^^^^^^^^
 
-- **Context Manager Interface**:  
+- **Context Manager Interface**:
   Use `with Timer("label"):` to automatically time a code block.
 
-- **Human-Readable Output**:  
+- **Human-Readable Output**:
   Prints the elapsed time in seconds with 4-digit precision.
 
-- **Silent Mode**:  
+- **Silent Mode**:
   Set `verbose=False` to suppress output and access `.elapsed` manually.
 
 Use Case
@@ -39,7 +39,7 @@ class Timer:
     r"""
     Timing context manager for profiling code execution.
 
-    This utility measures wall-clock time (in seconds) for any code block wrapped in a `with` statement.  
+    This utility measures wall-clock time (in seconds) for any code block wrapped in a `with` statement.
     It prints the elapsed time with a label, or stores it for later access via the `.elapsed` attribute.
 
     Example
@@ -54,6 +54,7 @@ class Timer:
 
     :ivar float elapsed: Time in seconds between context entry and exit.
     """
+
     def __init__(self, label: str = "", verbose: bool = True):
         """
         :param str label: Description to print with the timing result.
@@ -73,6 +74,7 @@ class Timer:
         self.elapsed = end - self._start
         if self.verbose:
             print(f"[Timer] {self.label} took {self.elapsed:.4f} seconds")
+
 
 if __name__ == "__main__":
     with Timer("Simulated work"):

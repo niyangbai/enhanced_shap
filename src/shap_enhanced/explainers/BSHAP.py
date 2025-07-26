@@ -5,12 +5,12 @@ BShapExplainer: Distribution-Free SHAP for Sequential Models
 Theoretical Explanation
 -----------------------
 
-BShap is a distribution-free variant of the SHAP framework, specifically designed for sequential models such as LSTMs.  
-Unlike classical SHAP methods that rely on empirical data (e.g., using mean or sample values as feature baselines),  
-BShap masks features using uninformative replacements such as uniform noise, Gaussian noise, or zeros.  
+BShap is a distribution-free variant of the SHAP framework, specifically designed for sequential models such as LSTMs.
+Unlike classical SHAP methods that rely on empirical data (e.g., using mean or sample values as feature baselines),
+BShap masks features using uninformative replacements such as uniform noise, Gaussian noise, or zeros.
 This makes it particularly suitable when the underlying data distribution is unknown, unreliable, or intentionally ignored.
 
-By avoiding assumptions about the data, BShap enables a cleaner interpretation of how a model behaves under  
+By avoiding assumptions about the data, BShap enables a cleaner interpretation of how a model behaves under
 entirely synthetic perturbations—revealing how features contribute even when removed from their contextual correlations.
 
 Key Concepts
@@ -22,7 +22,7 @@ Key Concepts
   - `'noise'`: Add Gaussian noise to masked feature values.
   - `'zero'`: Set masked features to zero.
 - **No Data Assumptions**: All masking is performed without drawing from empirical feature distributions.
-- **Additivity Normalization**: Feature attributions are normalized so that their sum equals the change in model output  
+- **Additivity Normalization**: Feature attributions are normalized so that their sum equals the change in model output
   between the original and fully-masked input.
 
 Algorithm
@@ -55,10 +55,11 @@ References
 - `Distribution-Free SHAP Reference <https://www.tandfonline.com/doi/full/10.1080/02331888.2025.2487853>`_
 """
 
-
 import numpy as np
 import torch
+
 from shap_enhanced.base_explainer import BaseExplainer
+
 
 class BShapExplainer(BaseExplainer):
     r"""
@@ -75,13 +76,9 @@ class BShapExplainer(BaseExplainer):
     :param str mask_strategy: Masking strategy: 'random', 'noise', or 'zero'.
     :param str device: Device identifier, e.g., 'cpu' or 'cuda'.
     """
+
     def __init__(
-        self,
-        model,
-        input_range=None,
-        n_samples=50,
-        mask_strategy="random",
-        device=None
+        self, model, input_range=None, n_samples=50, mask_strategy="random", device=None
     ):
         super().__init__(model, background=None)
         self.input_range = input_range
@@ -107,7 +104,7 @@ class BShapExplainer(BaseExplainer):
         """
         x_masked = x.copy()
         T, F = x.shape
-        for (t, f) in mask_idxs:
+        for t, f in mask_idxs:
             if self.mask_strategy == "random":
                 # Per-feature min/max or fallback
                 if self.input_range is not None:
@@ -127,12 +124,7 @@ class BShapExplainer(BaseExplainer):
         return x_masked
 
     def shap_values(
-        self,
-        X,
-        nsamples=None,
-        check_additivity=True,
-        random_seed=42,
-        **kwargs
+        self, X, nsamples=None, check_additivity=True, random_seed=42, **kwargs
     ):
         r"""
         Compute SHAP values using distribution-free perturbations.
@@ -157,7 +149,7 @@ class BShapExplainer(BaseExplainer):
         np.random.seed(random_seed)
         if nsamples is None:
             nsamples = self.n_samples
-        is_torch = hasattr(X, 'detach')
+        is_torch = hasattr(X, "detach")
         X_in = X.detach().cpu().numpy() if is_torch else np.asarray(X)
         single = len(X_in.shape) == 2
         if single:
@@ -172,20 +164,67 @@ class BShapExplainer(BaseExplainer):
                     mc = []
                     available = [idx for idx in all_pos if idx != (t, f)]
                     for _ in range(nsamples):
-                        k = np.random.randint(1, len(available)+1)
-                        mask_idxs = [available[i] for i in np.random.choice(len(available), k, replace=False)]
+                        k = np.random.randint(1, len(available) + 1)
+                        mask_idxs = [
+                            available[i]
+                            for i in np.random.choice(len(available), k, replace=False)
+                        ]
                         x_masked = self._mask(x, mask_idxs)
                         x_masked_tf = self._mask(x_masked, [(t, f)])
-                        out_masked = self.model(torch.tensor(x_masked[None], dtype=torch.float32, device=self.device)).detach().cpu().numpy().squeeze()
-                        out_masked_tf = self.model(torch.tensor(x_masked_tf[None], dtype=torch.float32, device=self.device)).detach().cpu().numpy().squeeze()
-                        out_masked = float(np.ravel(out_masked)[0]) # ensure scalar
+                        out_masked = (
+                            self.model(
+                                torch.tensor(
+                                    x_masked[None],
+                                    dtype=torch.float32,
+                                    device=self.device,
+                                )
+                            )
+                            .detach()
+                            .cpu()
+                            .numpy()
+                            .squeeze()
+                        )
+                        out_masked_tf = (
+                            self.model(
+                                torch.tensor(
+                                    x_masked_tf[None],
+                                    dtype=torch.float32,
+                                    device=self.device,
+                                )
+                            )
+                            .detach()
+                            .cpu()
+                            .numpy()
+                            .squeeze()
+                        )
+                        out_masked = float(np.ravel(out_masked)[0])  # ensure scalar
                         out_masked_tf = float(np.ravel(out_masked_tf)[0])
                         mc.append(out_masked_tf - out_masked)
                     shap_vals[b, t, f] = np.mean(mc)
             # Additivity normalization
-            orig_pred = float(np.ravel(self.model(torch.tensor(x[None], dtype=torch.float32, device=self.device)).detach().cpu().numpy())[0])
+            orig_pred = float(
+                np.ravel(
+                    self.model(
+                        torch.tensor(x[None], dtype=torch.float32, device=self.device)
+                    )
+                    .detach()
+                    .cpu()
+                    .numpy()
+                )[0]
+            )
             x_all_masked = self._mask(x, all_pos)
-            masked_pred = float(np.ravel(self.model(torch.tensor(x_all_masked[None], dtype=torch.float32, device=self.device)).detach().cpu().numpy())[0])
+            masked_pred = float(
+                np.ravel(
+                    self.model(
+                        torch.tensor(
+                            x_all_masked[None], dtype=torch.float32, device=self.device
+                        )
+                    )
+                    .detach()
+                    .cpu()
+                    .numpy()
+                )[0]
+            )
             shap_sum = shap_vals[b].sum()
             model_diff = orig_pred - masked_pred
             if np.abs(shap_sum) > 1e-8:

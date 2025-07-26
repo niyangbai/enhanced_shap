@@ -5,38 +5,38 @@ h-SHAP: Hierarchical SHAP Explainer
 Theoretical Explanation
 -----------------------
 
-Hierarchical SHAP (h-SHAP) is an extension of the SHAP framework that enables structured, group-wise attribution  
+Hierarchical SHAP (h-SHAP) is an extension of the SHAP framework that enables structured, group-wise attribution
 of features in models operating over high-dimensional or structured input data, such as time series or grouped tabular features.
 
-Instead of treating each feature independently, h-SHAP introduces a hierarchy of feature groups, allowing recursive  
-estimation of SHAP values at multiple levels—first over coarse groups, then over finer subgroups or individual features.  
+Instead of treating each feature independently, h-SHAP introduces a hierarchy of feature groups, allowing recursive
+estimation of SHAP values at multiple levels—first over coarse groups, then over finer subgroups or individual features.
 This promotes interpretability and computational efficiency in contexts where feature dimensions have natural structure.
 
 Key Concepts
 ^^^^^^^^^^^^
 
-- **Hierarchical Grouping**:  
-    Features are grouped into blocks (e.g., temporal windows, spatial zones, feature families), possibly in multiple nested levels.  
+- **Hierarchical Grouping**:
+    Features are grouped into blocks (e.g., temporal windows, spatial zones, feature families), possibly in multiple nested levels.
     These groups define the hierarchy over which SHAP values are computed.
 
-- **Recursive SHAP Estimation**:  
-    SHAP values are estimated first at the group level, and then recursively subdivided among subgroups or features  
+- **Recursive SHAP Estimation**:
+    SHAP values are estimated first at the group level, and then recursively subdivided among subgroups or features
     within each group. This preserves hierarchical structure in the resulting attribution map.
 
-- **Flexible Masking**:  
+- **Flexible Masking**:
     Features can be masked by:
         - Setting them to zero (hard masking).
         - Imputing with background mean values (soft masking), using a provided reference dataset.
 
-- **Additivity Normalization**:  
-    Final attributions are normalized such that their total sum equals the model output difference  
+- **Additivity Normalization**:
+    Final attributions are normalized such that their total sum equals the model output difference
     between the original and fully-masked inputs.
 
 Algorithm
 ---------
 
 1. **Initialization**:
-    - Accepts a model, background dataset for imputation, a user-defined hierarchy of feature groups,  
+    - Accepts a model, background dataset for imputation, a user-defined hierarchy of feature groups,
         masking strategy (`'zero'` or `'mean'`), and a device context.
 
 2. **Recursive Attribution**:
@@ -50,20 +50,18 @@ Algorithm
         - If not, distribute the SHAP value equally among group members or subfeatures.
 
 3. **Normalization**:
-    - Rescale all SHAP values so that their sum matches the change in model output  
+    - Rescale all SHAP values so that their sum matches the change in model output
         between the unmasked input and the fully-masked input.
 """
 
-
 import numpy as np
 import torch
+
 from shap_enhanced.base_explainer import BaseExplainer
 
+
 def generate_hierarchical_groups(
-    T, F, 
-    time_block=None, 
-    feature_block=None,
-    nested=False
+    T, F, time_block=None, feature_block=None, nested=False
 ):
     r"""
     Generate a hierarchical grouping of features in a (T, F)-shaped input space.
@@ -86,13 +84,13 @@ def generate_hierarchical_groups(
     # Block by time only
     if time_block is not None and feature_block is None:
         groups = [
-            [(t, f) for t in range(i, min(i+time_block, T)) for f in range(F)]
+            [(t, f) for t in range(i, min(i + time_block, T)) for f in range(F)]
             for i in range(0, T, time_block)
         ]
     # Block by feature only
     elif feature_block is not None and time_block is None:
         groups = [
-            [(t, f) for f in range(j, min(j+feature_block, F)) for t in range(T)]
+            [(t, f) for f in range(j, min(j + feature_block, F)) for t in range(T)]
             for j in range(0, F, feature_block)
         ]
     # Block by both time and feature (nested grid)
@@ -100,8 +98,11 @@ def generate_hierarchical_groups(
         groups = []
         for i in range(0, T, time_block):
             for j in range(0, F, feature_block):
-                block = [(t, f) for t in range(i, min(i+time_block, T))
-                                 for f in range(j, min(j+feature_block, F))]
+                block = [
+                    (t, f)
+                    for t in range(i, min(i + time_block, T))
+                    for f in range(j, min(j + feature_block, F))
+                ]
                 groups.append(block)
     else:
         # Default: each (t, f) as its own group
@@ -123,8 +124,8 @@ class HShapExplainer(BaseExplainer):
     r"""
     HShapExplainer: Hierarchical SHAP Explainer
 
-    Implements the h-SHAP algorithm, which recursively computes SHAP values over structured 
-    groups of features using hierarchical masking. Suitable for time-series or block-structured 
+    Implements the h-SHAP algorithm, which recursively computes SHAP values over structured
+    groups of features using hierarchical masking. Suitable for time-series or block-structured
     feature inputs where interpretability benefits from grouped attributions.
 
     .. note::
@@ -138,14 +139,8 @@ class HShapExplainer(BaseExplainer):
     :param str mask_strategy: Either "mean" for imputation or "zero" for hard masking.
     :param str device: Device context, e.g., "cuda" or "cpu".
     """
-    def __init__(
-        self,
-        model,
-        background,
-        hierarchy,
-        mask_strategy="mean",
-        device=None
-    ):
+
+    def __init__(self, model, background, hierarchy, mask_strategy="mean", device=None):
         super().__init__(model, background)
         self.hierarchy = hierarchy  # List of groups, or nested list
         self.mask_strategy = mask_strategy
@@ -167,7 +162,7 @@ class HShapExplainer(BaseExplainer):
         :rtype: np.ndarray
         """
         X_imp = X.copy()
-        for (t, f) in idxs:
+        for t, f in idxs:
             if self.mask_strategy == "zero":
                 X_imp[t, f] = 0.0
             elif self.mask_strategy == "mean":
@@ -178,7 +173,7 @@ class HShapExplainer(BaseExplainer):
 
     def _shap_group(self, x, group_idxs, rest_idxs, nsamples=50):
         r"""
-        Estimate the SHAP value of a feature group by computing its marginal contribution 
+        Estimate the SHAP value of a feature group by computing its marginal contribution
         compared to sampled subsets of other groups.
 
         .. math::
@@ -197,7 +192,7 @@ class HShapExplainer(BaseExplainer):
         :rtype: float
         """
         contribs = []
-        all_idxs = group_idxs + rest_idxs
+        group_idxs + rest_idxs
         for _ in range(nsamples):
             # Sample subset of rest to mask
             k = np.random.randint(0, len(rest_idxs) + 1)
@@ -209,17 +204,32 @@ class HShapExplainer(BaseExplainer):
             # Mask: (rest_sample only), then (rest_sample + group)
             x_rest = self._impute(x, rest_sample)
             x_both = self._impute(x_rest, group_idxs)
-            out_rest = self.model(torch.tensor(x_rest[None], dtype=torch.float32, device=self.device)).detach().cpu().numpy().squeeze()
-            out_both = self.model(torch.tensor(x_both[None], dtype=torch.float32, device=self.device)).detach().cpu().numpy().squeeze()
+            out_rest = (
+                self.model(
+                    torch.tensor(x_rest[None], dtype=torch.float32, device=self.device)
+                )
+                .detach()
+                .cpu()
+                .numpy()
+                .squeeze()
+            )
+            out_both = (
+                self.model(
+                    torch.tensor(x_both[None], dtype=torch.float32, device=self.device)
+                )
+                .detach()
+                .cpu()
+                .numpy()
+                .squeeze()
+            )
             contribs.append(out_rest - out_both)
         return np.mean(contribs)
-
 
     def _explain_recursive(self, x, groups, nsamples=50, attributions=None):
         r"""
         Recursively apply SHAP attribution over a hierarchical structure of groups.
 
-        If subgroups exist, the SHAP value is divided equally among sub-elements. 
+        If subgroups exist, the SHAP value is divided equally among sub-elements.
         Accumulates attributions for each (t, f) index.
 
         :param x: Input instance to explain.
@@ -236,18 +246,26 @@ class HShapExplainer(BaseExplainer):
             attributions = {}
         group_indices = []
         for group in groups:
-            if isinstance(group[0], (tuple, list)):
+            if isinstance(group[0], tuple | list):
                 # group is a nested group, recurse
-                sub_attr = self._explain_recursive(x, group, nsamples, attributions)
+                self._explain_recursive(x, group, nsamples, attributions)
                 # group_indices += flatten(group)
-                group_indices += [idx for g in group for idx in (g if isinstance(g[0], (tuple, list)) else [g])]
+                group_indices += [
+                    idx
+                    for g in group
+                    for idx in (g if isinstance(g[0], tuple | list) else [g])
+                ]
             else:
                 group_indices += [group]
 
         # At this hierarchy level, estimate group SHAP for each group
         for group in groups:
-            if isinstance(group[0], (tuple, list)):
-                flat_group = [idx for g in group for idx in (g if isinstance(g[0], (tuple, list)) else [g])]
+            if isinstance(group[0], tuple | list):
+                flat_group = [
+                    idx
+                    for g in group
+                    for idx in (g if isinstance(g[0], tuple | list) else [g])
+                ]
             else:
                 flat_group = [group]
             rest = [idx for idx in group_indices if idx not in flat_group]
@@ -258,17 +276,12 @@ class HShapExplainer(BaseExplainer):
         return attributions
 
     def shap_values(
-        self,
-        X,
-        nsamples=50,
-        check_additivity=True,
-        random_seed=42,
-        **kwargs
+        self, X, nsamples=50, check_additivity=True, random_seed=42, **kwargs
     ):
         r"""
         Compute hierarchical SHAP values for a batch of inputs.
 
-        The method recursively attributes model output to hierarchical feature groups. 
+        The method recursively attributes model output to hierarchical feature groups.
         It also ensures additivity via normalization of final attributions.
 
         .. math::
@@ -283,7 +296,7 @@ class HShapExplainer(BaseExplainer):
         :rtype: np.ndarray
         """
         np.random.seed(random_seed)
-        is_torch = hasattr(X, 'detach')
+        is_torch = hasattr(X, "detach")
         X_in = X.detach().cpu().numpy() if is_torch else np.asarray(X)
         shape = X_in.shape
         if len(shape) == 2:
@@ -299,15 +312,35 @@ class HShapExplainer(BaseExplainer):
             for (t, f), v in attr.items():
                 shap_vals[b, t, f] = v
             # Additivity normalization
-            orig_pred = self.model(torch.tensor(x[None], dtype=torch.float32, device=self.device)).detach().cpu().numpy().squeeze()
+            orig_pred = (
+                self.model(
+                    torch.tensor(x[None], dtype=torch.float32, device=self.device)
+                )
+                .detach()
+                .cpu()
+                .numpy()
+                .squeeze()
+            )
             all_pos = [(t, f) for t in range(T) for f in range(F)]
             x_all_masked = self._impute(x, all_pos)
-            masked_pred = self.model(torch.tensor(x_all_masked[None], dtype=torch.float32, device=self.device)).detach().cpu().numpy().squeeze()
+            masked_pred = (
+                self.model(
+                    torch.tensor(
+                        x_all_masked[None], dtype=torch.float32, device=self.device
+                    )
+                )
+                .detach()
+                .cpu()
+                .numpy()
+                .squeeze()
+            )
             shap_sum = shap_vals[b].sum()
             model_diff = orig_pred - masked_pred
             if shap_sum != 0:
                 shap_vals[b] *= model_diff / shap_sum
         shap_vals = shap_vals[0] if single else shap_vals
         if check_additivity:
-            print(f"[h-SHAP Additivity] sum(SHAP)={shap_vals.sum():.4f} | Model diff={float(orig_pred - masked_pred):.4f}")
+            print(
+                f"[h-SHAP Additivity] sum(SHAP)={shap_vals.sum():.4f} | Model diff={float(orig_pred - masked_pred):.4f}"
+            )
         return shap_vals

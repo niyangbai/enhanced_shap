@@ -5,45 +5,45 @@ MB-SHAP: Multi-Baseline SHAP Explainer
 Theoretical Explanation
 -----------------------
 
-Multi-Baseline SHAP (MB-SHAP) enhances the robustness of SHAP-based feature attribution  
-by computing SHAP values with respect to multiple baselines rather than a single reference.  
+Multi-Baseline SHAP (MB-SHAP) enhances the robustness of SHAP-based feature attribution
+by computing SHAP values with respect to multiple baselines rather than a single reference.
 This addresses a key limitation in standard SHAP explainers: their sensitivity to baseline selection.
 
-By averaging attributions from diverse or locally-relevant baselines (e.g., nearest neighbors, mean, k-means centroids),  
-MB-SHAP produces more stable, reliable, and representative explanations—particularly useful in domains with  
+By averaging attributions from diverse or locally-relevant baselines (e.g., nearest neighbors, mean, k-means centroids),
+MB-SHAP produces more stable, reliable, and representative explanations—particularly useful in domains with
 heterogeneous data distributions or models that exhibit local nonlinearity.
 
 Key Concepts
 ^^^^^^^^^^^^
 
-- **Multiple Baselines**:  
+- **Multiple Baselines**:
     Each input is explained with respect to a set of baselines instead of just one. Baseline options include:
         - Random background samples.
         - Mean or centroid-based references.
         - K nearest neighbors (local context).
         - User-specified selections.
 
-- **Explainer Flexibility**:  
-    MB-SHAP is compatible with any SHAP-style explainer, including `DeepExplainer`, `GradientExplainer`, and `KernelExplainer`.  
+- **Explainer Flexibility**:
+    MB-SHAP is compatible with any SHAP-style explainer, including `DeepExplainer`, `GradientExplainer`, and `KernelExplainer`.
     It wraps the base explainer and runs it separately for each baseline.
 
-- **Attribution Averaging**:  
+- **Attribution Averaging**:
     For each input sample:
         - SHAP values are computed with respect to each baseline.
         - The resulting attribution vectors are averaged to yield a final, smoothed explanation.
 
-- **Local Fidelity**:  
+- **Local Fidelity**:
     Using per-input nearest neighbors as baselines helps improve explanation fidelity for local model behavior.
 
 Algorithm
 ---------
 
 1. **Initialization**:
-    - Accepts a model, background dataset, number of baselines, baseline selection strategy (`'random'`, `'nearest'`, `'mean'`, `'kmeans'`, etc.),  
+    - Accepts a model, background dataset, number of baselines, baseline selection strategy (`'random'`, `'nearest'`, `'mean'`, `'kmeans'`, etc.),
         SHAP explainer class (e.g., `shap.DeepExplainer`), and device context.
 
 2. **Baseline Selection**:
-    - For each input sample:   
+    - For each input sample:
         - Select multiple baseline samples from the background using the chosen strategy.
 
 3. **SHAP Value Computation**:
@@ -56,20 +56,20 @@ Algorithm
     - Return the final attributions as averaged SHAP values, preserving shape and semantics of the model input.
 """
 
-
-
-from shap_enhanced.base_explainer import BaseExplainer
+import inspect
 
 import numpy as np
 import torch
-import inspect
+
+from shap_enhanced.base_explainer import BaseExplainer
+
 
 class NearestNeighborMultiBaselineSHAP(BaseExplainer):
     r"""
     NearestNeighborMultiBaselineSHAP: Multi-Baseline SHAP Explainer
 
-    This explainer improves attribution robustness by selecting the K nearest neighbors 
-    from a background dataset as baselines for each input sample, computing SHAP values 
+    This explainer improves attribution robustness by selecting the K nearest neighbors
+    from a background dataset as baselines for each input sample, computing SHAP values
     individually for each baseline, and then averaging the results.
 
     It is compatible with various SHAP explainers (e.g., `DeepExplainer`, `GradientExplainer`, `KernelExplainer`)
@@ -88,6 +88,7 @@ class NearestNeighborMultiBaselineSHAP(BaseExplainer):
     :type base_explainer_kwargs: dict or None
     :param str device: Device context for torch-based explainers ('cpu' or 'cuda').
     """
+
     def __init__(
         self,
         base_explainer_class,
@@ -123,7 +124,9 @@ class NearestNeighborMultiBaselineSHAP(BaseExplainer):
             if param2 in ("data", "background"):
                 return cls(self.model, baseline, **self.base_explainer_kwargs)
             else:
-                return cls(self.model, **{param2: baseline}, **self.base_explainer_kwargs)
+                return cls(
+                    self.model, **{param2: baseline}, **self.base_explainer_kwargs
+                )
         else:
             raise RuntimeError("Cannot infer how to call explainer_class!")
 
@@ -167,7 +170,7 @@ class NearestNeighborMultiBaselineSHAP(BaseExplainer):
             x_flat = x.reshape(-1)
             # K nearest neighbors in background
             dists = np.linalg.norm(bg_flat - x_flat, axis=1)
-            idx = np.argsort(dists)[:self.n_baselines]
+            idx = np.argsort(dists)[: self.n_baselines]
             nn_bases = self.background[idx]  # (n_baselines, T, F)
 
             # DeepExplainer wants a batch of backgrounds as tensor!
