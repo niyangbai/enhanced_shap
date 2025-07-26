@@ -1,0 +1,12 @@
+shap\_enhanced.explainers.TimeSHAP
+==================================
+
+.. automodule:: shap_enhanced.explainers.TimeSHAP
+
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      TimeSHAPExplainer
+   

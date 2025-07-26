@@ -1,0 +1,12 @@
+shap\_enhanced.explainers.AttnSHAP
+==================================
+
+.. automodule:: shap_enhanced.explainers.AttnSHAP
+
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      AttnSHAPExplainer
+   

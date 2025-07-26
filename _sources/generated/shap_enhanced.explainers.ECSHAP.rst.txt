@@ -1,0 +1,12 @@
+shap\_enhanced.explainers.ECSHAP
+================================
+
+.. automodule:: shap_enhanced.explainers.ECSHAP
+
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      EmpiricalConditionalSHAPExplainer
+   

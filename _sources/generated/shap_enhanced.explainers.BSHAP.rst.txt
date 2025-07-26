@@ -1,0 +1,12 @@
+shap\_enhanced.explainers.BSHAP
+===============================
+
+.. automodule:: shap_enhanced.explainers.BSHAP
+
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      BShapExplainer
+   

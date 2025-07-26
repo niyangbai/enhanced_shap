@@ -1,0 +1,12 @@
+shap\_enhanced.explainers.SCSHAP
+================================
+
+.. automodule:: shap_enhanced.explainers.SCSHAP
+
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      SparseCoalitionSHAPExplainer
+   

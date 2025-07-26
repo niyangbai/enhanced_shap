@@ -1,0 +1,15 @@
+﻿shap\_enhanced
+==============
+
+.. automodule:: shap_enhanced
+
+   
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :recursive:
+
+   base_explainer
+   explainers
+   tools
