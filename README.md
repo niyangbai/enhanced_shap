@@ -10,9 +10,6 @@
 <a href="https://www.python.org/">
     <img src="https://img.shields.io/badge/Python-3.10%2B-blue.svg?logo=python" alt="Python Version"/>
 </a>
-<a href="https://isocpp.org/">
-    <img src="https://img.shields.io/badge/Code-C%2B%2B-orange.svg?logo=c%2B%2B" alt="C++ Code"/>
-</a>
 <a href="https://git-scm.com/">
     <img src="https://img.shields.io/badge/Git-Repository-orange.svg?logo=git" alt="Git"/>
 </a>
