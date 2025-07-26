@@ -45,6 +45,19 @@ Algorithm
             - Calculate the difference in model outputs.
         - Average these differences to estimate the marginal contribution of the feature.
     - Normalize the resulting attributions so their sum equals the difference between the original and fully-masked model outputs.
+
+References
+----------
+
+- **Lundberg & Lee (2017), “A Unified Approach to Interpreting Model Predictions”**  
+  [SHAP foundation]
+
+- **Merrick & Taly (2020), “Keep it Real: Towards Realistic and Efficient Shapley Value Explanations”**  
+  [Proposes adaptive masking based on feature type and using real data to avoid out-of-distribution perturbations]
+
+- **Molnar, “Interpretable Machine Learning” (2022), SHAP chapter**  
+  [Summarizes best practices and practical warnings about feature masking in SHAP for different data types]
+
 """
 
 from collections.abc import Sequence

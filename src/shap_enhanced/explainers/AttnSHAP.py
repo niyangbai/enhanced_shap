@@ -46,6 +46,27 @@ Algorithm
 4. **Normalization**:
     - Normalize feature attributions so that their sum matches the model output difference
         between the unmasked input and a fully-masked input baseline.
+        
+References
+----------
+
+- **Lundberg & Lee (2017), “A Unified Approach to Interpreting Model Predictions”**  
+  [SHAP foundation]
+
+- **Serrano & Smith (2019), “Is Attention Interpretable?”**  
+  [Examines the interpretability and limitations of attention weights]
+
+- **Jain & Wallace (2019), “Attention is not Explanation”**  
+  [Argues that attention alone is not a reliable explanation mechanism]
+
+- **Chefer, Gur, & Wolf (2021), “Transformer Interpretability Beyond Attention Visualization”**  
+  [Shows advanced uses of attention and gradients for model interpretation]
+
+- **Sundararajan et al. (2017), “Axiomatic Attribution for Deep Networks”**  
+  [Introduces integrated gradients, a gradient-based attribution method relevant for proxy attention]
+
+- **Janzing et al. (2020), "Explaining Classifiers by Removing Input Features"**  
+  [Discusses alternative SHAP sampling strategies and implications for non-uniform sampling]
 """
 
 import numpy as np

@@ -54,6 +54,24 @@ Algorithm
 
 4. **Output**:
     - Return the final attributions as averaged SHAP values, preserving shape and semantics of the model input.
+
+References
+----------
+
+- **Lundberg & Lee (2017), “A Unified Approach to Interpreting Model Predictions”**  
+  [SHAP foundation—coalitional feature attribution framework]
+
+- **Chen et al. (2022), “Explaining a Series of Models by Propagating Shapley Values” (G‑DeepSHAP)**  
+  [Uses multiple baselines and shows that averaging explanations across them improves consistency and fidelity] :contentReference[oaicite:1]{index=1}
+
+- **Google Vertex AI documentation (2025)**  
+  [Allows multiple baseline specifications (e.g. min, max, random) to improve attribution context and stability] :contentReference[oaicite:2]{index=2}
+
+- **Sundararajan & Najmi (2020), “The Many Shapley Values for Model Explanation”**  
+  [Discusses how baseline selection influences SHAP-value interpretations, and the implications of multiple baseline settings] :contentReference[oaicite:3]{index=3}
+
+- **Shaping Up SHAP: Enhancing Stability through Layer-Wise Neighbor Selection (Kelodjou et al., 2023)**  
+  [Highlights instability in KernelSHAP and proposes neighbor sampling strategies to stabilize results, underscoring need for ensemble or multi-baseline approaches] :contentReference[oaicite:4]{index=4}
 """
 
 import inspect

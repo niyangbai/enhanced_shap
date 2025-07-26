@@ -35,6 +35,24 @@ Algorithm
         - Average these differences to estimate the marginal contribution of ``(t, f)``.
 
     - Normalize attributions so their sum matches the difference between the original and fully-masked model output.
+
+References
+----------
+
+- **Lundberg & Lee (2017), “A Unified Approach to Interpreting Model Predictions”**  
+  [SHAP foundation—coalitional feature attribution]
+
+- **Bento et al. (2020), “TimeSHAP: Explaining Recurrent Models through Sequence Perturbations”**  
+  [Extends KernelSHAP to sequential models, computing attributions for time‑step-level features] :contentReference[oaicite:1]{index=1}
+
+- **Villani et al. (2022), “Feature Importance for Time Series Data: Improving KernelSHAP”**  
+  [Introduces time-consistent SHAP and addresses feature masking in time‑series with temporal dependencies] :contentReference[oaicite:2]{index=2}
+
+- **Nayebi et al. (2022), “WindowSHAP: An Efficient Framework for Explaining Time-series Classifiers…”**  
+  [Partitions sequences into windows for SHAP, acknowledging temporal structure in coalition sampling] :contentReference[oaicite:3]{index=3}
+
+- **Molnar, _Interpretable Machine Learning_ (2022), SHAP chapter**  
+  [Discusses masking strategies and handling temporally dependent features in SHAP] :contentReference[oaicite:4]{index=4}
 """
 
 from typing import Any

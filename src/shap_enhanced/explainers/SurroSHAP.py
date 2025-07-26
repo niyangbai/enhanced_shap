@@ -65,6 +65,24 @@ SurroSHAP is best suited for:
     - Large-scale datasets requiring rapid SHAP value generation.
     - Scenarios where base SHAP computation is slow or expensive.
     - Situations where approximate explanations are acceptable in exchange for speed.
+
+References
+----------
+
+- **Lundberg & Lee (2017), “A Unified Approach to Interpreting Model Predictions”**  
+  [SHAP foundation—coalitional feature attribution framework]
+
+- **Zhou, Chen & Hu (2022), “Shapley Computations Using Surrogate Model‑Based Trees”**  
+  [Uses surrogate tree models to compute SHAP values via conditional expectation, trading accuracy for speed] :contentReference[oaicite:1]{index=1}
+
+- **ShapGAP (2024)**  
+  [A metric for evaluating surrogate model fidelity by comparing SHAP explanations of surrogate vs. black‑box models, ensuring surrogate explanations align in reasoning] :contentReference[oaicite:2]{index=2}
+
+- **Arize MimicExplainer documentation**  
+  [Describes practical use of surrogate explainability: fitting a model (e.g., RandomForest) to mimic black‑box outputs and generating SHAP values from surrogate] :contentReference[oaicite:3]{index=3}
+
+- **Interpretable Machine Learning book (Molnar, 2022), SHAP chapter**  
+  [Discusses surrogate/approximation strategies and trade‑offs between fidelity and computational efficiency] :contentReference[oaicite:4]{index=4}
 """
 
 import inspect

@@ -57,6 +57,24 @@ Algorithm
 
 4. **Normalization**:
    - Ensure the sum of feature attributions equals the difference in model output between the original and fully-masked input.
+
+References
+----------
+
+- **Lundberg & Lee (2017), “A Unified Approach to Interpreting Model Predictions”**  
+  [SHAP foundation—coalitional feature attribution framework]
+
+- **Aas, Jullum & Løland (2021), “Explaining individual predictions when features are dependent: More accurate approximations to Shapley values”**  
+  [Introduces empirical conditional sampling for dependent/discrete features] :contentReference[oaicite:1]{index=1}
+
+- **Redelmeier, Villani et al. (2020), “Explaining predictive models with mixed features using Shapley values and conditional inference trees”**  
+  [Uses conditional inference trees to impute masked discrete/categorical features realistically] :contentReference[oaicite:2]{index=2}
+
+- **“Estimating conditional Shapley values” —Springer comparison study (2023)**  
+  [Systematizes Monte Carlo and regression methods for conditional Shapley estimation when feature dependence is unknown] :contentReference[oaicite:3]{index=3}
+
+- **Molnar, _Interpretable Machine Learning_ (2022), SHAP chapter**  
+  [Discusses trade-offs and techniques for conditional vs marginal sampling in SHAP; practical guidance for discrete and mixed data] :contentReference[oaicite:4]{index=4}
 """
 
 import numpy as np

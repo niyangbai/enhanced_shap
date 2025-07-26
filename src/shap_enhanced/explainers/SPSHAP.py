@@ -67,6 +67,27 @@ Ideal for:
     - One-hot encoded categorical features.
     - Binary indicators (presence/absence).
     - Sparse high-dimensional data where only valid observed patterns should be used for attribution.
+
+References
+----------
+
+- **Lundberg & Lee (2017), “A Unified Approach to Interpreting Model Predictions”**  
+  [SHAP foundation—coalitional feature attribution framework]
+
+- **Aas, Jullum & Løland (2021), “Explaining individual predictions when features are dependent: More accurate approximations to Shapley values”**  
+  [Introduces empirical conditional sampling to handle feature dependence—precursor to support-based masking] :contentReference[oaicite:1]{index=1}
+
+- **Redelmeier, Jullum & Aas (2020), “Explaining predictive models with mixed features using Shapley values and conditional inference trees”**  
+  [Uses conditional inference tree models to mask or impute categorical/binary features while preserving valid structures] :contentReference[oaicite:2]{index=2}
+
+- **Jullum et al. (2021), “groupShapley: Efficient prediction explanation with Shapley values for feature groups”**  
+  [Supports grouping features (e.g., one‑hot groups) as units for coalition explanation—informing valid group-level attribution] :contentReference[oaicite:3]{index=3}
+
+- **Laberge & Pequignot (2022), “Understanding Interventional TreeSHAP: How and Why it Works”**  
+  [Analyzes how TreeSHAP preserves valid one‑hot/categorical support during coalition masking using interventional logic] :contentReference[oaicite:4]{index=4}
+
+- **Molnar, *Interpretable Machine Learning* (2022), SHAP chapter**  
+  [Discusses practical techniques for masking in structured and sparse input domains and emphasizes validity of perturbed inputs] :contentReference[oaicite:5]{index=5}
 """
 
 import numpy as np

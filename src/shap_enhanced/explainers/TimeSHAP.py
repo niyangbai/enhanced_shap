@@ -70,6 +70,18 @@ TimeSHAP is ideal for:
     - Event sequences, medical time-series, or log data.
     - Models where full SHAP computation is infeasible due to input length.
     - Explaining model behavior over time, including “when” and “what” drove a prediction.
+
+References
+----------
+
+- **Lundberg & Lee (2017), “A Unified Approach to Interpreting Model Predictions”**  
+  [SHAP foundation—coalitional feature attribution framework]
+
+- **Bento et al. (2021), “TimeSHAP: Explaining Recurrent Models through Sequence Perturbations”**  
+  [Introduces pruning-enhanced KernelSHAP for sequence models; supports feature-, event-, and cell-level attribution in long sequences] :contentReference[oaicite:1]{index=1}
+
+- **Nayebi et al. (2022), “WindowSHAP: An Efficient Framework for Explaining Time‑Series Classifiers based on Shapley Values”**  
+  [Partitions sequences into windows to reduce computation—related strategy to manage long temporal inputs] :contentReference[oaicite:2]{index=2}
 """
 
 import random
