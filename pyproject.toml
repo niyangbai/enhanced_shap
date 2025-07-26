@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "shap-enhanced"
-version = "0.0.1a4"
+dynamic = ["version"]
 description = "SHAP-style explainability with enhanced methods for sequential and tabular models"
 authors = [
     { name="Niyang Bai", email="bainiyang@gmail.com" }
@@ -78,6 +78,9 @@ package-dir = {"" = "src"}
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.dynamic]
+version = {attr = "shap_enhanced._version.__version__"}
 
 # Tool configurations for code quality
 [tool.black]

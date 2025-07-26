@@ -4,15 +4,13 @@
 # ========================================
 # 
 # This script automates the release process for the Enhanced SHAP package.
-# It builds documentation, packages the code, and publishes to PyPI.
+# It packages the code and publishes to PyPI.
 #
 # Usage:
-#   ./publish.sh [--prod] [--docs-only] [--package-only] [--help]
+#   ./publish.sh [--prod] [--help]
 #
 # Options:
 #   --prod         Upload to production PyPI (default: TestPyPI)
-#   --docs-only    Only build and deploy documentation
-#   --package-only Only build and publish package (skip docs)
 #   --help         Show this help message
 
 set -euo pipefail  # Exit on error, undefined vars, pipe failures
@@ -26,8 +24,6 @@ NC='\033[0m' # No Color
 
 # Default options
 PROD_PYPI=false
-DOCS_ONLY=false
-PACKAGE_ONLY=false
 
 # Functions
 log_info() {
@@ -59,10 +55,6 @@ check_dependencies() {
         deps+=("twine")
     fi
     
-    if [[ "$PACKAGE_ONLY" == false ]]; then
-        deps+=("make" "ghp-import")
-    fi
-    
     for dep in "${deps[@]}"; do
         if ! command -v "$dep" &> /dev/null; then
             log_error "Required dependency '$dep' not found. Please install it first."
@@ -71,13 +63,13 @@ check_dependencies() {
 }
 
 extract_version() {
-    if [[ ! -f "pyproject.toml" ]]; then
-        log_error "pyproject.toml not found. Are you in the correct directory?"
+    if [[ ! -f "src/shap_enhanced/_version.py" ]]; then
+        log_error "_version.py not found. Are you in the correct directory?"
     fi
     
     local version
-    version=$(grep -Po '(?<=^version = ")[^"]+' pyproject.toml 2>/dev/null) || {
-        log_error "Could not extract version from pyproject.toml"
+    version=$(grep -Po '(?<=^__version__ = ")[^"]+' src/shap_enhanced/_version.py 2>/dev/null) || {
+        log_error "Could not extract version from _version.py"
     }
     
     if [[ -z "$version" ]]; then
@@ -106,37 +98,6 @@ check_git_tag() {
     fi
 }
 
-build_docs() {
-    log_info "Building Sphinx HTML documentation..."
-    
-    if [[ ! -d "docs" ]]; then
-        log_error "docs directory not found"
-    fi
-    
-    # Install docs dependencies if needed
-    if ! python3 -c "import sphinx" 2>/dev/null; then
-        log_info "Installing documentation dependencies..."
-        pip install -e ".[docs]" || log_error "Failed to install docs dependencies"
-    fi
-    
-    # Build documentation
-    make -C docs clean html || log_error "Failed to build documentation"
-    
-    log_success "Documentation built successfully"
-}
-
-deploy_docs() {
-    log_info "Deploying docs to gh-pages branch..."
-    
-    if [[ ! -d "docs/build/html" ]]; then
-        log_error "Built documentation not found. Run docs build first."
-    fi
-    
-    # Deploy to GitHub Pages
-    ghp-import -n -p docs/build/html || log_error "Failed to deploy documentation"
-    
-    log_success "Documentation deployed to GitHub Pages"
-}
 
 build_package() {
     log_info "Building Python package (wheel and sdist)..."
@@ -232,14 +193,6 @@ while [[ $# -gt 0 ]]; do
             PROD_PYPI=true
             shift
             ;;
-        --docs-only)
-            DOCS_ONLY=true
-            shift
-            ;;
-        --package-only)
-            PACKAGE_ONLY=true
-            shift
-            ;;
         --help|-h)
             show_help
             ;;
@@ -249,10 +202,6 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-# Validate conflicting options
-if [[ "$DOCS_ONLY" == true && "$PACKAGE_ONLY" == true ]]; then
-    log_error "Cannot use --docs-only and --package-only together"
-fi
 
 # Main execution
 main() {
@@ -271,61 +220,40 @@ main() {
     log_info "Git tag: $tag"
     
     # Check if tag already exists
-    if [[ "$PACKAGE_ONLY" == false ]]; then
-        check_git_tag "$tag"
-    fi
-    
-    # Build and deploy documentation
-    if [[ "$PACKAGE_ONLY" == false ]]; then
-        build_docs
-        deploy_docs
-    fi
+    check_git_tag "$tag"
     
     # Build and publish package
-    if [[ "$DOCS_ONLY" == false ]]; then
-        build_package
-        
-        if [[ "$PROD_PYPI" == true ]]; then
-            log_warning "Publishing to PRODUCTION PyPI!"
-            read -p "Are you sure? This cannot be undone. (y/N): " -n 1 -r
-            echo
-            if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-                log_error "Aborted by user"
-            fi
-            upload_package "pypi" "PyPI"
-        else
-            upload_package "testpypi" "TestPyPI"
-            log_info "To publish to production PyPI, use: ./publish.sh --prod"
+    build_package
+    
+    if [[ "$PROD_PYPI" == true ]]; then
+        log_warning "Publishing to PRODUCTION PyPI!"
+        read -p "Are you sure? This cannot be undone. (y/N): " -n 1 -r
+        echo
+        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+            log_error "Aborted by user"
         fi
-        
-        # Create git tag and GitHub release
-        create_git_tag "$tag" "$version"
-        create_github_release "$tag"
+        upload_package "pypi" "PyPI"
+    else
+        upload_package "testpypi" "TestPyPI"
+        log_info "To publish to production PyPI, use: ./publish.sh --prod"
     fi
+    
+    # Create git tag and GitHub release
+    create_git_tag "$tag" "$version"
+    create_github_release "$tag"
     
     # Summary
     log_success "Publishing process completed successfully!"
     
-    if [[ "$DOCS_ONLY" == false && "$PACKAGE_ONLY" == false ]]; then
-        echo
-        log_info "Summary:"
-        echo "  📚 Documentation: Deployed to GitHub Pages"
-        if [[ "$PROD_PYPI" == true ]]; then
-            echo "  📦 Package: Published to PyPI"
-        else
-            echo "  📦 Package: Published to TestPyPI"
-        fi
-        echo "  🏷️  Git Tag: $tag created and pushed"
-        echo "  🚀 GitHub Release: Created with build artifacts"
-    elif [[ "$DOCS_ONLY" == true ]]; then
-        echo "  📚 Documentation: Deployed to GitHub Pages"
-    elif [[ "$PACKAGE_ONLY" == true ]]; then
-        if [[ "$PROD_PYPI" == true ]]; then
-            echo "  📦 Package: Published to PyPI"
-        else
-            echo "  📦 Package: Published to TestPyPI"
-        fi
+    echo
+    log_info "Summary:"
+    if [[ "$PROD_PYPI" == true ]]; then
+        echo "  📦 Package: Published to PyPI"
+    else
+        echo "  📦 Package: Published to TestPyPI"
     fi
+    echo "  🏷️  Git Tag: $tag created and pushed"
+    echo "  🚀 GitHub Release: Created with build artifacts"
 }
 
 # Run main function

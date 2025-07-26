@@ -50,7 +50,6 @@ Example:
 
 from . import explainers, tools
 from .base_explainer import BaseExplainer
+from ._version import __version__
 
 __all__ = ["explainers", "tools", "BaseExplainer"]
-
-__version__ = "0.0.1a4"
