@@ -1,0 +1,13 @@
+shap\_enhanced.tools.evaluation
+===============================
+
+.. automodule:: shap_enhanced.tools.evaluation
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      compute_shapley_gt_seq
+      compute_shapley_gt_tabular
+   

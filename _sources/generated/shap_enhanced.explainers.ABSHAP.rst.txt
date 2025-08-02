@@ -1,0 +1,12 @@
+shap\_enhanced.explainers.ABSHAP
+================================
+
+.. automodule:: shap_enhanced.explainers.ABSHAP
+
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      AdaptiveBaselineSHAPExplainer
+   
