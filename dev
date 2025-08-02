@@ -1,0 +1,137 @@
+#!/bin/bash
+
+# Enhanced SHAP - Development Script Manager
+# ===========================================
+# Main entry point for all development tasks
+
+set -euo pipefail
+
+# Script directory
+SCRIPT_DIR="scripts"
+
+# Color codes for output
+BLUE='\033[0;34m'
+GREEN='\033[0;32m'
+RED='\033[0;31m'
+NC='\033[0m'
+
+log_info() {
+    echo -e "${BLUE}[DEV]${NC} $1"
+}
+
+log_success() {
+    echo -e "${GREEN}[SUCCESS]${NC} $1"
+}
+
+log_error() {
+    echo -e "${RED}[ERROR]${NC} $1"
+    exit 1
+}
+
+show_help() {
+    echo "Enhanced SHAP Development Script Manager"
+    echo "========================================"
+    echo ""
+    echo "Usage: ./dev [COMMAND] [OPTIONS]"
+    echo ""
+    echo "Available commands:"
+    echo ""
+    echo "  Development Workflow:"
+    echo "    test [TYPE]          - Run tests (all, unit, coverage, quick, specific)"
+    echo "    lint [TOOL] [--fix]  - Run code quality checks (all, black, ruff, mypy)"
+    echo "    docs [ACTION]        - Manage documentation (build, api, clean, serve, all)"
+    echo "    build                - Build Python package"
+    echo "    publish [--prod]     - Publish package (TestPyPI by default, --prod for PyPI)"
+    echo ""
+    echo "  Quick Commands:"
+    echo "    check                - Run all quality checks (lint + test)"
+    echo "    fix                  - Auto-fix code issues and run tests"
+    echo "    setup                - Install development dependencies"
+    echo ""
+    echo "Examples:"
+    echo "  ./dev test              # Run all tests"
+    echo "  ./dev test coverage     # Run tests with coverage"
+    echo "  ./dev lint --fix        # Run linting with auto-fix"
+    echo "  ./dev docs serve        # Build and serve documentation"
+    echo "  ./dev check             # Run comprehensive checks"
+    echo "  ./dev fix               # Fix code and test"
+    echo ""
+    echo "For detailed help on individual commands:"
+    echo "  ./dev [COMMAND] --help"
+}
+
+setup_dev() {
+    log_info "Setting up development environment..."
+    
+    if [[ ! -f "pyproject.toml" ]]; then
+        log_error "pyproject.toml not found. Are you in the project root?"
+    fi
+    
+    # Install package in development mode with dev dependencies
+    pip install -e ".[dev]" || log_error "Failed to install development dependencies"
+    
+    log_success "Development environment setup complete"
+}
+
+run_comprehensive_check() {
+    log_info "Running comprehensive quality checks..."
+    
+    # Run linting
+    "$SCRIPT_DIR/lint.sh" all || log_error "Code quality checks failed"
+    
+    # Run tests
+    "$SCRIPT_DIR/test.sh" all || log_error "Tests failed"
+    
+    log_success "All quality checks passed!"
+}
+
+fix_and_test() {
+    log_info "Auto-fixing code issues and running tests..."
+    
+    # Run linting with fixes
+    "$SCRIPT_DIR/lint.sh" all --fix || log_error "Code fixing failed"
+    
+    # Run tests
+    "$SCRIPT_DIR/test.sh" quick || log_error "Tests failed after fixes"
+    
+    log_success "Code fixed and tests passed!"
+}
+
+# Parse command line arguments
+case "${1:-help}" in
+    test)
+        shift
+        "$SCRIPT_DIR/test.sh" "$@"
+        ;;
+    lint)
+        shift
+        "$SCRIPT_DIR/lint.sh" "$@"
+        ;;
+    docs)
+        shift
+        "$SCRIPT_DIR/docs.sh" "$@"
+        ;;
+    build)
+        "$SCRIPT_DIR/build.sh"
+        ;;
+    publish)
+        shift
+        "$SCRIPT_DIR/publish.sh" "$@"
+        ;;
+    check)
+        run_comprehensive_check
+        ;;
+    fix)
+        fix_and_test
+        ;;
+    setup)
+        setup_dev
+        ;;
+    help|--help|-h)
+        show_help
+        exit 0
+        ;;
+    *)
+        log_error "Unknown command: $1. Use './dev help' for available commands."
+        ;;
+esac

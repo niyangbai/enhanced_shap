@@ -7,7 +7,7 @@
 # It packages the code and publishes to PyPI.
 #
 # Usage:
-#   ./publish.sh [--prod] [--help]
+#   scripts/publish.sh [--prod] [--help]
 #
 # Options:
 #   --prod         Upload to production PyPI (default: TestPyPI)
@@ -235,7 +235,7 @@ main() {
         upload_package "pypi" "PyPI"
     else
         upload_package "testpypi" "TestPyPI"
-        log_info "To publish to production PyPI, use: ./publish.sh --prod"
+        log_info "To publish to production PyPI, use: scripts/publish.sh --prod"
     fi
     
     # Create git tag and GitHub release

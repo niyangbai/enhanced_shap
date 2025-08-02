@@ -124,9 +124,9 @@ profile_default/
 ipython_config.py
 
 # Plots
-scripts/plot/*
-!scripts/plot/*.py
-!scripts/plot/*.ipynb
+notebooks/plot/*
+!notebooks/plot/*.py
+!notebooks/plot/*.ipynb
 
 # pyenv
 #   For a library or package, you might want to ignore these files since the code is
@@ -277,3 +277,29 @@ docs/.pytest_cache
 
 # MacOS metadata
 .DS_Store
+
+# Tools
+.cursor/
+.cursorrules
+.aider*
+.aiderignore
+.copilot/
+.github/copilot-instructions.md
+.claude/
+.claude.md
+claude.md
+.anthropic/
+.continue/
+.codeium/
+.tabnine/
+.sourcegraph/
+.gitpod/
+.devcontainer/
+.devpod/
+*.ai-generated
+*.llm-generated
+*.gpt-*
+*.claude-*
+*.copilot-*
+CLAUDE.md
+.claude.md
