@@ -1,0 +1,12 @@
+shap\_enhanced.explainers.MBSHAP
+================================
+
+.. automodule:: shap_enhanced.explainers.MBSHAP
+
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      NearestNeighborMultiBaselineSHAP
+   

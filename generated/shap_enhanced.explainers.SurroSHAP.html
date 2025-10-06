@@ -1,0 +1,656 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="../">
+  <head><meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="shap_enhanced.explainers.TimeSHAP" href="shap_enhanced.explainers.TimeSHAP.html"><link rel="prev" title="shap_enhanced.explainers.SPSHAP" href="shap_enhanced.explainers.SPSHAP.html">
+        <link rel="prefetch" href="../_static/fau_wiso_light.png" as="image">
+        <link rel="prefetch" href="../_static/fau_wiso_dark.png" as="image">
+
+    <!-- Generated with Sphinx 8.2.3 and Furo 2025.09.25 -->
+        <title>shap_enhanced.explainers.SurroSHAP - Enhanced SHAP documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d111a655" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=580074bf" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=8dab3a3b" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f2f2f2;
+  --color-code-foreground: #1e1e1e;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
+    <title>Auto light/dark, in light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path style="opacity: 50%" d="M 5.411 14.504 C 5.471 14.504 5.532 14.504 5.591 14.504 C 3.639 16.319 4.383 19.569 6.931 20.352 C 7.693 20.586 8.512 20.551 9.25 20.252 C 8.023 23.207 4.056 23.725 2.11 21.184 C 0.166 18.642 1.702 14.949 4.874 14.536 C 5.051 14.512 5.231 14.5 5.411 14.5 L 5.411 14.504 Z"/>
+      <line x1="14.5" y1="3.25" x2="14.5" y2="1.25"/>
+      <line x1="14.5" y1="15.85" x2="14.5" y2="17.85"/>
+      <line x1="10.044" y1="5.094" x2="8.63" y2="3.68"/>
+      <line x1="19" y1="14.05" x2="20.414" y2="15.464"/>
+      <line x1="8.2" y1="9.55" x2="6.2" y2="9.55"/>
+      <line x1="20.8" y1="9.55" x2="22.8" y2="9.55"/>
+      <line x1="10.044" y1="14.006" x2="8.63" y2="15.42"/>
+      <line x1="19" y1="5.05" x2="20.414" y2="3.636"/>
+      <circle cx="14.5" cy="9.55" r="3.6"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
+    <title>Auto light/dark, in dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path d="M 8.282 7.007 C 8.385 7.007 8.494 7.007 8.595 7.007 C 5.18 10.184 6.481 15.869 10.942 17.24 C 12.275 17.648 13.706 17.589 15 17.066 C 12.851 22.236 5.91 23.143 2.505 18.696 C -0.897 14.249 1.791 7.786 7.342 7.063 C 7.652 7.021 7.965 7 8.282 7 L 8.282 7.007 Z"/>
+      <line style="opacity: 50%" x1="18" y1="3.705" x2="18" y2="2.5"/>
+      <line style="opacity: 50%" x1="18" y1="11.295" x2="18" y2="12.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="4.816" x2="14.464" y2="3.964"/>
+      <line style="opacity: 50%" x1="20.711" y1="10.212" x2="21.563" y2="11.063"/>
+      <line style="opacity: 50%" x1="14.205" y1="7.5" x2="13.001" y2="7.5"/>
+      <line style="opacity: 50%" x1="21.795" y1="7.5" x2="23" y2="7.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="10.184" x2="14.464" y2="11.036"/>
+      <line style="opacity: 50%" x1="20.711" y1="4.789" x2="21.563" y2="3.937"/>
+      <circle style="opacity: 50%" cx="18" cy="7.5" r="2.169"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-pencil" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-pencil-code">
+      <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" />
+      <path d="M13.5 6.5l4 4" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+  <symbol id="svg-eye" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-eye-code">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+      <path
+        d="M11.11 17.958c-3.209 -.307 -5.91 -2.293 -8.11 -5.958c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6c-.21 .352 -.427 .688 -.647 1.008" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle site navigation sidebar">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc" aria-label="Toggle table of contents sidebar">
+<label class="overlay sidebar-overlay" for="__navigation"></label>
+<label class="overlay toc-overlay" for="__toc"></label>
+
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <span class="icon"><svg><use href="#svg-menu"></use></svg></span>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../index.html"><div class="brand">Enhanced SHAP  documentation</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+          <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+          <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../index.html">
+  <div class="sidebar-logo-container">
+    <img class="sidebar-logo only-light" src="../_static/fau_wiso_light.png" alt="Light Logo"/>
+    <img class="sidebar-logo only-dark" src="../_static/fau_wiso_dark.png" alt="Dark Logo"/>
+  </div>
+  
+  <span class="sidebar-brand-text">Enhanced SHAP  documentation</span>
+  
+</a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <ul class="current">
+<li class="toctree-l1 current has-children"><a class="reference internal" href="../shap_enhanced_api.html">SHAP Enhanced API</a><input aria-label="Toggle navigation of SHAP Enhanced API" checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul class="current">
+<li class="toctree-l2 current has-children"><a class="reference internal" href="shap_enhanced.html">shap_enhanced</a><input aria-label="Toggle navigation of shap_enhanced" checked="" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="shap_enhanced.base_explainer.html">shap_enhanced.base_explainer</a></li>
+<li class="toctree-l3 current has-children"><a class="reference internal" href="shap_enhanced.explainers.html">shap_enhanced.explainers</a><input aria-label="Toggle navigation of shap_enhanced.explainers" checked="" class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="shap_enhanced.explainers.ABSHAP.html">shap_enhanced.explainers.ABSHAP</a></li>
+<li class="toctree-l4"><a class="reference internal" href="shap_enhanced.explainers.AttnSHAP.html">shap_enhanced.explainers.AttnSHAP</a></li>
+<li class="toctree-l4"><a class="reference internal" href="shap_enhanced.explainers.BSHAP.html">shap_enhanced.explainers.BSHAP</a></li>
+<li class="toctree-l4"><a class="reference internal" href="shap_enhanced.explainers.CASHAP.html">shap_enhanced.explainers.CASHAP</a></li>
+<li class="toctree-l4"><a class="reference internal" href="shap_enhanced.explainers.CMSHAP.html">shap_enhanced.explainers.CMSHAP</a></li>
+<li class="toctree-l4"><a class="reference internal" href="shap_enhanced.explainers.ECSHAP.html">shap_enhanced.explainers.ECSHAP</a></li>
+<li class="toctree-l4"><a class="reference internal" href="shap_enhanced.explainers.ERSHAP.html">shap_enhanced.explainers.ERSHAP</a></li>
+<li class="toctree-l4"><a class="reference internal" href="shap_enhanced.explainers.ESSHAP.html">shap_enhanced.explainers.ESSHAP</a></li>
+<li class="toctree-l4"><a class="reference internal" href="shap_enhanced.explainers.LatentSHAP.html">shap_enhanced.explainers.LatentSHAP</a></li>
+<li class="toctree-l4"><a class="reference internal" href="shap_enhanced.explainers.MBSHAP.html">shap_enhanced.explainers.MBSHAP</a></li>
+<li class="toctree-l4"><a class="reference internal" href="shap_enhanced.explainers.RLSHAP.html">shap_enhanced.explainers.RLSHAP</a></li>
+<li class="toctree-l4"><a class="reference internal" href="shap_enhanced.explainers.SCSHAP.html">shap_enhanced.explainers.SCSHAP</a></li>
+<li class="toctree-l4"><a class="reference internal" href="shap_enhanced.explainers.SPSHAP.html">shap_enhanced.explainers.SPSHAP</a></li>
+<li class="toctree-l4 current current-page"><a class="current reference internal" href="#">shap_enhanced.explainers.SurroSHAP</a></li>
+<li class="toctree-l4"><a class="reference internal" href="shap_enhanced.explainers.TimeSHAP.html">shap_enhanced.explainers.TimeSHAP</a></li>
+<li class="toctree-l4"><a class="reference internal" href="shap_enhanced.explainers.hSHAP.html">shap_enhanced.explainers.hSHAP</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="shap_enhanced.tools.html">shap_enhanced.tools</a><input aria-label="Toggle navigation of shap_enhanced.tools" class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="shap_enhanced.tools.comparison.html">shap_enhanced.tools.comparison</a></li>
+<li class="toctree-l4"><a class="reference internal" href="shap_enhanced.tools.datasets.html">shap_enhanced.tools.datasets</a></li>
+<li class="toctree-l4"><a class="reference internal" href="shap_enhanced.tools.evaluation.html">shap_enhanced.tools.evaluation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="shap_enhanced.tools.predefined_models.html">shap_enhanced.tools.predefined_models</a></li>
+<li class="toctree-l4"><a class="reference internal" href="shap_enhanced.tools.timer.html">shap_enhanced.tools.timer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="shap_enhanced.tools.visulization.html">shap_enhanced.tools.visulization</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="view-this-page">
+  <a class="muted-link" href="../_sources/generated/shap_enhanced.explainers.SurroSHAP.rst.txt" title="View this page">
+    <svg><use href="#svg-eye"></use></svg>
+    <span class="visually-hidden">View this page</span>
+  </a>
+</div>
+<div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+              <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+              <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+            <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+          </label>
+        </div>
+        <article role="main" id="furo-main-content">
+          <section id="module-shap_enhanced.explainers.SurroSHAP">
+<span id="shap-enhanced-explainers-surroshap"></span><h1>shap_enhanced.explainers.SurroSHAP<a class="headerlink" href="#module-shap_enhanced.explainers.SurroSHAP" title="Link to this heading">¶</a></h1>
+<section id="surroshap-surrogate-model-shap-explainer">
+<h2>SurroSHAP: Surrogate Model SHAP Explainer<a class="headerlink" href="#surroshap-surrogate-model-shap-explainer" title="Link to this heading">¶</a></h2>
+<section id="theoretical-explanation">
+<h3>Theoretical Explanation<a class="headerlink" href="#theoretical-explanation" title="Link to this heading">¶</a></h3>
+<p><strong>SurroSHAP</strong> is a surrogate modeling approach to SHAP that accelerates feature attribution
+by training a regression model to <strong>mimic SHAP values</strong> produced by a base explainer.
+Once trained, the surrogate regressor can produce fast, approximate SHAP values for new inputs,
+bypassing the computational expense of re-running the base SHAP explainer.</p>
+<p>This method is particularly useful for large datasets, expensive black-box models, or scenarios
+where near-real-time interpretability is needed.</p>
+<section id="key-concepts">
+<h4>Key Concepts<a class="headerlink" href="#key-concepts" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><dl class="simple">
+<dt><strong>Surrogate Regression</strong>:</dt><dd><p>A regression model (e.g., Random Forest, Kernel Ridge, MLP) is trained to predict SHAP attributions
+using inputs as features and base SHAP values as targets.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><strong>Base SHAP Explainer</strong>:</dt><dd><p>Any standard SHAP-style explainer (e.g., <cite>DeepExplainer</cite>, <cite>GradientExplainer</cite>, <cite>KernelExplainer</cite>)
+can be used to generate training labels (pseudo-ground-truth SHAP values).</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><strong>Optional Scaling</strong>:</dt><dd><p>Input features and/or SHAP attributions can be standardized to improve the surrogate’s learning performance.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><strong>Fast Inference</strong>:</dt><dd><p>Once trained, the surrogate model can rapidly produce SHAP attributions for unseen inputs
+without invoking the base SHAP explainer again.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</section>
+</section>
+<section id="algorithm">
+<h3>Algorithm<a class="headerlink" href="#algorithm" title="Link to this heading">¶</a></h3>
+<ol class="arabic simple">
+<li><dl class="simple">
+<dt><strong>Initialization</strong>:</dt><dd><ul class="simple">
+<li><dl class="simple">
+<dt>Accepts the following:</dt><dd><ul>
+<li><p>A predictive model to explain.</p></li>
+<li><p>Background dataset for base SHAP explainer.</p></li>
+<li><p>SHAP-style base explainer class.</p></li>
+<li><p>Surrogate regressor class (e.g., <cite>sklearn.ensemble.RandomForestRegressor</cite>).</p></li>
+<li><p>Number of training samples for surrogate fitting.</p></li>
+<li><p>Options for input/output scaling.</p></li>
+<li><p>Device context (if applicable).</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><strong>Surrogate Training</strong>:</dt><dd><ul class="simple">
+<li><p>Sample training points from the background dataset.</p></li>
+<li><dl class="simple">
+<dt>For each sample:</dt><dd><ul>
+<li><p>Compute SHAP values using the base explainer.</p></li>
+<li><p>Flatten the input and corresponding SHAP vector.</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><p>Optionally scale both inputs and targets.</p></li>
+<li><p>Fit the surrogate regressor on the collected (input, attribution) pairs.</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><strong>SHAP Value Prediction</strong>:</dt><dd><ul class="simple">
+<li><dl class="simple">
+<dt>For a new sample:</dt><dd><ul>
+<li><p>Flatten and optionally scale the input.</p></li>
+<li><p>Predict SHAP attributions using the surrogate model.</p></li>
+<li><p>Inverse-transform and reshape predictions to original attribution shape if needed.</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+</li>
+</ol>
+</section>
+<section id="use-case">
+<h3>Use Case<a class="headerlink" href="#use-case" title="Link to this heading">¶</a></h3>
+<dl class="simple">
+<dt>SurroSHAP is best suited for:</dt><dd><ul class="simple">
+<li><p>Large-scale datasets requiring rapid SHAP value generation.</p></li>
+<li><p>Scenarios where base SHAP computation is slow or expensive.</p></li>
+<li><p>Situations where approximate explanations are acceptable in exchange for speed.</p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">References</p>
+<ul class="simple">
+<li><p><strong>Lundberg &amp; Lee (2017), “A Unified Approach to Interpreting Model Predictions”</strong>
+[SHAP foundation—coalitional feature attribution framework]</p></li>
+<li><p><strong>Zhou, Chen &amp; Hu (2022), “Shapley Computations Using Surrogate Model‑Based Trees”</strong>
+[Uses surrogate tree models to compute SHAP values via conditional expectation, trading accuracy for speed] :contentReference[oaicite:1]{index=1}</p></li>
+<li><p><strong>ShapGAP (2024)</strong>
+[A metric for evaluating surrogate model fidelity by comparing SHAP explanations of surrogate vs. black‑box models, ensuring surrogate explanations align in reasoning] :contentReference[oaicite:2]{index=2}</p></li>
+<li><p><strong>Arize MimicExplainer documentation</strong>
+[Describes practical use of surrogate explainability: fitting a model (e.g., RandomForest) to mimic black‑box outputs and generating SHAP values from surrogate] :contentReference[oaicite:3]{index=3}</p></li>
+<li><p><strong>Interpretable Machine Learning book (Molnar, 2022), SHAP chapter</strong>
+[Discusses surrogate/approximation strategies and trade‑offs between fidelity and computational efficiency] :contentReference[oaicite:4]{index=4}</p></li>
+</ul>
+</section>
+</section>
+<p class="rubric">Functions</p>
+<div class="table-wrapper autosummary longtable docutils container">
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#shap_enhanced.explainers.SurroSHAP.ensure_shap_input" title="shap_enhanced.explainers.SurroSHAP.ensure_shap_input"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ensure_shap_input</span></code></a>(x, explainer[, device])</p></td>
+<td><p>Ensure compatibility of input format with the SHAP explainer type.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#shap_enhanced.explainers.SurroSHAP.shap_values_with_nsamples" title="shap_enhanced.explainers.SurroSHAP.shap_values_with_nsamples"><code class="xref py py-obj docutils literal notranslate"><span class="pre">shap_values_with_nsamples</span></code></a>(base_explainer, x, ...)</p></td>
+<td><p>Safely compute SHAP values with optional support for <cite>nsamples</cite> argument.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p class="rubric">Classes</p>
+<div class="table-wrapper autosummary longtable docutils container">
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#shap_enhanced.explainers.SurroSHAP.SurrogateSHAPExplainer" title="shap_enhanced.explainers.SurroSHAP.SurrogateSHAPExplainer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SurrogateSHAPExplainer</span></code></a>(model, background, ...)</p></td>
+<td><p>SurrogateSHAPExplainer: Fast SHAP Approximation via Supervised Regression</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<dl class="py class">
+<dt class="sig sig-object py" id="shap_enhanced.explainers.SurroSHAP.SurrogateSHAPExplainer">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">shap_enhanced.explainers.SurroSHAP.</span></span><span class="sig-name descname"><span class="pre">SurrogateSHAPExplainer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">background</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">base_explainer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">regressor_class=&lt;class</span> <span class="pre">'sklearn.ensemble._forest.RandomForestRegressor'&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">regressor_kwargs=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nsamples_base=100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale_inputs=True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale_outputs=False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device=None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/shap_enhanced/explainers/SurroSHAP.html#SurrogateSHAPExplainer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#shap_enhanced.explainers.SurroSHAP.SurrogateSHAPExplainer" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="shap_enhanced.base_explainer.html#shap_enhanced.base_explainer.BaseExplainer" title="shap_enhanced.base_explainer.BaseExplainer"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseExplainer</span></code></a></p>
+<p>SurrogateSHAPExplainer: Fast SHAP Approximation via Supervised Regression</p>
+<p>SurroSHAP accelerates SHAP attribution by training a surrogate regression model that maps
+input features to SHAP attributions. This is useful when repeated SHAP computation is too
+costly or when near-instant explanations are needed for deployment.</p>
+<p>The surrogate model is trained on a background dataset where “true” SHAP values are first computed
+using a base explainer (e.g., <cite>DeepExplainer</cite>, <cite>KernelExplainer</cite>), and then used as regression targets.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Any sklearn-style regressor can be used (e.g., <cite>RandomForestRegressor</cite>, <cite>KernelRidge</cite>, etc.).</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model</strong> (<em>Any</em>) – Predictive model to be explained.</p></li>
+<li><p><strong>background</strong> (<em>np.ndarray</em>) – Background dataset for training surrogate and computing SHAP targets. Shape: (N, T, F).</p></li>
+<li><p><strong>base_explainer</strong> (<em>Any</em>) – A SHAP-style explainer instance (already constructed).</p></li>
+<li><p><strong>regressor_class</strong> (<em>type</em>) – Regressor class implementing fit/predict API. Defaults to RandomForestRegressor.</p></li>
+<li><p><strong>regressor_kwargs</strong> (<em>dict</em>) – Optional keyword arguments for the regressor.</p></li>
+<li><p><strong>nsamples_base</strong> (<em>int</em>) – Number of SHAP samples used for each background point.</p></li>
+<li><p><strong>scale_inputs</strong> (<em>bool</em>) – Whether to standardize input features during training.</p></li>
+<li><p><strong>scale_outputs</strong> (<em>bool</em>) – Whether to standardize SHAP values during training.</p></li>
+<li><p><strong>device</strong> (<em>str</em><em> or </em><em>torch.device</em>) – Torch device (e.g., ‘cpu’ or ‘cuda’).</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py property">
+<dt class="sig sig-object py" id="shap_enhanced.explainers.SurroSHAP.SurrogateSHAPExplainer.expected_value">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">expected_value</span></span><a class="headerlink" href="#shap_enhanced.explainers.SurroSHAP.SurrogateSHAPExplainer.expected_value" title="Link to this definition">¶</a></dt>
+<dd><p>Optional property returning the expected model output on the background dataset.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Expected value if defined by the subclass, else None.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>float or None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="shap_enhanced.explainers.SurroSHAP.SurrogateSHAPExplainer.explain">
+<span class="sig-name descname"><span class="pre">explain</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#shap_enhanced.explainers.SurroSHAP.SurrogateSHAPExplainer.explain" title="Link to this definition">¶</a></dt>
+<dd><p>Alias to <cite>shap_values</cite> for flexibility and API compatibility.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>X</strong> (<em>Union</em><em>[</em><em>np.ndarray</em><em>, </em><em>torch.Tensor</em><em>, </em><em>list</em><em>]</em>) – Input samples to explain.</p></li>
+<li><p><strong>kwargs</strong> – Additional arguments.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>SHAP values.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Union[np.ndarray, list]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="shap_enhanced.explainers.SurroSHAP.SurrogateSHAPExplainer.shap_values">
+<span class="sig-name descname"><span class="pre">shap_values</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/shap_enhanced/explainers/SurroSHAP.html#SurrogateSHAPExplainer.shap_values"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#shap_enhanced.explainers.SurroSHAP.SurrogateSHAPExplainer.shap_values" title="Link to this definition">¶</a></dt>
+<dd><p>Predict SHAP attributions for new inputs using the trained surrogate model.</p>
+<p>The input is reshaped and (optionally) standardized to match the format used
+during surrogate training, and the predicted SHAP values are inverse-transformed
+(if scaling was applied).</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This bypasses SHAP computation entirely and relies on the surrogate regressor.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>X</strong> (<em>np.ndarray</em><em> or </em><em>torch.Tensor</em>) – Input instance or batch, shape (T, F) or (B, T, F).</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Approximated SHAP attributions, same shape as input.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="shap_enhanced.explainers.SurroSHAP.ensure_shap_input">
+<span class="sig-prename descclassname"><span class="pre">shap_enhanced.explainers.SurroSHAP.</span></span><span class="sig-name descname"><span class="pre">ensure_shap_input</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">explainer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'cpu'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/shap_enhanced/explainers/SurroSHAP.html#ensure_shap_input"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#shap_enhanced.explainers.SurroSHAP.ensure_shap_input" title="Link to this definition">¶</a></dt>
+<dd><p>Ensure compatibility of input format with the SHAP explainer type.</p>
+<p>This function inspects the explainer type (e.g., DeepExplainer, KernelExplainer)
+and converts the input <cite>x</cite> into the appropriate format—either a NumPy array or a
+PyTorch tensor—based on the explainer’s requirements.</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Deep/Gradient explainers require <cite>torch.Tensor</cite> input.</p></li>
+<li><p>Kernel/Partition explainers require <cite>np.ndarray</cite> input.</p></li>
+</ul>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<em>np.ndarray</em><em> or </em><em>torch.Tensor</em>) – Input sample to format, shape (T, F) or (1, T, F).</p></li>
+<li><p><strong>explainer</strong> (<em>Any</em>) – Instantiated SHAP explainer object.</p></li>
+<li><p><strong>device</strong> (<em>str</em>) – Target torch device (‘cpu’ or ‘cuda’).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Properly formatted input for SHAP explainer.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray or torch.Tensor</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>TypeError</strong> – If the input type is unsupported.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="shap_enhanced.explainers.SurroSHAP.shap_values_with_nsamples">
+<span class="sig-prename descclassname"><span class="pre">shap_enhanced.explainers.SurroSHAP.</span></span><span class="sig-name descname"><span class="pre">shap_values_with_nsamples</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">base_explainer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nsamples</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/shap_enhanced/explainers/SurroSHAP.html#shap_values_with_nsamples"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#shap_enhanced.explainers.SurroSHAP.shap_values_with_nsamples" title="Link to this definition">¶</a></dt>
+<dd><p>Safely compute SHAP values with optional support for <cite>nsamples</cite> argument.</p>
+<p>This utility inspects the signature of the <cite>shap_values</cite> method and attempts
+to call it with <cite>nsamples</cite>, <cite>check_additivity</cite>, and any additional kwargs.
+It includes fallback logic for older SHAP versions that may not support these parameters.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>base_explainer</strong> (<em>Any</em>) – SHAP explainer instance.</p></li>
+<li><p><strong>x</strong> (<em>np.ndarray</em><em> or </em><em>torch.Tensor</em>) – Input to explain (already formatted for the explainer).</p></li>
+<li><p><strong>nsamples</strong> (<em>int</em>) – Number of samples to use for SHAP estimation.</p></li>
+<li><p><strong>kwargs</strong> – Additional keyword arguments for <cite>shap_values</cite>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>SHAP attributions for the input.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray or list</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          <a class="next-page" href="shap_enhanced.explainers.TimeSHAP.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title">shap_enhanced.explainers.TimeSHAP</div>
+              </div>
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+            </a>
+          <a class="prev-page" href="shap_enhanced.explainers.SPSHAP.html">
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+              <div class="page-info">
+                <div class="context">
+                  <span>Previous</span>
+                </div>
+                
+                <div class="title">shap_enhanced.explainers.SPSHAP</div>
+                
+              </div>
+            </a>
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 2025, Niyang Bai
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">shap_enhanced.explainers.SurroSHAP</a><ul>
+<li><a class="reference internal" href="#surroshap-surrogate-model-shap-explainer">SurroSHAP: Surrogate Model SHAP Explainer</a><ul>
+<li><a class="reference internal" href="#theoretical-explanation">Theoretical Explanation</a><ul>
+<li><a class="reference internal" href="#key-concepts">Key Concepts</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#algorithm">Algorithm</a></li>
+<li><a class="reference internal" href="#use-case">Use Case</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#shap_enhanced.explainers.SurroSHAP.SurrogateSHAPExplainer"><code class="docutils literal notranslate"><span class="pre">SurrogateSHAPExplainer</span></code></a><ul>
+<li><a class="reference internal" href="#shap_enhanced.explainers.SurroSHAP.SurrogateSHAPExplainer.expected_value"><code class="docutils literal notranslate"><span class="pre">SurrogateSHAPExplainer.expected_value</span></code></a></li>
+<li><a class="reference internal" href="#shap_enhanced.explainers.SurroSHAP.SurrogateSHAPExplainer.explain"><code class="docutils literal notranslate"><span class="pre">SurrogateSHAPExplainer.explain()</span></code></a></li>
+<li><a class="reference internal" href="#shap_enhanced.explainers.SurroSHAP.SurrogateSHAPExplainer.shap_values"><code class="docutils literal notranslate"><span class="pre">SurrogateSHAPExplainer.shap_values()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#shap_enhanced.explainers.SurroSHAP.ensure_shap_input"><code class="docutils literal notranslate"><span class="pre">ensure_shap_input()</span></code></a></li>
+<li><a class="reference internal" href="#shap_enhanced.explainers.SurroSHAP.shap_values_with_nsamples"><code class="docutils literal notranslate"><span class="pre">shap_values_with_nsamples()</span></code></a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
+      
+      
+    </aside>
+  </div>
+</div><script src="../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/scripts/furo.js?v=46bd48cc"></script>
+    </body>
+</html>

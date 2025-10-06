@@ -1,0 +1,12 @@
+shap\_enhanced.explainers.SPSHAP
+================================
+
+.. automodule:: shap_enhanced.explainers.SPSHAP
+
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      SupportPreservingSHAPExplainer
+   

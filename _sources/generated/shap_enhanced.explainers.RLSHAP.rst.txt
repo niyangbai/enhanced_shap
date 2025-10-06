@@ -1,0 +1,13 @@
+shap\_enhanced.explainers.RLSHAP
+================================
+
+.. automodule:: shap_enhanced.explainers.RLSHAP
+
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      MaskingPolicy
+      RLShapExplainer
+   

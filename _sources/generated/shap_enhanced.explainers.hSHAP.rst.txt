@@ -1,0 +1,18 @@
+shap\_enhanced.explainers.hSHAP
+===============================
+
+.. automodule:: shap_enhanced.explainers.hSHAP
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      generate_hierarchical_groups
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      HShapExplainer
+   

@@ -1,0 +1,12 @@
+shap\_enhanced.explainers.CMSHAP
+================================
+
+.. automodule:: shap_enhanced.explainers.CMSHAP
+
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      ContextualMaskingSHAPExplainer
+   

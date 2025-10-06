@@ -1,0 +1,12 @@
+shap\_enhanced.base\_explainer
+==============================
+
+.. automodule:: shap_enhanced.base_explainer
+
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      BaseExplainer
+   

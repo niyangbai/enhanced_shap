@@ -1,0 +1,28 @@
+shap\_enhanced.explainers
+=========================
+
+.. automodule:: shap_enhanced.explainers
+
+   
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :recursive:
+
+   ABSHAP
+   AttnSHAP
+   BSHAP
+   CASHAP
+   CMSHAP
+   ECSHAP
+   ERSHAP
+   ESSHAP
+   LatentSHAP
+   MBSHAP
+   RLSHAP
+   SCSHAP
+   SPSHAP
+   SurroSHAP
+   TimeSHAP
+   hSHAP

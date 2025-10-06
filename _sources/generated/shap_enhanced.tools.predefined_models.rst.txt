@@ -1,0 +1,13 @@
+shap\_enhanced.tools.predefined\_models
+=======================================
+
+.. automodule:: shap_enhanced.tools.predefined_models
+
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      RealisticLSTM
+      TabularMLP
+   

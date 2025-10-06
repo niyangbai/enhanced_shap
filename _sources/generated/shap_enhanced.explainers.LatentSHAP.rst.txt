@@ -1,0 +1,22 @@
+shap\_enhanced.explainers.LatentSHAP
+====================================
+
+.. automodule:: shap_enhanced.explainers.LatentSHAP
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      make_shap_explainer
+      train_conv1d_autoencoder
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      Conv1dDecoder
+      Conv1dEncoder
+      LatentModelWrapper
+      LatentSHAPExplainer
+   

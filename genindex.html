@@ -1,0 +1,2110 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="./">
+  <head><meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="#"><link rel="search" title="Search" href="search.html">
+        <link rel="prefetch" href="_static/fau_wiso_light.png" as="image">
+        <link rel="prefetch" href="_static/fau_wiso_dark.png" as="image">
+
+    <!-- Generated with Sphinx 8.2.3 and Furo 2025.09.25 --><title>Index - Enhanced SHAP documentation</title>
+<link rel="stylesheet" type="text/css" href="_static/pygments.css?v=d111a655" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?v=580074bf" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/furo-extensions.css?v=8dab3a3b" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f2f2f2;
+  --color-code-foreground: #1e1e1e;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
+    <title>Auto light/dark, in light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path style="opacity: 50%" d="M 5.411 14.504 C 5.471 14.504 5.532 14.504 5.591 14.504 C 3.639 16.319 4.383 19.569 6.931 20.352 C 7.693 20.586 8.512 20.551 9.25 20.252 C 8.023 23.207 4.056 23.725 2.11 21.184 C 0.166 18.642 1.702 14.949 4.874 14.536 C 5.051 14.512 5.231 14.5 5.411 14.5 L 5.411 14.504 Z"/>
+      <line x1="14.5" y1="3.25" x2="14.5" y2="1.25"/>
+      <line x1="14.5" y1="15.85" x2="14.5" y2="17.85"/>
+      <line x1="10.044" y1="5.094" x2="8.63" y2="3.68"/>
+      <line x1="19" y1="14.05" x2="20.414" y2="15.464"/>
+      <line x1="8.2" y1="9.55" x2="6.2" y2="9.55"/>
+      <line x1="20.8" y1="9.55" x2="22.8" y2="9.55"/>
+      <line x1="10.044" y1="14.006" x2="8.63" y2="15.42"/>
+      <line x1="19" y1="5.05" x2="20.414" y2="3.636"/>
+      <circle cx="14.5" cy="9.55" r="3.6"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
+    <title>Auto light/dark, in dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path d="M 8.282 7.007 C 8.385 7.007 8.494 7.007 8.595 7.007 C 5.18 10.184 6.481 15.869 10.942 17.24 C 12.275 17.648 13.706 17.589 15 17.066 C 12.851 22.236 5.91 23.143 2.505 18.696 C -0.897 14.249 1.791 7.786 7.342 7.063 C 7.652 7.021 7.965 7 8.282 7 L 8.282 7.007 Z"/>
+      <line style="opacity: 50%" x1="18" y1="3.705" x2="18" y2="2.5"/>
+      <line style="opacity: 50%" x1="18" y1="11.295" x2="18" y2="12.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="4.816" x2="14.464" y2="3.964"/>
+      <line style="opacity: 50%" x1="20.711" y1="10.212" x2="21.563" y2="11.063"/>
+      <line style="opacity: 50%" x1="14.205" y1="7.5" x2="13.001" y2="7.5"/>
+      <line style="opacity: 50%" x1="21.795" y1="7.5" x2="23" y2="7.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="10.184" x2="14.464" y2="11.036"/>
+      <line style="opacity: 50%" x1="20.711" y1="4.789" x2="21.563" y2="3.937"/>
+      <circle style="opacity: 50%" cx="18" cy="7.5" r="2.169"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-pencil" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-pencil-code">
+      <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" />
+      <path d="M13.5 6.5l4 4" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+  <symbol id="svg-eye" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-eye-code">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+      <path
+        d="M11.11 17.958c-3.209 -.307 -5.91 -2.293 -8.11 -5.958c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6c-.21 .352 -.427 .688 -.647 1.008" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle site navigation sidebar">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc" aria-label="Toggle table of contents sidebar">
+<label class="overlay sidebar-overlay" for="__navigation"></label>
+<label class="overlay toc-overlay" for="__toc"></label>
+
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <span class="icon"><svg><use href="#svg-menu"></use></svg></span>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="index.html"><div class="brand">Enhanced SHAP  documentation</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+          <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+          <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+        <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="index.html">
+  <div class="sidebar-logo-container">
+    <img class="sidebar-logo only-light" src="_static/fau_wiso_light.png" alt="Light Logo"/>
+    <img class="sidebar-logo only-dark" src="_static/fau_wiso_dark.png" alt="Dark Logo"/>
+  </div>
+  
+  <span class="sidebar-brand-text">Enhanced SHAP  documentation</span>
+  
+</a><form class="sidebar-search-container" method="get" action="search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="shap_enhanced_api.html">SHAP Enhanced API</a><input aria-label="Toggle navigation of SHAP Enhanced API" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="generated/shap_enhanced.html">shap_enhanced</a><input aria-label="Toggle navigation of shap_enhanced" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="generated/shap_enhanced.base_explainer.html">shap_enhanced.base_explainer</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="generated/shap_enhanced.explainers.html">shap_enhanced.explainers</a><input aria-label="Toggle navigation of shap_enhanced.explainers" class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="generated/shap_enhanced.explainers.ABSHAP.html">shap_enhanced.explainers.ABSHAP</a></li>
+<li class="toctree-l4"><a class="reference internal" href="generated/shap_enhanced.explainers.AttnSHAP.html">shap_enhanced.explainers.AttnSHAP</a></li>
+<li class="toctree-l4"><a class="reference internal" href="generated/shap_enhanced.explainers.BSHAP.html">shap_enhanced.explainers.BSHAP</a></li>
+<li class="toctree-l4"><a class="reference internal" href="generated/shap_enhanced.explainers.CASHAP.html">shap_enhanced.explainers.CASHAP</a></li>
+<li class="toctree-l4"><a class="reference internal" href="generated/shap_enhanced.explainers.CMSHAP.html">shap_enhanced.explainers.CMSHAP</a></li>
+<li class="toctree-l4"><a class="reference internal" href="generated/shap_enhanced.explainers.ECSHAP.html">shap_enhanced.explainers.ECSHAP</a></li>
+<li class="toctree-l4"><a class="reference internal" href="generated/shap_enhanced.explainers.ERSHAP.html">shap_enhanced.explainers.ERSHAP</a></li>
+<li class="toctree-l4"><a class="reference internal" href="generated/shap_enhanced.explainers.ESSHAP.html">shap_enhanced.explainers.ESSHAP</a></li>
+<li class="toctree-l4"><a class="reference internal" href="generated/shap_enhanced.explainers.LatentSHAP.html">shap_enhanced.explainers.LatentSHAP</a></li>
+<li class="toctree-l4"><a class="reference internal" href="generated/shap_enhanced.explainers.MBSHAP.html">shap_enhanced.explainers.MBSHAP</a></li>
+<li class="toctree-l4"><a class="reference internal" href="generated/shap_enhanced.explainers.RLSHAP.html">shap_enhanced.explainers.RLSHAP</a></li>
+<li class="toctree-l4"><a class="reference internal" href="generated/shap_enhanced.explainers.SCSHAP.html">shap_enhanced.explainers.SCSHAP</a></li>
+<li class="toctree-l4"><a class="reference internal" href="generated/shap_enhanced.explainers.SPSHAP.html">shap_enhanced.explainers.SPSHAP</a></li>
+<li class="toctree-l4"><a class="reference internal" href="generated/shap_enhanced.explainers.SurroSHAP.html">shap_enhanced.explainers.SurroSHAP</a></li>
+<li class="toctree-l4"><a class="reference internal" href="generated/shap_enhanced.explainers.TimeSHAP.html">shap_enhanced.explainers.TimeSHAP</a></li>
+<li class="toctree-l4"><a class="reference internal" href="generated/shap_enhanced.explainers.hSHAP.html">shap_enhanced.explainers.hSHAP</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="generated/shap_enhanced.tools.html">shap_enhanced.tools</a><input aria-label="Toggle navigation of shap_enhanced.tools" class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="generated/shap_enhanced.tools.comparison.html">shap_enhanced.tools.comparison</a></li>
+<li class="toctree-l4"><a class="reference internal" href="generated/shap_enhanced.tools.datasets.html">shap_enhanced.tools.datasets</a></li>
+<li class="toctree-l4"><a class="reference internal" href="generated/shap_enhanced.tools.evaluation.html">shap_enhanced.tools.evaluation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="generated/shap_enhanced.tools.predefined_models.html">shap_enhanced.tools.predefined_models</a></li>
+<li class="toctree-l4"><a class="reference internal" href="generated/shap_enhanced.tools.timer.html">shap_enhanced.tools.timer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="generated/shap_enhanced.tools.visulization.html">shap_enhanced.tools.visulization</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+              <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+              <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+            <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+          </label>
+        </div>
+        <article role="main" id="furo-main-content">
+          
+<section class="genindex-section">
+  <h1 id="index">Index</h1>
+  <div class="genindex-jumpbox"><a href="#A"><strong>A</strong></a> | <a href="#B"><strong>B</strong></a> | <a href="#C"><strong>C</strong></a> | <a href="#D"><strong>D</strong></a> | <a href="#E"><strong>E</strong></a> | <a href="#F"><strong>F</strong></a> | <a href="#G"><strong>G</strong></a> | <a href="#H"><strong>H</strong></a> | <a href="#I"><strong>I</strong></a> | <a href="#L"><strong>L</strong></a> | <a href="#M"><strong>M</strong></a> | <a href="#N"><strong>N</strong></a> | <a href="#P"><strong>P</strong></a> | <a href="#R"><strong>R</strong></a> | <a href="#S"><strong>S</strong></a> | <a href="#T"><strong>T</strong></a> | <a href="#X"><strong>X</strong></a> | <a href="#Z"><strong>Z</strong></a></div>
+</section>
+<section id="A" class="genindex-section">
+  <h2>A</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="generated/shap_enhanced.explainers.html#shap_enhanced.explainers.AdaptiveBaselineSHAPExplainer">AdaptiveBaselineSHAPExplainer (class in shap_enhanced.explainers)</a>
+
+        <ul>
+          <li><a href="generated/shap_enhanced.explainers.ABSHAP.html#shap_enhanced.explainers.ABSHAP.AdaptiveBaselineSHAPExplainer">(class in shap_enhanced.explainers.ABSHAP)</a>
+</li>
+        </ul></li>
+        <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.Conv1dDecoder.add_module">add_module() (shap_enhanced.explainers.LatentSHAP.Conv1dDecoder method)</a>
+
+        <ul>
+          <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.Conv1dEncoder.add_module">(shap_enhanced.explainers.LatentSHAP.Conv1dEncoder method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.LatentModelWrapper.add_module">(shap_enhanced.explainers.LatentSHAP.LatentModelWrapper method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.RLSHAP.html#shap_enhanced.explainers.RLSHAP.MaskingPolicy.add_module">(shap_enhanced.explainers.RLSHAP.MaskingPolicy method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.predefined_models.html#shap_enhanced.tools.predefined_models.RealisticLSTM.add_module">(shap_enhanced.tools.predefined_models.RealisticLSTM method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.predefined_models.html#shap_enhanced.tools.predefined_models.TabularMLP.add_module">(shap_enhanced.tools.predefined_models.TabularMLP method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.RealisticLSTM.add_module">(shap_enhanced.tools.RealisticLSTM method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.TabularMLP.add_module">(shap_enhanced.tools.TabularMLP method)</a>
+</li>
+        </ul></li>
+    </ul></td>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.Conv1dDecoder.apply">apply() (shap_enhanced.explainers.LatentSHAP.Conv1dDecoder method)</a>
+
+        <ul>
+          <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.Conv1dEncoder.apply">(shap_enhanced.explainers.LatentSHAP.Conv1dEncoder method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.LatentModelWrapper.apply">(shap_enhanced.explainers.LatentSHAP.LatentModelWrapper method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.RLSHAP.html#shap_enhanced.explainers.RLSHAP.MaskingPolicy.apply">(shap_enhanced.explainers.RLSHAP.MaskingPolicy method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.predefined_models.html#shap_enhanced.tools.predefined_models.RealisticLSTM.apply">(shap_enhanced.tools.predefined_models.RealisticLSTM method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.predefined_models.html#shap_enhanced.tools.predefined_models.TabularMLP.apply">(shap_enhanced.tools.predefined_models.TabularMLP method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.RealisticLSTM.apply">(shap_enhanced.tools.RealisticLSTM method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.TabularMLP.apply">(shap_enhanced.tools.TabularMLP method)</a>
+</li>
+        </ul></li>
+        <li><a href="generated/shap_enhanced.explainers.html#shap_enhanced.explainers.AttnSHAPExplainer">AttnSHAPExplainer (class in shap_enhanced.explainers)</a>
+
+        <ul>
+          <li><a href="generated/shap_enhanced.explainers.AttnSHAP.html#shap_enhanced.explainers.AttnSHAP.AttnSHAPExplainer">(class in shap_enhanced.explainers.AttnSHAP)</a>
+</li>
+        </ul></li>
+    </ul></td>
+  </tr></table>
+</section>
+
+<section id="B" class="genindex-section">
+  <h2>B</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="generated/shap_enhanced.html#shap_enhanced.BaseExplainer">BaseExplainer (class in shap_enhanced)</a>
+
+        <ul>
+          <li><a href="generated/shap_enhanced.base_explainer.html#shap_enhanced.base_explainer.BaseExplainer">(class in shap_enhanced.base_explainer)</a>
+</li>
+        </ul></li>
+        <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.Conv1dDecoder.bfloat16">bfloat16() (shap_enhanced.explainers.LatentSHAP.Conv1dDecoder method)</a>
+
+        <ul>
+          <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.Conv1dEncoder.bfloat16">(shap_enhanced.explainers.LatentSHAP.Conv1dEncoder method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.LatentModelWrapper.bfloat16">(shap_enhanced.explainers.LatentSHAP.LatentModelWrapper method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.RLSHAP.html#shap_enhanced.explainers.RLSHAP.MaskingPolicy.bfloat16">(shap_enhanced.explainers.RLSHAP.MaskingPolicy method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.predefined_models.html#shap_enhanced.tools.predefined_models.RealisticLSTM.bfloat16">(shap_enhanced.tools.predefined_models.RealisticLSTM method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.predefined_models.html#shap_enhanced.tools.predefined_models.TabularMLP.bfloat16">(shap_enhanced.tools.predefined_models.TabularMLP method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.RealisticLSTM.bfloat16">(shap_enhanced.tools.RealisticLSTM method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.TabularMLP.bfloat16">(shap_enhanced.tools.TabularMLP method)</a>
+</li>
+        </ul></li>
+    </ul></td>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="generated/shap_enhanced.explainers.html#shap_enhanced.explainers.BShapExplainer">BShapExplainer (class in shap_enhanced.explainers)</a>
+
+        <ul>
+          <li><a href="generated/shap_enhanced.explainers.BSHAP.html#shap_enhanced.explainers.BSHAP.BShapExplainer">(class in shap_enhanced.explainers.BSHAP)</a>
+</li>
+        </ul></li>
+        <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.Conv1dDecoder.buffers">buffers() (shap_enhanced.explainers.LatentSHAP.Conv1dDecoder method)</a>
+
+        <ul>
+          <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.Conv1dEncoder.buffers">(shap_enhanced.explainers.LatentSHAP.Conv1dEncoder method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.LatentModelWrapper.buffers">(shap_enhanced.explainers.LatentSHAP.LatentModelWrapper method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.RLSHAP.html#shap_enhanced.explainers.RLSHAP.MaskingPolicy.buffers">(shap_enhanced.explainers.RLSHAP.MaskingPolicy method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.predefined_models.html#shap_enhanced.tools.predefined_models.RealisticLSTM.buffers">(shap_enhanced.tools.predefined_models.RealisticLSTM method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.predefined_models.html#shap_enhanced.tools.predefined_models.TabularMLP.buffers">(shap_enhanced.tools.predefined_models.TabularMLP method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.RealisticLSTM.buffers">(shap_enhanced.tools.RealisticLSTM method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.TabularMLP.buffers">(shap_enhanced.tools.TabularMLP method)</a>
+</li>
+        </ul></li>
+    </ul></td>
+  </tr></table>
+</section>
+
+<section id="C" class="genindex-section">
+  <h2>C</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.Comparison.calculate_kpis">calculate_kpis() (shap_enhanced.tools.Comparison method)</a>
+
+        <ul>
+          <li><a href="generated/shap_enhanced.tools.comparison.html#shap_enhanced.tools.comparison.Comparison.calculate_kpis">(shap_enhanced.tools.comparison.Comparison method)</a>
+</li>
+        </ul></li>
+        <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.Conv1dDecoder.call_super_init">call_super_init (shap_enhanced.explainers.LatentSHAP.Conv1dDecoder attribute)</a>
+
+        <ul>
+          <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.Conv1dEncoder.call_super_init">(shap_enhanced.explainers.LatentSHAP.Conv1dEncoder attribute)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.LatentModelWrapper.call_super_init">(shap_enhanced.explainers.LatentSHAP.LatentModelWrapper attribute)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.RLSHAP.html#shap_enhanced.explainers.RLSHAP.MaskingPolicy.call_super_init">(shap_enhanced.explainers.RLSHAP.MaskingPolicy attribute)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.predefined_models.html#shap_enhanced.tools.predefined_models.RealisticLSTM.call_super_init">(shap_enhanced.tools.predefined_models.RealisticLSTM attribute)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.predefined_models.html#shap_enhanced.tools.predefined_models.TabularMLP.call_super_init">(shap_enhanced.tools.predefined_models.TabularMLP attribute)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.RealisticLSTM.call_super_init">(shap_enhanced.tools.RealisticLSTM attribute)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.TabularMLP.call_super_init">(shap_enhanced.tools.TabularMLP attribute)</a>
+</li>
+        </ul></li>
+        <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.Conv1dDecoder.children">children() (shap_enhanced.explainers.LatentSHAP.Conv1dDecoder method)</a>
+
+        <ul>
+          <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.Conv1dEncoder.children">(shap_enhanced.explainers.LatentSHAP.Conv1dEncoder method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.LatentModelWrapper.children">(shap_enhanced.explainers.LatentSHAP.LatentModelWrapper method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.RLSHAP.html#shap_enhanced.explainers.RLSHAP.MaskingPolicy.children">(shap_enhanced.explainers.RLSHAP.MaskingPolicy method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.predefined_models.html#shap_enhanced.tools.predefined_models.RealisticLSTM.children">(shap_enhanced.tools.predefined_models.RealisticLSTM method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.predefined_models.html#shap_enhanced.tools.predefined_models.TabularMLP.children">(shap_enhanced.tools.predefined_models.TabularMLP method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.RealisticLSTM.children">(shap_enhanced.tools.RealisticLSTM method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.TabularMLP.children">(shap_enhanced.tools.TabularMLP method)</a>
+</li>
+        </ul></li>
+        <li><a href="generated/shap_enhanced.explainers.html#shap_enhanced.explainers.CoalitionAwareSHAPExplainer">CoalitionAwareSHAPExplainer (class in shap_enhanced.explainers)</a>
+
+        <ul>
+          <li><a href="generated/shap_enhanced.explainers.CASHAP.html#shap_enhanced.explainers.CASHAP.CoalitionAwareSHAPExplainer">(class in shap_enhanced.explainers.CASHAP)</a>
+</li>
+        </ul></li>
+        <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.Comparison">Comparison (class in shap_enhanced.tools)</a>
+
+        <ul>
+          <li><a href="generated/shap_enhanced.tools.comparison.html#shap_enhanced.tools.comparison.Comparison">(class in shap_enhanced.tools.comparison)</a>
+</li>
+        </ul></li>
+        <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.Conv1dDecoder.compile">compile() (shap_enhanced.explainers.LatentSHAP.Conv1dDecoder method)</a>
+
+        <ul>
+          <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.Conv1dEncoder.compile">(shap_enhanced.explainers.LatentSHAP.Conv1dEncoder method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.LatentModelWrapper.compile">(shap_enhanced.explainers.LatentSHAP.LatentModelWrapper method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.RLSHAP.html#shap_enhanced.explainers.RLSHAP.MaskingPolicy.compile">(shap_enhanced.explainers.RLSHAP.MaskingPolicy method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.predefined_models.html#shap_enhanced.tools.predefined_models.RealisticLSTM.compile">(shap_enhanced.tools.predefined_models.RealisticLSTM method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.predefined_models.html#shap_enhanced.tools.predefined_models.TabularMLP.compile">(shap_enhanced.tools.predefined_models.TabularMLP method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.RealisticLSTM.compile">(shap_enhanced.tools.RealisticLSTM method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.TabularMLP.compile">(shap_enhanced.tools.TabularMLP method)</a>
+</li>
+        </ul></li>
+    </ul></td>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.compute_shapley_gt_seq">compute_shapley_gt_seq() (in module shap_enhanced.tools)</a>
+
+        <ul>
+          <li><a href="generated/shap_enhanced.tools.evaluation.html#shap_enhanced.tools.evaluation.compute_shapley_gt_seq">(in module shap_enhanced.tools.evaluation)</a>
+</li>
+        </ul></li>
+        <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.compute_shapley_gt_tabular">compute_shapley_gt_tabular() (in module shap_enhanced.tools)</a>
+
+        <ul>
+          <li><a href="generated/shap_enhanced.tools.evaluation.html#shap_enhanced.tools.evaluation.compute_shapley_gt_tabular">(in module shap_enhanced.tools.evaluation)</a>
+</li>
+        </ul></li>
+        <li><a href="generated/shap_enhanced.explainers.html#shap_enhanced.explainers.ContextualMaskingSHAPExplainer">ContextualMaskingSHAPExplainer (class in shap_enhanced.explainers)</a>
+
+        <ul>
+          <li><a href="generated/shap_enhanced.explainers.CMSHAP.html#shap_enhanced.explainers.CMSHAP.ContextualMaskingSHAPExplainer">(class in shap_enhanced.explainers.CMSHAP)</a>
+</li>
+        </ul></li>
+        <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.Conv1dDecoder">Conv1dDecoder (class in shap_enhanced.explainers.LatentSHAP)</a>
+</li>
+        <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.Conv1dEncoder">Conv1dEncoder (class in shap_enhanced.explainers.LatentSHAP)</a>
+</li>
+        <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.Conv1dDecoder.cpu">cpu() (shap_enhanced.explainers.LatentSHAP.Conv1dDecoder method)</a>
+
+        <ul>
+          <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.Conv1dEncoder.cpu">(shap_enhanced.explainers.LatentSHAP.Conv1dEncoder method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.LatentModelWrapper.cpu">(shap_enhanced.explainers.LatentSHAP.LatentModelWrapper method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.RLSHAP.html#shap_enhanced.explainers.RLSHAP.MaskingPolicy.cpu">(shap_enhanced.explainers.RLSHAP.MaskingPolicy method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.predefined_models.html#shap_enhanced.tools.predefined_models.RealisticLSTM.cpu">(shap_enhanced.tools.predefined_models.RealisticLSTM method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.predefined_models.html#shap_enhanced.tools.predefined_models.TabularMLP.cpu">(shap_enhanced.tools.predefined_models.TabularMLP method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.RealisticLSTM.cpu">(shap_enhanced.tools.RealisticLSTM method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.TabularMLP.cpu">(shap_enhanced.tools.TabularMLP method)</a>
+</li>
+        </ul></li>
+        <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.Conv1dDecoder.cuda">cuda() (shap_enhanced.explainers.LatentSHAP.Conv1dDecoder method)</a>
+
+        <ul>
+          <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.Conv1dEncoder.cuda">(shap_enhanced.explainers.LatentSHAP.Conv1dEncoder method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.LatentModelWrapper.cuda">(shap_enhanced.explainers.LatentSHAP.LatentModelWrapper method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.RLSHAP.html#shap_enhanced.explainers.RLSHAP.MaskingPolicy.cuda">(shap_enhanced.explainers.RLSHAP.MaskingPolicy method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.predefined_models.html#shap_enhanced.tools.predefined_models.RealisticLSTM.cuda">(shap_enhanced.tools.predefined_models.RealisticLSTM method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.predefined_models.html#shap_enhanced.tools.predefined_models.TabularMLP.cuda">(shap_enhanced.tools.predefined_models.TabularMLP method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.RealisticLSTM.cuda">(shap_enhanced.tools.RealisticLSTM method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.TabularMLP.cuda">(shap_enhanced.tools.TabularMLP method)</a>
+</li>
+        </ul></li>
+    </ul></td>
+  </tr></table>
+</section>
+
+<section id="D" class="genindex-section">
+  <h2>D</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.Conv1dDecoder.double">double() (shap_enhanced.explainers.LatentSHAP.Conv1dDecoder method)</a>
+
+        <ul>
+          <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.Conv1dEncoder.double">(shap_enhanced.explainers.LatentSHAP.Conv1dEncoder method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.LatentModelWrapper.double">(shap_enhanced.explainers.LatentSHAP.LatentModelWrapper method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.RLSHAP.html#shap_enhanced.explainers.RLSHAP.MaskingPolicy.double">(shap_enhanced.explainers.RLSHAP.MaskingPolicy method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.predefined_models.html#shap_enhanced.tools.predefined_models.RealisticLSTM.double">(shap_enhanced.tools.predefined_models.RealisticLSTM method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.predefined_models.html#shap_enhanced.tools.predefined_models.TabularMLP.double">(shap_enhanced.tools.predefined_models.TabularMLP method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.RealisticLSTM.double">(shap_enhanced.tools.RealisticLSTM method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.TabularMLP.double">(shap_enhanced.tools.TabularMLP method)</a>
+</li>
+        </ul></li>
+    </ul></td>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.Conv1dDecoder.dump_patches">dump_patches (shap_enhanced.explainers.LatentSHAP.Conv1dDecoder attribute)</a>
+
+        <ul>
+          <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.Conv1dEncoder.dump_patches">(shap_enhanced.explainers.LatentSHAP.Conv1dEncoder attribute)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.LatentModelWrapper.dump_patches">(shap_enhanced.explainers.LatentSHAP.LatentModelWrapper attribute)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.RLSHAP.html#shap_enhanced.explainers.RLSHAP.MaskingPolicy.dump_patches">(shap_enhanced.explainers.RLSHAP.MaskingPolicy attribute)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.predefined_models.html#shap_enhanced.tools.predefined_models.RealisticLSTM.dump_patches">(shap_enhanced.tools.predefined_models.RealisticLSTM attribute)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.predefined_models.html#shap_enhanced.tools.predefined_models.TabularMLP.dump_patches">(shap_enhanced.tools.predefined_models.TabularMLP attribute)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.RealisticLSTM.dump_patches">(shap_enhanced.tools.RealisticLSTM attribute)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.TabularMLP.dump_patches">(shap_enhanced.tools.TabularMLP attribute)</a>
+</li>
+        </ul></li>
+    </ul></td>
+  </tr></table>
+</section>
+
+<section id="E" class="genindex-section">
+  <h2>E</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="generated/shap_enhanced.explainers.html#shap_enhanced.explainers.EmpiricalConditionalSHAPExplainer">EmpiricalConditionalSHAPExplainer (class in shap_enhanced.explainers)</a>
+
+        <ul>
+          <li><a href="generated/shap_enhanced.explainers.ECSHAP.html#shap_enhanced.explainers.ECSHAP.EmpiricalConditionalSHAPExplainer">(class in shap_enhanced.explainers.ECSHAP)</a>
+</li>
+        </ul></li>
+        <li><a href="generated/shap_enhanced.explainers.html#shap_enhanced.explainers.EnsembleSHAPWithNoise">EnsembleSHAPWithNoise (class in shap_enhanced.explainers)</a>
+
+        <ul>
+          <li><a href="generated/shap_enhanced.explainers.ESSHAP.html#shap_enhanced.explainers.ESSHAP.EnsembleSHAPWithNoise">(class in shap_enhanced.explainers.ESSHAP)</a>
+</li>
+        </ul></li>
+        <li><a href="generated/shap_enhanced.explainers.SurroSHAP.html#shap_enhanced.explainers.SurroSHAP.ensure_shap_input">ensure_shap_input() (in module shap_enhanced.explainers.SurroSHAP)</a>
+</li>
+        <li><a href="generated/shap_enhanced.explainers.html#shap_enhanced.explainers.ERSHAPExplainer">ERSHAPExplainer (class in shap_enhanced.explainers)</a>
+
+        <ul>
+          <li><a href="generated/shap_enhanced.explainers.ERSHAP.html#shap_enhanced.explainers.ERSHAP.ERSHAPExplainer">(class in shap_enhanced.explainers.ERSHAP)</a>
+</li>
+        </ul></li>
+        <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.Conv1dDecoder.eval">eval() (shap_enhanced.explainers.LatentSHAP.Conv1dDecoder method)</a>
+
+        <ul>
+          <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.Conv1dEncoder.eval">(shap_enhanced.explainers.LatentSHAP.Conv1dEncoder method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.LatentModelWrapper.eval">(shap_enhanced.explainers.LatentSHAP.LatentModelWrapper method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.RLSHAP.html#shap_enhanced.explainers.RLSHAP.MaskingPolicy.eval">(shap_enhanced.explainers.RLSHAP.MaskingPolicy method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.predefined_models.html#shap_enhanced.tools.predefined_models.RealisticLSTM.eval">(shap_enhanced.tools.predefined_models.RealisticLSTM method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.predefined_models.html#shap_enhanced.tools.predefined_models.TabularMLP.eval">(shap_enhanced.tools.predefined_models.TabularMLP method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.RealisticLSTM.eval">(shap_enhanced.tools.RealisticLSTM method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.TabularMLP.eval">(shap_enhanced.tools.TabularMLP method)</a>
+</li>
+        </ul></li>
+        <li><a href="generated/shap_enhanced.base_explainer.html#shap_enhanced.base_explainer.BaseExplainer.expected_value">expected_value (shap_enhanced.base_explainer.BaseExplainer property)</a>
+
+        <ul>
+          <li><a href="generated/shap_enhanced.html#shap_enhanced.BaseExplainer.expected_value">(shap_enhanced.BaseExplainer property)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.ABSHAP.html#shap_enhanced.explainers.ABSHAP.AdaptiveBaselineSHAPExplainer.expected_value">(shap_enhanced.explainers.ABSHAP.AdaptiveBaselineSHAPExplainer property)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.html#shap_enhanced.explainers.AdaptiveBaselineSHAPExplainer.expected_value">(shap_enhanced.explainers.AdaptiveBaselineSHAPExplainer property)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.AttnSHAP.html#shap_enhanced.explainers.AttnSHAP.AttnSHAPExplainer.expected_value">(shap_enhanced.explainers.AttnSHAP.AttnSHAPExplainer property)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.html#shap_enhanced.explainers.AttnSHAPExplainer.expected_value">(shap_enhanced.explainers.AttnSHAPExplainer property)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.BSHAP.html#shap_enhanced.explainers.BSHAP.BShapExplainer.expected_value">(shap_enhanced.explainers.BSHAP.BShapExplainer property)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.html#shap_enhanced.explainers.BShapExplainer.expected_value">(shap_enhanced.explainers.BShapExplainer property)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.CASHAP.html#shap_enhanced.explainers.CASHAP.CoalitionAwareSHAPExplainer.expected_value">(shap_enhanced.explainers.CASHAP.CoalitionAwareSHAPExplainer property)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.CMSHAP.html#shap_enhanced.explainers.CMSHAP.ContextualMaskingSHAPExplainer.expected_value">(shap_enhanced.explainers.CMSHAP.ContextualMaskingSHAPExplainer property)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.html#shap_enhanced.explainers.CoalitionAwareSHAPExplainer.expected_value">(shap_enhanced.explainers.CoalitionAwareSHAPExplainer property)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.html#shap_enhanced.explainers.ContextualMaskingSHAPExplainer.expected_value">(shap_enhanced.explainers.ContextualMaskingSHAPExplainer property)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.ECSHAP.html#shap_enhanced.explainers.ECSHAP.EmpiricalConditionalSHAPExplainer.expected_value">(shap_enhanced.explainers.ECSHAP.EmpiricalConditionalSHAPExplainer property)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.html#shap_enhanced.explainers.EmpiricalConditionalSHAPExplainer.expected_value">(shap_enhanced.explainers.EmpiricalConditionalSHAPExplainer property)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.html#shap_enhanced.explainers.EnsembleSHAPWithNoise.expected_value">(shap_enhanced.explainers.EnsembleSHAPWithNoise property)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.ERSHAP.html#shap_enhanced.explainers.ERSHAP.ERSHAPExplainer.expected_value">(shap_enhanced.explainers.ERSHAP.ERSHAPExplainer property)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.html#shap_enhanced.explainers.ERSHAPExplainer.expected_value">(shap_enhanced.explainers.ERSHAPExplainer property)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.ESSHAP.html#shap_enhanced.explainers.ESSHAP.EnsembleSHAPWithNoise.expected_value">(shap_enhanced.explainers.ESSHAP.EnsembleSHAPWithNoise property)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.hSHAP.html#shap_enhanced.explainers.hSHAP.HShapExplainer.expected_value">(shap_enhanced.explainers.hSHAP.HShapExplainer property)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.html#shap_enhanced.explainers.HShapExplainer.expected_value">(shap_enhanced.explainers.HShapExplainer property)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.LatentSHAPExplainer.expected_value">(shap_enhanced.explainers.LatentSHAP.LatentSHAPExplainer property)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.html#shap_enhanced.explainers.LatentSHAPExplainer.expected_value">(shap_enhanced.explainers.LatentSHAPExplainer property)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.MBSHAP.html#shap_enhanced.explainers.MBSHAP.NearestNeighborMultiBaselineSHAP.expected_value">(shap_enhanced.explainers.MBSHAP.NearestNeighborMultiBaselineSHAP property)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.html#shap_enhanced.explainers.NearestNeighborMultiBaselineSHAP.expected_value">(shap_enhanced.explainers.NearestNeighborMultiBaselineSHAP property)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.RLSHAP.html#shap_enhanced.explainers.RLSHAP.RLShapExplainer.expected_value">(shap_enhanced.explainers.RLSHAP.RLShapExplainer property)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.html#shap_enhanced.explainers.RLShapExplainer.expected_value">(shap_enhanced.explainers.RLShapExplainer property)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.SCSHAP.html#shap_enhanced.explainers.SCSHAP.SparseCoalitionSHAPExplainer.expected_value">(shap_enhanced.explainers.SCSHAP.SparseCoalitionSHAPExplainer property)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.html#shap_enhanced.explainers.SparseCoalitionSHAPExplainer.expected_value">(shap_enhanced.explainers.SparseCoalitionSHAPExplainer property)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.SPSHAP.html#shap_enhanced.explainers.SPSHAP.SupportPreservingSHAPExplainer.expected_value">(shap_enhanced.explainers.SPSHAP.SupportPreservingSHAPExplainer property)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.html#shap_enhanced.explainers.SupportPreservingSHAPExplainer.expected_value">(shap_enhanced.explainers.SupportPreservingSHAPExplainer property)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.html#shap_enhanced.explainers.SurrogateSHAPExplainer.expected_value">(shap_enhanced.explainers.SurrogateSHAPExplainer property)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.SurroSHAP.html#shap_enhanced.explainers.SurroSHAP.SurrogateSHAPExplainer.expected_value">(shap_enhanced.explainers.SurroSHAP.SurrogateSHAPExplainer property)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.TimeSHAP.html#shap_enhanced.explainers.TimeSHAP.TimeSHAPExplainer.expected_value">(shap_enhanced.explainers.TimeSHAP.TimeSHAPExplainer property)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.html#shap_enhanced.explainers.TimeSHAPExplainer.expected_value">(shap_enhanced.explainers.TimeSHAPExplainer property)</a>
+</li>
+        </ul></li>
+    </ul></td>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="generated/shap_enhanced.base_explainer.html#shap_enhanced.base_explainer.BaseExplainer.explain">explain() (shap_enhanced.base_explainer.BaseExplainer method)</a>
+
+        <ul>
+          <li><a href="generated/shap_enhanced.html#shap_enhanced.BaseExplainer.explain">(shap_enhanced.BaseExplainer method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.ABSHAP.html#shap_enhanced.explainers.ABSHAP.AdaptiveBaselineSHAPExplainer.explain">(shap_enhanced.explainers.ABSHAP.AdaptiveBaselineSHAPExplainer method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.html#shap_enhanced.explainers.AdaptiveBaselineSHAPExplainer.explain">(shap_enhanced.explainers.AdaptiveBaselineSHAPExplainer method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.AttnSHAP.html#shap_enhanced.explainers.AttnSHAP.AttnSHAPExplainer.explain">(shap_enhanced.explainers.AttnSHAP.AttnSHAPExplainer method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.html#shap_enhanced.explainers.AttnSHAPExplainer.explain">(shap_enhanced.explainers.AttnSHAPExplainer method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.BSHAP.html#shap_enhanced.explainers.BSHAP.BShapExplainer.explain">(shap_enhanced.explainers.BSHAP.BShapExplainer method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.html#shap_enhanced.explainers.BShapExplainer.explain">(shap_enhanced.explainers.BShapExplainer method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.CASHAP.html#shap_enhanced.explainers.CASHAP.CoalitionAwareSHAPExplainer.explain">(shap_enhanced.explainers.CASHAP.CoalitionAwareSHAPExplainer method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.CMSHAP.html#shap_enhanced.explainers.CMSHAP.ContextualMaskingSHAPExplainer.explain">(shap_enhanced.explainers.CMSHAP.ContextualMaskingSHAPExplainer method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.html#shap_enhanced.explainers.CoalitionAwareSHAPExplainer.explain">(shap_enhanced.explainers.CoalitionAwareSHAPExplainer method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.html#shap_enhanced.explainers.ContextualMaskingSHAPExplainer.explain">(shap_enhanced.explainers.ContextualMaskingSHAPExplainer method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.ECSHAP.html#shap_enhanced.explainers.ECSHAP.EmpiricalConditionalSHAPExplainer.explain">(shap_enhanced.explainers.ECSHAP.EmpiricalConditionalSHAPExplainer method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.html#shap_enhanced.explainers.EmpiricalConditionalSHAPExplainer.explain">(shap_enhanced.explainers.EmpiricalConditionalSHAPExplainer method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.html#shap_enhanced.explainers.EnsembleSHAPWithNoise.explain">(shap_enhanced.explainers.EnsembleSHAPWithNoise method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.ERSHAP.html#shap_enhanced.explainers.ERSHAP.ERSHAPExplainer.explain">(shap_enhanced.explainers.ERSHAP.ERSHAPExplainer method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.html#shap_enhanced.explainers.ERSHAPExplainer.explain">(shap_enhanced.explainers.ERSHAPExplainer method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.ESSHAP.html#shap_enhanced.explainers.ESSHAP.EnsembleSHAPWithNoise.explain">(shap_enhanced.explainers.ESSHAP.EnsembleSHAPWithNoise method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.hSHAP.html#shap_enhanced.explainers.hSHAP.HShapExplainer.explain">(shap_enhanced.explainers.hSHAP.HShapExplainer method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.html#shap_enhanced.explainers.HShapExplainer.explain">(shap_enhanced.explainers.HShapExplainer method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.LatentSHAPExplainer.explain">(shap_enhanced.explainers.LatentSHAP.LatentSHAPExplainer method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.html#shap_enhanced.explainers.LatentSHAPExplainer.explain">(shap_enhanced.explainers.LatentSHAPExplainer method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.MBSHAP.html#shap_enhanced.explainers.MBSHAP.NearestNeighborMultiBaselineSHAP.explain">(shap_enhanced.explainers.MBSHAP.NearestNeighborMultiBaselineSHAP method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.html#shap_enhanced.explainers.NearestNeighborMultiBaselineSHAP.explain">(shap_enhanced.explainers.NearestNeighborMultiBaselineSHAP method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.RLSHAP.html#shap_enhanced.explainers.RLSHAP.RLShapExplainer.explain">(shap_enhanced.explainers.RLSHAP.RLShapExplainer method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.html#shap_enhanced.explainers.RLShapExplainer.explain">(shap_enhanced.explainers.RLShapExplainer method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.SCSHAP.html#shap_enhanced.explainers.SCSHAP.SparseCoalitionSHAPExplainer.explain">(shap_enhanced.explainers.SCSHAP.SparseCoalitionSHAPExplainer method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.html#shap_enhanced.explainers.SparseCoalitionSHAPExplainer.explain">(shap_enhanced.explainers.SparseCoalitionSHAPExplainer method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.SPSHAP.html#shap_enhanced.explainers.SPSHAP.SupportPreservingSHAPExplainer.explain">(shap_enhanced.explainers.SPSHAP.SupportPreservingSHAPExplainer method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.html#shap_enhanced.explainers.SupportPreservingSHAPExplainer.explain">(shap_enhanced.explainers.SupportPreservingSHAPExplainer method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.html#shap_enhanced.explainers.SurrogateSHAPExplainer.explain">(shap_enhanced.explainers.SurrogateSHAPExplainer method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.SurroSHAP.html#shap_enhanced.explainers.SurroSHAP.SurrogateSHAPExplainer.explain">(shap_enhanced.explainers.SurroSHAP.SurrogateSHAPExplainer method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.TimeSHAP.html#shap_enhanced.explainers.TimeSHAP.TimeSHAPExplainer.explain">(shap_enhanced.explainers.TimeSHAP.TimeSHAPExplainer method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.html#shap_enhanced.explainers.TimeSHAPExplainer.explain">(shap_enhanced.explainers.TimeSHAPExplainer method)</a>
+</li>
+        </ul></li>
+        <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.Conv1dDecoder.extra_repr">extra_repr() (shap_enhanced.explainers.LatentSHAP.Conv1dDecoder method)</a>
+
+        <ul>
+          <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.Conv1dEncoder.extra_repr">(shap_enhanced.explainers.LatentSHAP.Conv1dEncoder method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.LatentModelWrapper.extra_repr">(shap_enhanced.explainers.LatentSHAP.LatentModelWrapper method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.RLSHAP.html#shap_enhanced.explainers.RLSHAP.MaskingPolicy.extra_repr">(shap_enhanced.explainers.RLSHAP.MaskingPolicy method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.predefined_models.html#shap_enhanced.tools.predefined_models.RealisticLSTM.extra_repr">(shap_enhanced.tools.predefined_models.RealisticLSTM method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.predefined_models.html#shap_enhanced.tools.predefined_models.TabularMLP.extra_repr">(shap_enhanced.tools.predefined_models.TabularMLP method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.RealisticLSTM.extra_repr">(shap_enhanced.tools.RealisticLSTM method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.TabularMLP.extra_repr">(shap_enhanced.tools.TabularMLP method)</a>
+</li>
+        </ul></li>
+    </ul></td>
+  </tr></table>
+</section>
+
+<section id="F" class="genindex-section">
+  <h2>F</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.Conv1dDecoder.float">float() (shap_enhanced.explainers.LatentSHAP.Conv1dDecoder method)</a>
+
+        <ul>
+          <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.Conv1dEncoder.float">(shap_enhanced.explainers.LatentSHAP.Conv1dEncoder method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.LatentModelWrapper.float">(shap_enhanced.explainers.LatentSHAP.LatentModelWrapper method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.RLSHAP.html#shap_enhanced.explainers.RLSHAP.MaskingPolicy.float">(shap_enhanced.explainers.RLSHAP.MaskingPolicy method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.predefined_models.html#shap_enhanced.tools.predefined_models.RealisticLSTM.float">(shap_enhanced.tools.predefined_models.RealisticLSTM method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.predefined_models.html#shap_enhanced.tools.predefined_models.TabularMLP.float">(shap_enhanced.tools.predefined_models.TabularMLP method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.RealisticLSTM.float">(shap_enhanced.tools.RealisticLSTM method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.TabularMLP.float">(shap_enhanced.tools.TabularMLP method)</a>
+</li>
+        </ul></li>
+    </ul></td>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.Conv1dDecoder.forward">forward() (shap_enhanced.explainers.LatentSHAP.Conv1dDecoder method)</a>
+
+        <ul>
+          <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.Conv1dEncoder.forward">(shap_enhanced.explainers.LatentSHAP.Conv1dEncoder method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.LatentModelWrapper.forward">(shap_enhanced.explainers.LatentSHAP.LatentModelWrapper method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.RLSHAP.html#shap_enhanced.explainers.RLSHAP.MaskingPolicy.forward">(shap_enhanced.explainers.RLSHAP.MaskingPolicy method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.predefined_models.html#shap_enhanced.tools.predefined_models.RealisticLSTM.forward">(shap_enhanced.tools.predefined_models.RealisticLSTM method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.predefined_models.html#shap_enhanced.tools.predefined_models.TabularMLP.forward">(shap_enhanced.tools.predefined_models.TabularMLP method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.RealisticLSTM.forward">(shap_enhanced.tools.RealisticLSTM method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.TabularMLP.forward">(shap_enhanced.tools.TabularMLP method)</a>
+</li>
+        </ul></li>
+    </ul></td>
+  </tr></table>
+</section>
+
+<section id="G" class="genindex-section">
+  <h2>G</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="generated/shap_enhanced.explainers.hSHAP.html#shap_enhanced.explainers.hSHAP.generate_hierarchical_groups">generate_hierarchical_groups() (in module shap_enhanced.explainers.hSHAP)</a>
+</li>
+        <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.generate_synthetic_seqregression">generate_synthetic_seqregression() (in module shap_enhanced.tools)</a>
+
+        <ul>
+          <li><a href="generated/shap_enhanced.tools.datasets.html#shap_enhanced.tools.datasets.generate_synthetic_seqregression">(in module shap_enhanced.tools.datasets)</a>
+</li>
+        </ul></li>
+        <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.generate_synthetic_tabular">generate_synthetic_tabular() (in module shap_enhanced.tools)</a>
+
+        <ul>
+          <li><a href="generated/shap_enhanced.tools.datasets.html#shap_enhanced.tools.datasets.generate_synthetic_tabular">(in module shap_enhanced.tools.datasets)</a>
+</li>
+        </ul></li>
+        <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.Conv1dDecoder.get_buffer">get_buffer() (shap_enhanced.explainers.LatentSHAP.Conv1dDecoder method)</a>
+
+        <ul>
+          <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.Conv1dEncoder.get_buffer">(shap_enhanced.explainers.LatentSHAP.Conv1dEncoder method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.LatentModelWrapper.get_buffer">(shap_enhanced.explainers.LatentSHAP.LatentModelWrapper method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.RLSHAP.html#shap_enhanced.explainers.RLSHAP.MaskingPolicy.get_buffer">(shap_enhanced.explainers.RLSHAP.MaskingPolicy method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.predefined_models.html#shap_enhanced.tools.predefined_models.RealisticLSTM.get_buffer">(shap_enhanced.tools.predefined_models.RealisticLSTM method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.predefined_models.html#shap_enhanced.tools.predefined_models.TabularMLP.get_buffer">(shap_enhanced.tools.predefined_models.TabularMLP method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.RealisticLSTM.get_buffer">(shap_enhanced.tools.RealisticLSTM method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.TabularMLP.get_buffer">(shap_enhanced.tools.TabularMLP method)</a>
+</li>
+        </ul></li>
+        <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.Conv1dDecoder.get_extra_state">get_extra_state() (shap_enhanced.explainers.LatentSHAP.Conv1dDecoder method)</a>
+
+        <ul>
+          <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.Conv1dEncoder.get_extra_state">(shap_enhanced.explainers.LatentSHAP.Conv1dEncoder method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.LatentModelWrapper.get_extra_state">(shap_enhanced.explainers.LatentSHAP.LatentModelWrapper method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.RLSHAP.html#shap_enhanced.explainers.RLSHAP.MaskingPolicy.get_extra_state">(shap_enhanced.explainers.RLSHAP.MaskingPolicy method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.predefined_models.html#shap_enhanced.tools.predefined_models.RealisticLSTM.get_extra_state">(shap_enhanced.tools.predefined_models.RealisticLSTM method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.predefined_models.html#shap_enhanced.tools.predefined_models.TabularMLP.get_extra_state">(shap_enhanced.tools.predefined_models.TabularMLP method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.RealisticLSTM.get_extra_state">(shap_enhanced.tools.RealisticLSTM method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.TabularMLP.get_extra_state">(shap_enhanced.tools.TabularMLP method)</a>
+</li>
+        </ul></li>
+    </ul></td>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.Conv1dDecoder.get_parameter">get_parameter() (shap_enhanced.explainers.LatentSHAP.Conv1dDecoder method)</a>
+
+        <ul>
+          <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.Conv1dEncoder.get_parameter">(shap_enhanced.explainers.LatentSHAP.Conv1dEncoder method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.LatentModelWrapper.get_parameter">(shap_enhanced.explainers.LatentSHAP.LatentModelWrapper method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.RLSHAP.html#shap_enhanced.explainers.RLSHAP.MaskingPolicy.get_parameter">(shap_enhanced.explainers.RLSHAP.MaskingPolicy method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.predefined_models.html#shap_enhanced.tools.predefined_models.RealisticLSTM.get_parameter">(shap_enhanced.tools.predefined_models.RealisticLSTM method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.predefined_models.html#shap_enhanced.tools.predefined_models.TabularMLP.get_parameter">(shap_enhanced.tools.predefined_models.TabularMLP method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.RealisticLSTM.get_parameter">(shap_enhanced.tools.RealisticLSTM method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.TabularMLP.get_parameter">(shap_enhanced.tools.TabularMLP method)</a>
+</li>
+        </ul></li>
+        <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.Conv1dDecoder.get_submodule">get_submodule() (shap_enhanced.explainers.LatentSHAP.Conv1dDecoder method)</a>
+
+        <ul>
+          <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.Conv1dEncoder.get_submodule">(shap_enhanced.explainers.LatentSHAP.Conv1dEncoder method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.LatentModelWrapper.get_submodule">(shap_enhanced.explainers.LatentSHAP.LatentModelWrapper method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.RLSHAP.html#shap_enhanced.explainers.RLSHAP.MaskingPolicy.get_submodule">(shap_enhanced.explainers.RLSHAP.MaskingPolicy method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.predefined_models.html#shap_enhanced.tools.predefined_models.RealisticLSTM.get_submodule">(shap_enhanced.tools.predefined_models.RealisticLSTM method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.predefined_models.html#shap_enhanced.tools.predefined_models.TabularMLP.get_submodule">(shap_enhanced.tools.predefined_models.TabularMLP method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.RealisticLSTM.get_submodule">(shap_enhanced.tools.RealisticLSTM method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.TabularMLP.get_submodule">(shap_enhanced.tools.TabularMLP method)</a>
+</li>
+        </ul></li>
+        <li><a href="generated/shap_enhanced.explainers.RLSHAP.html#shap_enhanced.explainers.RLSHAP.RLShapExplainer.gumbel_sample">gumbel_sample() (shap_enhanced.explainers.RLSHAP.RLShapExplainer method)</a>
+
+        <ul>
+          <li><a href="generated/shap_enhanced.explainers.html#shap_enhanced.explainers.RLShapExplainer.gumbel_sample">(shap_enhanced.explainers.RLShapExplainer method)</a>
+</li>
+        </ul></li>
+    </ul></td>
+  </tr></table>
+</section>
+
+<section id="H" class="genindex-section">
+  <h2>H</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.Conv1dDecoder.half">half() (shap_enhanced.explainers.LatentSHAP.Conv1dDecoder method)</a>
+
+        <ul>
+          <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.Conv1dEncoder.half">(shap_enhanced.explainers.LatentSHAP.Conv1dEncoder method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.LatentModelWrapper.half">(shap_enhanced.explainers.LatentSHAP.LatentModelWrapper method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.RLSHAP.html#shap_enhanced.explainers.RLSHAP.MaskingPolicy.half">(shap_enhanced.explainers.RLSHAP.MaskingPolicy method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.predefined_models.html#shap_enhanced.tools.predefined_models.RealisticLSTM.half">(shap_enhanced.tools.predefined_models.RealisticLSTM method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.predefined_models.html#shap_enhanced.tools.predefined_models.TabularMLP.half">(shap_enhanced.tools.predefined_models.TabularMLP method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.RealisticLSTM.half">(shap_enhanced.tools.RealisticLSTM method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.TabularMLP.half">(shap_enhanced.tools.TabularMLP method)</a>
+</li>
+        </ul></li>
+    </ul></td>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="generated/shap_enhanced.explainers.html#shap_enhanced.explainers.HShapExplainer">HShapExplainer (class in shap_enhanced.explainers)</a>
+
+        <ul>
+          <li><a href="generated/shap_enhanced.explainers.hSHAP.html#shap_enhanced.explainers.hSHAP.HShapExplainer">(class in shap_enhanced.explainers.hSHAP)</a>
+</li>
+        </ul></li>
+    </ul></td>
+  </tr></table>
+</section>
+
+<section id="I" class="genindex-section">
+  <h2>I</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.Conv1dDecoder.ipu">ipu() (shap_enhanced.explainers.LatentSHAP.Conv1dDecoder method)</a>
+
+        <ul>
+          <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.Conv1dEncoder.ipu">(shap_enhanced.explainers.LatentSHAP.Conv1dEncoder method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.LatentModelWrapper.ipu">(shap_enhanced.explainers.LatentSHAP.LatentModelWrapper method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.RLSHAP.html#shap_enhanced.explainers.RLSHAP.MaskingPolicy.ipu">(shap_enhanced.explainers.RLSHAP.MaskingPolicy method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.predefined_models.html#shap_enhanced.tools.predefined_models.RealisticLSTM.ipu">(shap_enhanced.tools.predefined_models.RealisticLSTM method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.predefined_models.html#shap_enhanced.tools.predefined_models.TabularMLP.ipu">(shap_enhanced.tools.predefined_models.TabularMLP method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.RealisticLSTM.ipu">(shap_enhanced.tools.RealisticLSTM method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.TabularMLP.ipu">(shap_enhanced.tools.TabularMLP method)</a>
+</li>
+        </ul></li>
+    </ul></td>
+  </tr></table>
+</section>
+
+<section id="L" class="genindex-section">
+  <h2>L</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.LatentModelWrapper">LatentModelWrapper (class in shap_enhanced.explainers.LatentSHAP)</a>
+</li>
+        <li><a href="generated/shap_enhanced.explainers.html#shap_enhanced.explainers.LatentSHAPExplainer">LatentSHAPExplainer (class in shap_enhanced.explainers)</a>
+
+        <ul>
+          <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.LatentSHAPExplainer">(class in shap_enhanced.explainers.LatentSHAP)</a>
+</li>
+        </ul></li>
+        <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.Conv1dDecoder.load_state_dict">load_state_dict() (shap_enhanced.explainers.LatentSHAP.Conv1dDecoder method)</a>
+
+        <ul>
+          <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.Conv1dEncoder.load_state_dict">(shap_enhanced.explainers.LatentSHAP.Conv1dEncoder method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.LatentModelWrapper.load_state_dict">(shap_enhanced.explainers.LatentSHAP.LatentModelWrapper method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.RLSHAP.html#shap_enhanced.explainers.RLSHAP.MaskingPolicy.load_state_dict">(shap_enhanced.explainers.RLSHAP.MaskingPolicy method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.predefined_models.html#shap_enhanced.tools.predefined_models.RealisticLSTM.load_state_dict">(shap_enhanced.tools.predefined_models.RealisticLSTM method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.predefined_models.html#shap_enhanced.tools.predefined_models.TabularMLP.load_state_dict">(shap_enhanced.tools.predefined_models.TabularMLP method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.RealisticLSTM.load_state_dict">(shap_enhanced.tools.RealisticLSTM method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.TabularMLP.load_state_dict">(shap_enhanced.tools.TabularMLP method)</a>
+</li>
+        </ul></li>
+    </ul></td>
+  </tr></table>
+</section>
+
+<section id="M" class="genindex-section">
+  <h2>M</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.make_shap_explainer">make_shap_explainer() (in module shap_enhanced.explainers.LatentSHAP)</a>
+</li>
+        <li><a href="generated/shap_enhanced.explainers.RLSHAP.html#shap_enhanced.explainers.RLSHAP.MaskingPolicy">MaskingPolicy (class in shap_enhanced.explainers.RLSHAP)</a>
+</li>
+        <li>
+    module
+
+        <ul>
+          <li><a href="generated/shap_enhanced.html#module-shap_enhanced">shap_enhanced</a>
+</li>
+          <li><a href="generated/shap_enhanced.base_explainer.html#module-shap_enhanced.base_explainer">shap_enhanced.base_explainer</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.html#module-shap_enhanced.explainers">shap_enhanced.explainers</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.ABSHAP.html#module-shap_enhanced.explainers.ABSHAP">shap_enhanced.explainers.ABSHAP</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.AttnSHAP.html#module-shap_enhanced.explainers.AttnSHAP">shap_enhanced.explainers.AttnSHAP</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.BSHAP.html#module-shap_enhanced.explainers.BSHAP">shap_enhanced.explainers.BSHAP</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.CASHAP.html#module-shap_enhanced.explainers.CASHAP">shap_enhanced.explainers.CASHAP</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.CMSHAP.html#module-shap_enhanced.explainers.CMSHAP">shap_enhanced.explainers.CMSHAP</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.ECSHAP.html#module-shap_enhanced.explainers.ECSHAP">shap_enhanced.explainers.ECSHAP</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.ERSHAP.html#module-shap_enhanced.explainers.ERSHAP">shap_enhanced.explainers.ERSHAP</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.ESSHAP.html#module-shap_enhanced.explainers.ESSHAP">shap_enhanced.explainers.ESSHAP</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.hSHAP.html#module-shap_enhanced.explainers.hSHAP">shap_enhanced.explainers.hSHAP</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#module-shap_enhanced.explainers.LatentSHAP">shap_enhanced.explainers.LatentSHAP</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.MBSHAP.html#module-shap_enhanced.explainers.MBSHAP">shap_enhanced.explainers.MBSHAP</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.RLSHAP.html#module-shap_enhanced.explainers.RLSHAP">shap_enhanced.explainers.RLSHAP</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.SCSHAP.html#module-shap_enhanced.explainers.SCSHAP">shap_enhanced.explainers.SCSHAP</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.SPSHAP.html#module-shap_enhanced.explainers.SPSHAP">shap_enhanced.explainers.SPSHAP</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.SurroSHAP.html#module-shap_enhanced.explainers.SurroSHAP">shap_enhanced.explainers.SurroSHAP</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.TimeSHAP.html#module-shap_enhanced.explainers.TimeSHAP">shap_enhanced.explainers.TimeSHAP</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.html#module-shap_enhanced.tools">shap_enhanced.tools</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.comparison.html#module-shap_enhanced.tools.comparison">shap_enhanced.tools.comparison</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.datasets.html#module-shap_enhanced.tools.datasets">shap_enhanced.tools.datasets</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.evaluation.html#module-shap_enhanced.tools.evaluation">shap_enhanced.tools.evaluation</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.predefined_models.html#module-shap_enhanced.tools.predefined_models">shap_enhanced.tools.predefined_models</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.timer.html#module-shap_enhanced.tools.timer">shap_enhanced.tools.timer</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.visulization.html#module-shap_enhanced.tools.visulization">shap_enhanced.tools.visulization</a>
+</li>
+        </ul></li>
+    </ul></td>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.Conv1dDecoder.modules">modules() (shap_enhanced.explainers.LatentSHAP.Conv1dDecoder method)</a>
+
+        <ul>
+          <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.Conv1dEncoder.modules">(shap_enhanced.explainers.LatentSHAP.Conv1dEncoder method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.LatentModelWrapper.modules">(shap_enhanced.explainers.LatentSHAP.LatentModelWrapper method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.RLSHAP.html#shap_enhanced.explainers.RLSHAP.MaskingPolicy.modules">(shap_enhanced.explainers.RLSHAP.MaskingPolicy method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.predefined_models.html#shap_enhanced.tools.predefined_models.RealisticLSTM.modules">(shap_enhanced.tools.predefined_models.RealisticLSTM method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.predefined_models.html#shap_enhanced.tools.predefined_models.TabularMLP.modules">(shap_enhanced.tools.predefined_models.TabularMLP method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.RealisticLSTM.modules">(shap_enhanced.tools.RealisticLSTM method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.TabularMLP.modules">(shap_enhanced.tools.TabularMLP method)</a>
+</li>
+        </ul></li>
+        <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.Conv1dDecoder.mtia">mtia() (shap_enhanced.explainers.LatentSHAP.Conv1dDecoder method)</a>
+
+        <ul>
+          <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.Conv1dEncoder.mtia">(shap_enhanced.explainers.LatentSHAP.Conv1dEncoder method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.LatentModelWrapper.mtia">(shap_enhanced.explainers.LatentSHAP.LatentModelWrapper method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.RLSHAP.html#shap_enhanced.explainers.RLSHAP.MaskingPolicy.mtia">(shap_enhanced.explainers.RLSHAP.MaskingPolicy method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.predefined_models.html#shap_enhanced.tools.predefined_models.RealisticLSTM.mtia">(shap_enhanced.tools.predefined_models.RealisticLSTM method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.predefined_models.html#shap_enhanced.tools.predefined_models.TabularMLP.mtia">(shap_enhanced.tools.predefined_models.TabularMLP method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.RealisticLSTM.mtia">(shap_enhanced.tools.RealisticLSTM method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.TabularMLP.mtia">(shap_enhanced.tools.TabularMLP method)</a>
+</li>
+        </ul></li>
+    </ul></td>
+  </tr></table>
+</section>
+
+<section id="N" class="genindex-section">
+  <h2>N</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.Conv1dDecoder.named_buffers">named_buffers() (shap_enhanced.explainers.LatentSHAP.Conv1dDecoder method)</a>
+
+        <ul>
+          <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.Conv1dEncoder.named_buffers">(shap_enhanced.explainers.LatentSHAP.Conv1dEncoder method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.LatentModelWrapper.named_buffers">(shap_enhanced.explainers.LatentSHAP.LatentModelWrapper method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.RLSHAP.html#shap_enhanced.explainers.RLSHAP.MaskingPolicy.named_buffers">(shap_enhanced.explainers.RLSHAP.MaskingPolicy method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.predefined_models.html#shap_enhanced.tools.predefined_models.RealisticLSTM.named_buffers">(shap_enhanced.tools.predefined_models.RealisticLSTM method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.predefined_models.html#shap_enhanced.tools.predefined_models.TabularMLP.named_buffers">(shap_enhanced.tools.predefined_models.TabularMLP method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.RealisticLSTM.named_buffers">(shap_enhanced.tools.RealisticLSTM method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.TabularMLP.named_buffers">(shap_enhanced.tools.TabularMLP method)</a>
+</li>
+        </ul></li>
+        <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.Conv1dDecoder.named_children">named_children() (shap_enhanced.explainers.LatentSHAP.Conv1dDecoder method)</a>
+
+        <ul>
+          <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.Conv1dEncoder.named_children">(shap_enhanced.explainers.LatentSHAP.Conv1dEncoder method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.LatentModelWrapper.named_children">(shap_enhanced.explainers.LatentSHAP.LatentModelWrapper method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.RLSHAP.html#shap_enhanced.explainers.RLSHAP.MaskingPolicy.named_children">(shap_enhanced.explainers.RLSHAP.MaskingPolicy method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.predefined_models.html#shap_enhanced.tools.predefined_models.RealisticLSTM.named_children">(shap_enhanced.tools.predefined_models.RealisticLSTM method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.predefined_models.html#shap_enhanced.tools.predefined_models.TabularMLP.named_children">(shap_enhanced.tools.predefined_models.TabularMLP method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.RealisticLSTM.named_children">(shap_enhanced.tools.RealisticLSTM method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.TabularMLP.named_children">(shap_enhanced.tools.TabularMLP method)</a>
+</li>
+        </ul></li>
+        <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.Conv1dDecoder.named_modules">named_modules() (shap_enhanced.explainers.LatentSHAP.Conv1dDecoder method)</a>
+
+        <ul>
+          <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.Conv1dEncoder.named_modules">(shap_enhanced.explainers.LatentSHAP.Conv1dEncoder method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.LatentModelWrapper.named_modules">(shap_enhanced.explainers.LatentSHAP.LatentModelWrapper method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.RLSHAP.html#shap_enhanced.explainers.RLSHAP.MaskingPolicy.named_modules">(shap_enhanced.explainers.RLSHAP.MaskingPolicy method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.predefined_models.html#shap_enhanced.tools.predefined_models.RealisticLSTM.named_modules">(shap_enhanced.tools.predefined_models.RealisticLSTM method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.predefined_models.html#shap_enhanced.tools.predefined_models.TabularMLP.named_modules">(shap_enhanced.tools.predefined_models.TabularMLP method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.RealisticLSTM.named_modules">(shap_enhanced.tools.RealisticLSTM method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.TabularMLP.named_modules">(shap_enhanced.tools.TabularMLP method)</a>
+</li>
+        </ul></li>
+    </ul></td>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.Conv1dDecoder.named_parameters">named_parameters() (shap_enhanced.explainers.LatentSHAP.Conv1dDecoder method)</a>
+
+        <ul>
+          <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.Conv1dEncoder.named_parameters">(shap_enhanced.explainers.LatentSHAP.Conv1dEncoder method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.LatentModelWrapper.named_parameters">(shap_enhanced.explainers.LatentSHAP.LatentModelWrapper method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.RLSHAP.html#shap_enhanced.explainers.RLSHAP.MaskingPolicy.named_parameters">(shap_enhanced.explainers.RLSHAP.MaskingPolicy method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.predefined_models.html#shap_enhanced.tools.predefined_models.RealisticLSTM.named_parameters">(shap_enhanced.tools.predefined_models.RealisticLSTM method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.predefined_models.html#shap_enhanced.tools.predefined_models.TabularMLP.named_parameters">(shap_enhanced.tools.predefined_models.TabularMLP method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.RealisticLSTM.named_parameters">(shap_enhanced.tools.RealisticLSTM method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.TabularMLP.named_parameters">(shap_enhanced.tools.TabularMLP method)</a>
+</li>
+        </ul></li>
+        <li><a href="generated/shap_enhanced.explainers.html#shap_enhanced.explainers.NearestNeighborMultiBaselineSHAP">NearestNeighborMultiBaselineSHAP (class in shap_enhanced.explainers)</a>
+
+        <ul>
+          <li><a href="generated/shap_enhanced.explainers.MBSHAP.html#shap_enhanced.explainers.MBSHAP.NearestNeighborMultiBaselineSHAP">(class in shap_enhanced.explainers.MBSHAP)</a>
+</li>
+        </ul></li>
+    </ul></td>
+  </tr></table>
+</section>
+
+<section id="P" class="genindex-section">
+  <h2>P</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.Conv1dDecoder.parameters">parameters() (shap_enhanced.explainers.LatentSHAP.Conv1dDecoder method)</a>
+
+        <ul>
+          <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.Conv1dEncoder.parameters">(shap_enhanced.explainers.LatentSHAP.Conv1dEncoder method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.LatentModelWrapper.parameters">(shap_enhanced.explainers.LatentSHAP.LatentModelWrapper method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.RLSHAP.html#shap_enhanced.explainers.RLSHAP.MaskingPolicy.parameters">(shap_enhanced.explainers.RLSHAP.MaskingPolicy method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.predefined_models.html#shap_enhanced.tools.predefined_models.RealisticLSTM.parameters">(shap_enhanced.tools.predefined_models.RealisticLSTM method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.predefined_models.html#shap_enhanced.tools.predefined_models.TabularMLP.parameters">(shap_enhanced.tools.predefined_models.TabularMLP method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.RealisticLSTM.parameters">(shap_enhanced.tools.RealisticLSTM method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.TabularMLP.parameters">(shap_enhanced.tools.TabularMLP method)</a>
+</li>
+        </ul></li>
+    </ul></td>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.plot_3d_bars">plot_3d_bars() (in module shap_enhanced.tools)</a>
+
+        <ul>
+          <li><a href="generated/shap_enhanced.tools.visulization.html#shap_enhanced.tools.visulization.plot_3d_bars">(in module shap_enhanced.tools.visulization)</a>
+</li>
+        </ul></li>
+        <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.plot_3d_surface">plot_3d_surface() (in module shap_enhanced.tools)</a>
+
+        <ul>
+          <li><a href="generated/shap_enhanced.tools.visulization.html#shap_enhanced.tools.visulization.plot_3d_surface">(in module shap_enhanced.tools.visulization)</a>
+</li>
+        </ul></li>
+        <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.plot_feature_comparison">plot_feature_comparison() (in module shap_enhanced.tools)</a>
+
+        <ul>
+          <li><a href="generated/shap_enhanced.tools.visulization.html#shap_enhanced.tools.visulization.plot_feature_comparison">(in module shap_enhanced.tools.visulization)</a>
+</li>
+        </ul></li>
+        <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.plot_mse_pearson">plot_mse_pearson() (in module shap_enhanced.tools)</a>
+
+        <ul>
+          <li><a href="generated/shap_enhanced.tools.visulization.html#shap_enhanced.tools.visulization.plot_mse_pearson">(in module shap_enhanced.tools.visulization)</a>
+</li>
+        </ul></li>
+    </ul></td>
+  </tr></table>
+</section>
+
+<section id="R" class="genindex-section">
+  <h2>R</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.RealisticLSTM">RealisticLSTM (class in shap_enhanced.tools)</a>
+
+        <ul>
+          <li><a href="generated/shap_enhanced.tools.predefined_models.html#shap_enhanced.tools.predefined_models.RealisticLSTM">(class in shap_enhanced.tools.predefined_models)</a>
+</li>
+        </ul></li>
+        <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.Conv1dDecoder.register_backward_hook">register_backward_hook() (shap_enhanced.explainers.LatentSHAP.Conv1dDecoder method)</a>
+
+        <ul>
+          <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.Conv1dEncoder.register_backward_hook">(shap_enhanced.explainers.LatentSHAP.Conv1dEncoder method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.LatentModelWrapper.register_backward_hook">(shap_enhanced.explainers.LatentSHAP.LatentModelWrapper method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.RLSHAP.html#shap_enhanced.explainers.RLSHAP.MaskingPolicy.register_backward_hook">(shap_enhanced.explainers.RLSHAP.MaskingPolicy method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.predefined_models.html#shap_enhanced.tools.predefined_models.RealisticLSTM.register_backward_hook">(shap_enhanced.tools.predefined_models.RealisticLSTM method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.predefined_models.html#shap_enhanced.tools.predefined_models.TabularMLP.register_backward_hook">(shap_enhanced.tools.predefined_models.TabularMLP method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.RealisticLSTM.register_backward_hook">(shap_enhanced.tools.RealisticLSTM method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.TabularMLP.register_backward_hook">(shap_enhanced.tools.TabularMLP method)</a>
+</li>
+        </ul></li>
+        <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.Conv1dDecoder.register_buffer">register_buffer() (shap_enhanced.explainers.LatentSHAP.Conv1dDecoder method)</a>
+
+        <ul>
+          <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.Conv1dEncoder.register_buffer">(shap_enhanced.explainers.LatentSHAP.Conv1dEncoder method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.LatentModelWrapper.register_buffer">(shap_enhanced.explainers.LatentSHAP.LatentModelWrapper method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.RLSHAP.html#shap_enhanced.explainers.RLSHAP.MaskingPolicy.register_buffer">(shap_enhanced.explainers.RLSHAP.MaskingPolicy method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.predefined_models.html#shap_enhanced.tools.predefined_models.RealisticLSTM.register_buffer">(shap_enhanced.tools.predefined_models.RealisticLSTM method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.predefined_models.html#shap_enhanced.tools.predefined_models.TabularMLP.register_buffer">(shap_enhanced.tools.predefined_models.TabularMLP method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.RealisticLSTM.register_buffer">(shap_enhanced.tools.RealisticLSTM method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.TabularMLP.register_buffer">(shap_enhanced.tools.TabularMLP method)</a>
+</li>
+        </ul></li>
+        <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.Conv1dDecoder.register_forward_hook">register_forward_hook() (shap_enhanced.explainers.LatentSHAP.Conv1dDecoder method)</a>
+
+        <ul>
+          <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.Conv1dEncoder.register_forward_hook">(shap_enhanced.explainers.LatentSHAP.Conv1dEncoder method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.LatentModelWrapper.register_forward_hook">(shap_enhanced.explainers.LatentSHAP.LatentModelWrapper method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.RLSHAP.html#shap_enhanced.explainers.RLSHAP.MaskingPolicy.register_forward_hook">(shap_enhanced.explainers.RLSHAP.MaskingPolicy method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.predefined_models.html#shap_enhanced.tools.predefined_models.RealisticLSTM.register_forward_hook">(shap_enhanced.tools.predefined_models.RealisticLSTM method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.predefined_models.html#shap_enhanced.tools.predefined_models.TabularMLP.register_forward_hook">(shap_enhanced.tools.predefined_models.TabularMLP method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.RealisticLSTM.register_forward_hook">(shap_enhanced.tools.RealisticLSTM method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.TabularMLP.register_forward_hook">(shap_enhanced.tools.TabularMLP method)</a>
+</li>
+        </ul></li>
+        <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.Conv1dDecoder.register_forward_pre_hook">register_forward_pre_hook() (shap_enhanced.explainers.LatentSHAP.Conv1dDecoder method)</a>
+
+        <ul>
+          <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.Conv1dEncoder.register_forward_pre_hook">(shap_enhanced.explainers.LatentSHAP.Conv1dEncoder method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.LatentModelWrapper.register_forward_pre_hook">(shap_enhanced.explainers.LatentSHAP.LatentModelWrapper method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.RLSHAP.html#shap_enhanced.explainers.RLSHAP.MaskingPolicy.register_forward_pre_hook">(shap_enhanced.explainers.RLSHAP.MaskingPolicy method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.predefined_models.html#shap_enhanced.tools.predefined_models.RealisticLSTM.register_forward_pre_hook">(shap_enhanced.tools.predefined_models.RealisticLSTM method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.predefined_models.html#shap_enhanced.tools.predefined_models.TabularMLP.register_forward_pre_hook">(shap_enhanced.tools.predefined_models.TabularMLP method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.RealisticLSTM.register_forward_pre_hook">(shap_enhanced.tools.RealisticLSTM method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.TabularMLP.register_forward_pre_hook">(shap_enhanced.tools.TabularMLP method)</a>
+</li>
+        </ul></li>
+        <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.Conv1dDecoder.register_full_backward_hook">register_full_backward_hook() (shap_enhanced.explainers.LatentSHAP.Conv1dDecoder method)</a>
+
+        <ul>
+          <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.Conv1dEncoder.register_full_backward_hook">(shap_enhanced.explainers.LatentSHAP.Conv1dEncoder method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.LatentModelWrapper.register_full_backward_hook">(shap_enhanced.explainers.LatentSHAP.LatentModelWrapper method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.RLSHAP.html#shap_enhanced.explainers.RLSHAP.MaskingPolicy.register_full_backward_hook">(shap_enhanced.explainers.RLSHAP.MaskingPolicy method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.predefined_models.html#shap_enhanced.tools.predefined_models.RealisticLSTM.register_full_backward_hook">(shap_enhanced.tools.predefined_models.RealisticLSTM method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.predefined_models.html#shap_enhanced.tools.predefined_models.TabularMLP.register_full_backward_hook">(shap_enhanced.tools.predefined_models.TabularMLP method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.RealisticLSTM.register_full_backward_hook">(shap_enhanced.tools.RealisticLSTM method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.TabularMLP.register_full_backward_hook">(shap_enhanced.tools.TabularMLP method)</a>
+</li>
+        </ul></li>
+        <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.Conv1dDecoder.register_full_backward_pre_hook">register_full_backward_pre_hook() (shap_enhanced.explainers.LatentSHAP.Conv1dDecoder method)</a>
+
+        <ul>
+          <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.Conv1dEncoder.register_full_backward_pre_hook">(shap_enhanced.explainers.LatentSHAP.Conv1dEncoder method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.LatentModelWrapper.register_full_backward_pre_hook">(shap_enhanced.explainers.LatentSHAP.LatentModelWrapper method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.RLSHAP.html#shap_enhanced.explainers.RLSHAP.MaskingPolicy.register_full_backward_pre_hook">(shap_enhanced.explainers.RLSHAP.MaskingPolicy method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.predefined_models.html#shap_enhanced.tools.predefined_models.RealisticLSTM.register_full_backward_pre_hook">(shap_enhanced.tools.predefined_models.RealisticLSTM method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.predefined_models.html#shap_enhanced.tools.predefined_models.TabularMLP.register_full_backward_pre_hook">(shap_enhanced.tools.predefined_models.TabularMLP method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.RealisticLSTM.register_full_backward_pre_hook">(shap_enhanced.tools.RealisticLSTM method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.TabularMLP.register_full_backward_pre_hook">(shap_enhanced.tools.TabularMLP method)</a>
+</li>
+        </ul></li>
+        <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.Conv1dDecoder.register_load_state_dict_post_hook">register_load_state_dict_post_hook() (shap_enhanced.explainers.LatentSHAP.Conv1dDecoder method)</a>
+
+        <ul>
+          <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.Conv1dEncoder.register_load_state_dict_post_hook">(shap_enhanced.explainers.LatentSHAP.Conv1dEncoder method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.LatentModelWrapper.register_load_state_dict_post_hook">(shap_enhanced.explainers.LatentSHAP.LatentModelWrapper method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.RLSHAP.html#shap_enhanced.explainers.RLSHAP.MaskingPolicy.register_load_state_dict_post_hook">(shap_enhanced.explainers.RLSHAP.MaskingPolicy method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.predefined_models.html#shap_enhanced.tools.predefined_models.RealisticLSTM.register_load_state_dict_post_hook">(shap_enhanced.tools.predefined_models.RealisticLSTM method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.predefined_models.html#shap_enhanced.tools.predefined_models.TabularMLP.register_load_state_dict_post_hook">(shap_enhanced.tools.predefined_models.TabularMLP method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.RealisticLSTM.register_load_state_dict_post_hook">(shap_enhanced.tools.RealisticLSTM method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.TabularMLP.register_load_state_dict_post_hook">(shap_enhanced.tools.TabularMLP method)</a>
+</li>
+        </ul></li>
+    </ul></td>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.Conv1dDecoder.register_load_state_dict_pre_hook">register_load_state_dict_pre_hook() (shap_enhanced.explainers.LatentSHAP.Conv1dDecoder method)</a>
+
+        <ul>
+          <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.Conv1dEncoder.register_load_state_dict_pre_hook">(shap_enhanced.explainers.LatentSHAP.Conv1dEncoder method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.LatentModelWrapper.register_load_state_dict_pre_hook">(shap_enhanced.explainers.LatentSHAP.LatentModelWrapper method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.RLSHAP.html#shap_enhanced.explainers.RLSHAP.MaskingPolicy.register_load_state_dict_pre_hook">(shap_enhanced.explainers.RLSHAP.MaskingPolicy method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.predefined_models.html#shap_enhanced.tools.predefined_models.RealisticLSTM.register_load_state_dict_pre_hook">(shap_enhanced.tools.predefined_models.RealisticLSTM method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.predefined_models.html#shap_enhanced.tools.predefined_models.TabularMLP.register_load_state_dict_pre_hook">(shap_enhanced.tools.predefined_models.TabularMLP method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.RealisticLSTM.register_load_state_dict_pre_hook">(shap_enhanced.tools.RealisticLSTM method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.TabularMLP.register_load_state_dict_pre_hook">(shap_enhanced.tools.TabularMLP method)</a>
+</li>
+        </ul></li>
+        <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.Conv1dDecoder.register_module">register_module() (shap_enhanced.explainers.LatentSHAP.Conv1dDecoder method)</a>
+
+        <ul>
+          <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.Conv1dEncoder.register_module">(shap_enhanced.explainers.LatentSHAP.Conv1dEncoder method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.LatentModelWrapper.register_module">(shap_enhanced.explainers.LatentSHAP.LatentModelWrapper method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.RLSHAP.html#shap_enhanced.explainers.RLSHAP.MaskingPolicy.register_module">(shap_enhanced.explainers.RLSHAP.MaskingPolicy method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.predefined_models.html#shap_enhanced.tools.predefined_models.RealisticLSTM.register_module">(shap_enhanced.tools.predefined_models.RealisticLSTM method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.predefined_models.html#shap_enhanced.tools.predefined_models.TabularMLP.register_module">(shap_enhanced.tools.predefined_models.TabularMLP method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.RealisticLSTM.register_module">(shap_enhanced.tools.RealisticLSTM method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.TabularMLP.register_module">(shap_enhanced.tools.TabularMLP method)</a>
+</li>
+        </ul></li>
+        <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.Conv1dDecoder.register_parameter">register_parameter() (shap_enhanced.explainers.LatentSHAP.Conv1dDecoder method)</a>
+
+        <ul>
+          <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.Conv1dEncoder.register_parameter">(shap_enhanced.explainers.LatentSHAP.Conv1dEncoder method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.LatentModelWrapper.register_parameter">(shap_enhanced.explainers.LatentSHAP.LatentModelWrapper method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.RLSHAP.html#shap_enhanced.explainers.RLSHAP.MaskingPolicy.register_parameter">(shap_enhanced.explainers.RLSHAP.MaskingPolicy method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.predefined_models.html#shap_enhanced.tools.predefined_models.RealisticLSTM.register_parameter">(shap_enhanced.tools.predefined_models.RealisticLSTM method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.predefined_models.html#shap_enhanced.tools.predefined_models.TabularMLP.register_parameter">(shap_enhanced.tools.predefined_models.TabularMLP method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.RealisticLSTM.register_parameter">(shap_enhanced.tools.RealisticLSTM method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.TabularMLP.register_parameter">(shap_enhanced.tools.TabularMLP method)</a>
+</li>
+        </ul></li>
+        <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.Conv1dDecoder.register_state_dict_post_hook">register_state_dict_post_hook() (shap_enhanced.explainers.LatentSHAP.Conv1dDecoder method)</a>
+
+        <ul>
+          <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.Conv1dEncoder.register_state_dict_post_hook">(shap_enhanced.explainers.LatentSHAP.Conv1dEncoder method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.LatentModelWrapper.register_state_dict_post_hook">(shap_enhanced.explainers.LatentSHAP.LatentModelWrapper method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.RLSHAP.html#shap_enhanced.explainers.RLSHAP.MaskingPolicy.register_state_dict_post_hook">(shap_enhanced.explainers.RLSHAP.MaskingPolicy method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.predefined_models.html#shap_enhanced.tools.predefined_models.RealisticLSTM.register_state_dict_post_hook">(shap_enhanced.tools.predefined_models.RealisticLSTM method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.predefined_models.html#shap_enhanced.tools.predefined_models.TabularMLP.register_state_dict_post_hook">(shap_enhanced.tools.predefined_models.TabularMLP method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.RealisticLSTM.register_state_dict_post_hook">(shap_enhanced.tools.RealisticLSTM method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.TabularMLP.register_state_dict_post_hook">(shap_enhanced.tools.TabularMLP method)</a>
+</li>
+        </ul></li>
+        <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.Conv1dDecoder.register_state_dict_pre_hook">register_state_dict_pre_hook() (shap_enhanced.explainers.LatentSHAP.Conv1dDecoder method)</a>
+
+        <ul>
+          <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.Conv1dEncoder.register_state_dict_pre_hook">(shap_enhanced.explainers.LatentSHAP.Conv1dEncoder method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.LatentModelWrapper.register_state_dict_pre_hook">(shap_enhanced.explainers.LatentSHAP.LatentModelWrapper method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.RLSHAP.html#shap_enhanced.explainers.RLSHAP.MaskingPolicy.register_state_dict_pre_hook">(shap_enhanced.explainers.RLSHAP.MaskingPolicy method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.predefined_models.html#shap_enhanced.tools.predefined_models.RealisticLSTM.register_state_dict_pre_hook">(shap_enhanced.tools.predefined_models.RealisticLSTM method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.predefined_models.html#shap_enhanced.tools.predefined_models.TabularMLP.register_state_dict_pre_hook">(shap_enhanced.tools.predefined_models.TabularMLP method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.RealisticLSTM.register_state_dict_pre_hook">(shap_enhanced.tools.RealisticLSTM method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.TabularMLP.register_state_dict_pre_hook">(shap_enhanced.tools.TabularMLP method)</a>
+</li>
+        </ul></li>
+        <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.Conv1dDecoder.requires_grad_">requires_grad_() (shap_enhanced.explainers.LatentSHAP.Conv1dDecoder method)</a>
+
+        <ul>
+          <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.Conv1dEncoder.requires_grad_">(shap_enhanced.explainers.LatentSHAP.Conv1dEncoder method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.LatentModelWrapper.requires_grad_">(shap_enhanced.explainers.LatentSHAP.LatentModelWrapper method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.RLSHAP.html#shap_enhanced.explainers.RLSHAP.MaskingPolicy.requires_grad_">(shap_enhanced.explainers.RLSHAP.MaskingPolicy method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.predefined_models.html#shap_enhanced.tools.predefined_models.RealisticLSTM.requires_grad_">(shap_enhanced.tools.predefined_models.RealisticLSTM method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.predefined_models.html#shap_enhanced.tools.predefined_models.TabularMLP.requires_grad_">(shap_enhanced.tools.predefined_models.TabularMLP method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.RealisticLSTM.requires_grad_">(shap_enhanced.tools.RealisticLSTM method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.TabularMLP.requires_grad_">(shap_enhanced.tools.TabularMLP method)</a>
+</li>
+        </ul></li>
+        <li><a href="generated/shap_enhanced.explainers.html#shap_enhanced.explainers.RLShapExplainer">RLShapExplainer (class in shap_enhanced.explainers)</a>
+
+        <ul>
+          <li><a href="generated/shap_enhanced.explainers.RLSHAP.html#shap_enhanced.explainers.RLSHAP.RLShapExplainer">(class in shap_enhanced.explainers.RLSHAP)</a>
+</li>
+        </ul></li>
+    </ul></td>
+  </tr></table>
+</section>
+
+<section id="S" class="genindex-section">
+  <h2>S</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.Conv1dDecoder.set_extra_state">set_extra_state() (shap_enhanced.explainers.LatentSHAP.Conv1dDecoder method)</a>
+
+        <ul>
+          <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.Conv1dEncoder.set_extra_state">(shap_enhanced.explainers.LatentSHAP.Conv1dEncoder method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.LatentModelWrapper.set_extra_state">(shap_enhanced.explainers.LatentSHAP.LatentModelWrapper method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.RLSHAP.html#shap_enhanced.explainers.RLSHAP.MaskingPolicy.set_extra_state">(shap_enhanced.explainers.RLSHAP.MaskingPolicy method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.predefined_models.html#shap_enhanced.tools.predefined_models.RealisticLSTM.set_extra_state">(shap_enhanced.tools.predefined_models.RealisticLSTM method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.predefined_models.html#shap_enhanced.tools.predefined_models.TabularMLP.set_extra_state">(shap_enhanced.tools.predefined_models.TabularMLP method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.RealisticLSTM.set_extra_state">(shap_enhanced.tools.RealisticLSTM method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.TabularMLP.set_extra_state">(shap_enhanced.tools.TabularMLP method)</a>
+</li>
+        </ul></li>
+        <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.Conv1dDecoder.set_submodule">set_submodule() (shap_enhanced.explainers.LatentSHAP.Conv1dDecoder method)</a>
+
+        <ul>
+          <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.Conv1dEncoder.set_submodule">(shap_enhanced.explainers.LatentSHAP.Conv1dEncoder method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.LatentModelWrapper.set_submodule">(shap_enhanced.explainers.LatentSHAP.LatentModelWrapper method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.RLSHAP.html#shap_enhanced.explainers.RLSHAP.MaskingPolicy.set_submodule">(shap_enhanced.explainers.RLSHAP.MaskingPolicy method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.predefined_models.html#shap_enhanced.tools.predefined_models.RealisticLSTM.set_submodule">(shap_enhanced.tools.predefined_models.RealisticLSTM method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.predefined_models.html#shap_enhanced.tools.predefined_models.TabularMLP.set_submodule">(shap_enhanced.tools.predefined_models.TabularMLP method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.RealisticLSTM.set_submodule">(shap_enhanced.tools.RealisticLSTM method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.TabularMLP.set_submodule">(shap_enhanced.tools.TabularMLP method)</a>
+</li>
+        </ul></li>
+        <li>
+    shap_enhanced
+
+        <ul>
+          <li><a href="generated/shap_enhanced.html#module-shap_enhanced">module</a>
+</li>
+        </ul></li>
+        <li>
+    shap_enhanced.base_explainer
+
+        <ul>
+          <li><a href="generated/shap_enhanced.base_explainer.html#module-shap_enhanced.base_explainer">module</a>
+</li>
+        </ul></li>
+        <li>
+    shap_enhanced.explainers
+
+        <ul>
+          <li><a href="generated/shap_enhanced.explainers.html#module-shap_enhanced.explainers">module</a>
+</li>
+        </ul></li>
+        <li>
+    shap_enhanced.explainers.ABSHAP
+
+        <ul>
+          <li><a href="generated/shap_enhanced.explainers.ABSHAP.html#module-shap_enhanced.explainers.ABSHAP">module</a>
+</li>
+        </ul></li>
+        <li>
+    shap_enhanced.explainers.AttnSHAP
+
+        <ul>
+          <li><a href="generated/shap_enhanced.explainers.AttnSHAP.html#module-shap_enhanced.explainers.AttnSHAP">module</a>
+</li>
+        </ul></li>
+        <li>
+    shap_enhanced.explainers.BSHAP
+
+        <ul>
+          <li><a href="generated/shap_enhanced.explainers.BSHAP.html#module-shap_enhanced.explainers.BSHAP">module</a>
+</li>
+        </ul></li>
+        <li>
+    shap_enhanced.explainers.CASHAP
+
+        <ul>
+          <li><a href="generated/shap_enhanced.explainers.CASHAP.html#module-shap_enhanced.explainers.CASHAP">module</a>
+</li>
+        </ul></li>
+        <li>
+    shap_enhanced.explainers.CMSHAP
+
+        <ul>
+          <li><a href="generated/shap_enhanced.explainers.CMSHAP.html#module-shap_enhanced.explainers.CMSHAP">module</a>
+</li>
+        </ul></li>
+        <li>
+    shap_enhanced.explainers.ECSHAP
+
+        <ul>
+          <li><a href="generated/shap_enhanced.explainers.ECSHAP.html#module-shap_enhanced.explainers.ECSHAP">module</a>
+</li>
+        </ul></li>
+        <li>
+    shap_enhanced.explainers.ERSHAP
+
+        <ul>
+          <li><a href="generated/shap_enhanced.explainers.ERSHAP.html#module-shap_enhanced.explainers.ERSHAP">module</a>
+</li>
+        </ul></li>
+        <li>
+    shap_enhanced.explainers.ESSHAP
+
+        <ul>
+          <li><a href="generated/shap_enhanced.explainers.ESSHAP.html#module-shap_enhanced.explainers.ESSHAP">module</a>
+</li>
+        </ul></li>
+        <li>
+    shap_enhanced.explainers.hSHAP
+
+        <ul>
+          <li><a href="generated/shap_enhanced.explainers.hSHAP.html#module-shap_enhanced.explainers.hSHAP">module</a>
+</li>
+        </ul></li>
+        <li>
+    shap_enhanced.explainers.LatentSHAP
+
+        <ul>
+          <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#module-shap_enhanced.explainers.LatentSHAP">module</a>
+</li>
+        </ul></li>
+        <li>
+    shap_enhanced.explainers.MBSHAP
+
+        <ul>
+          <li><a href="generated/shap_enhanced.explainers.MBSHAP.html#module-shap_enhanced.explainers.MBSHAP">module</a>
+</li>
+        </ul></li>
+        <li>
+    shap_enhanced.explainers.RLSHAP
+
+        <ul>
+          <li><a href="generated/shap_enhanced.explainers.RLSHAP.html#module-shap_enhanced.explainers.RLSHAP">module</a>
+</li>
+        </ul></li>
+        <li>
+    shap_enhanced.explainers.SCSHAP
+
+        <ul>
+          <li><a href="generated/shap_enhanced.explainers.SCSHAP.html#module-shap_enhanced.explainers.SCSHAP">module</a>
+</li>
+        </ul></li>
+        <li>
+    shap_enhanced.explainers.SPSHAP
+
+        <ul>
+          <li><a href="generated/shap_enhanced.explainers.SPSHAP.html#module-shap_enhanced.explainers.SPSHAP">module</a>
+</li>
+        </ul></li>
+        <li>
+    shap_enhanced.explainers.SurroSHAP
+
+        <ul>
+          <li><a href="generated/shap_enhanced.explainers.SurroSHAP.html#module-shap_enhanced.explainers.SurroSHAP">module</a>
+</li>
+        </ul></li>
+        <li>
+    shap_enhanced.explainers.TimeSHAP
+
+        <ul>
+          <li><a href="generated/shap_enhanced.explainers.TimeSHAP.html#module-shap_enhanced.explainers.TimeSHAP">module</a>
+</li>
+        </ul></li>
+        <li>
+    shap_enhanced.tools
+
+        <ul>
+          <li><a href="generated/shap_enhanced.tools.html#module-shap_enhanced.tools">module</a>
+</li>
+        </ul></li>
+        <li>
+    shap_enhanced.tools.comparison
+
+        <ul>
+          <li><a href="generated/shap_enhanced.tools.comparison.html#module-shap_enhanced.tools.comparison">module</a>
+</li>
+        </ul></li>
+        <li>
+    shap_enhanced.tools.datasets
+
+        <ul>
+          <li><a href="generated/shap_enhanced.tools.datasets.html#module-shap_enhanced.tools.datasets">module</a>
+</li>
+        </ul></li>
+        <li>
+    shap_enhanced.tools.evaluation
+
+        <ul>
+          <li><a href="generated/shap_enhanced.tools.evaluation.html#module-shap_enhanced.tools.evaluation">module</a>
+</li>
+        </ul></li>
+    </ul></td>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li>
+    shap_enhanced.tools.predefined_models
+
+        <ul>
+          <li><a href="generated/shap_enhanced.tools.predefined_models.html#module-shap_enhanced.tools.predefined_models">module</a>
+</li>
+        </ul></li>
+        <li>
+    shap_enhanced.tools.timer
+
+        <ul>
+          <li><a href="generated/shap_enhanced.tools.timer.html#module-shap_enhanced.tools.timer">module</a>
+</li>
+        </ul></li>
+        <li>
+    shap_enhanced.tools.visulization
+
+        <ul>
+          <li><a href="generated/shap_enhanced.tools.visulization.html#module-shap_enhanced.tools.visulization">module</a>
+</li>
+        </ul></li>
+        <li><a href="generated/shap_enhanced.base_explainer.html#shap_enhanced.base_explainer.BaseExplainer.shap_values">shap_values() (shap_enhanced.base_explainer.BaseExplainer method)</a>
+
+        <ul>
+          <li><a href="generated/shap_enhanced.html#shap_enhanced.BaseExplainer.shap_values">(shap_enhanced.BaseExplainer method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.ABSHAP.html#shap_enhanced.explainers.ABSHAP.AdaptiveBaselineSHAPExplainer.shap_values">(shap_enhanced.explainers.ABSHAP.AdaptiveBaselineSHAPExplainer method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.html#shap_enhanced.explainers.AdaptiveBaselineSHAPExplainer.shap_values">(shap_enhanced.explainers.AdaptiveBaselineSHAPExplainer method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.AttnSHAP.html#shap_enhanced.explainers.AttnSHAP.AttnSHAPExplainer.shap_values">(shap_enhanced.explainers.AttnSHAP.AttnSHAPExplainer method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.html#shap_enhanced.explainers.AttnSHAPExplainer.shap_values">(shap_enhanced.explainers.AttnSHAPExplainer method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.BSHAP.html#shap_enhanced.explainers.BSHAP.BShapExplainer.shap_values">(shap_enhanced.explainers.BSHAP.BShapExplainer method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.html#shap_enhanced.explainers.BShapExplainer.shap_values">(shap_enhanced.explainers.BShapExplainer method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.CASHAP.html#shap_enhanced.explainers.CASHAP.CoalitionAwareSHAPExplainer.shap_values">(shap_enhanced.explainers.CASHAP.CoalitionAwareSHAPExplainer method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.CMSHAP.html#shap_enhanced.explainers.CMSHAP.ContextualMaskingSHAPExplainer.shap_values">(shap_enhanced.explainers.CMSHAP.ContextualMaskingSHAPExplainer method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.html#shap_enhanced.explainers.CoalitionAwareSHAPExplainer.shap_values">(shap_enhanced.explainers.CoalitionAwareSHAPExplainer method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.html#shap_enhanced.explainers.ContextualMaskingSHAPExplainer.shap_values">(shap_enhanced.explainers.ContextualMaskingSHAPExplainer method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.ECSHAP.html#shap_enhanced.explainers.ECSHAP.EmpiricalConditionalSHAPExplainer.shap_values">(shap_enhanced.explainers.ECSHAP.EmpiricalConditionalSHAPExplainer method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.html#shap_enhanced.explainers.EmpiricalConditionalSHAPExplainer.shap_values">(shap_enhanced.explainers.EmpiricalConditionalSHAPExplainer method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.html#shap_enhanced.explainers.EnsembleSHAPWithNoise.shap_values">(shap_enhanced.explainers.EnsembleSHAPWithNoise method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.ERSHAP.html#shap_enhanced.explainers.ERSHAP.ERSHAPExplainer.shap_values">(shap_enhanced.explainers.ERSHAP.ERSHAPExplainer method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.html#shap_enhanced.explainers.ERSHAPExplainer.shap_values">(shap_enhanced.explainers.ERSHAPExplainer method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.ESSHAP.html#shap_enhanced.explainers.ESSHAP.EnsembleSHAPWithNoise.shap_values">(shap_enhanced.explainers.ESSHAP.EnsembleSHAPWithNoise method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.hSHAP.html#shap_enhanced.explainers.hSHAP.HShapExplainer.shap_values">(shap_enhanced.explainers.hSHAP.HShapExplainer method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.html#shap_enhanced.explainers.HShapExplainer.shap_values">(shap_enhanced.explainers.HShapExplainer method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.LatentSHAPExplainer.shap_values">(shap_enhanced.explainers.LatentSHAP.LatentSHAPExplainer method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.html#shap_enhanced.explainers.LatentSHAPExplainer.shap_values">(shap_enhanced.explainers.LatentSHAPExplainer method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.MBSHAP.html#shap_enhanced.explainers.MBSHAP.NearestNeighborMultiBaselineSHAP.shap_values">(shap_enhanced.explainers.MBSHAP.NearestNeighborMultiBaselineSHAP method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.html#shap_enhanced.explainers.NearestNeighborMultiBaselineSHAP.shap_values">(shap_enhanced.explainers.NearestNeighborMultiBaselineSHAP method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.RLSHAP.html#shap_enhanced.explainers.RLSHAP.RLShapExplainer.shap_values">(shap_enhanced.explainers.RLSHAP.RLShapExplainer method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.html#shap_enhanced.explainers.RLShapExplainer.shap_values">(shap_enhanced.explainers.RLShapExplainer method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.SCSHAP.html#shap_enhanced.explainers.SCSHAP.SparseCoalitionSHAPExplainer.shap_values">(shap_enhanced.explainers.SCSHAP.SparseCoalitionSHAPExplainer method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.html#shap_enhanced.explainers.SparseCoalitionSHAPExplainer.shap_values">(shap_enhanced.explainers.SparseCoalitionSHAPExplainer method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.SPSHAP.html#shap_enhanced.explainers.SPSHAP.SupportPreservingSHAPExplainer.shap_values">(shap_enhanced.explainers.SPSHAP.SupportPreservingSHAPExplainer method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.html#shap_enhanced.explainers.SupportPreservingSHAPExplainer.shap_values">(shap_enhanced.explainers.SupportPreservingSHAPExplainer method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.html#shap_enhanced.explainers.SurrogateSHAPExplainer.shap_values">(shap_enhanced.explainers.SurrogateSHAPExplainer method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.SurroSHAP.html#shap_enhanced.explainers.SurroSHAP.SurrogateSHAPExplainer.shap_values">(shap_enhanced.explainers.SurroSHAP.SurrogateSHAPExplainer method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.TimeSHAP.html#shap_enhanced.explainers.TimeSHAP.TimeSHAPExplainer.shap_values">(shap_enhanced.explainers.TimeSHAP.TimeSHAPExplainer method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.html#shap_enhanced.explainers.TimeSHAPExplainer.shap_values">(shap_enhanced.explainers.TimeSHAPExplainer method)</a>
+</li>
+        </ul></li>
+        <li><a href="generated/shap_enhanced.explainers.SurroSHAP.html#shap_enhanced.explainers.SurroSHAP.shap_values_with_nsamples">shap_values_with_nsamples() (in module shap_enhanced.explainers.SurroSHAP)</a>
+</li>
+        <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.Conv1dDecoder.share_memory">share_memory() (shap_enhanced.explainers.LatentSHAP.Conv1dDecoder method)</a>
+
+        <ul>
+          <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.Conv1dEncoder.share_memory">(shap_enhanced.explainers.LatentSHAP.Conv1dEncoder method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.LatentModelWrapper.share_memory">(shap_enhanced.explainers.LatentSHAP.LatentModelWrapper method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.RLSHAP.html#shap_enhanced.explainers.RLSHAP.MaskingPolicy.share_memory">(shap_enhanced.explainers.RLSHAP.MaskingPolicy method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.predefined_models.html#shap_enhanced.tools.predefined_models.RealisticLSTM.share_memory">(shap_enhanced.tools.predefined_models.RealisticLSTM method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.predefined_models.html#shap_enhanced.tools.predefined_models.TabularMLP.share_memory">(shap_enhanced.tools.predefined_models.TabularMLP method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.RealisticLSTM.share_memory">(shap_enhanced.tools.RealisticLSTM method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.TabularMLP.share_memory">(shap_enhanced.tools.TabularMLP method)</a>
+</li>
+        </ul></li>
+        <li><a href="generated/shap_enhanced.explainers.html#shap_enhanced.explainers.SparseCoalitionSHAPExplainer">SparseCoalitionSHAPExplainer (class in shap_enhanced.explainers)</a>
+
+        <ul>
+          <li><a href="generated/shap_enhanced.explainers.SCSHAP.html#shap_enhanced.explainers.SCSHAP.SparseCoalitionSHAPExplainer">(class in shap_enhanced.explainers.SCSHAP)</a>
+</li>
+        </ul></li>
+        <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.Conv1dDecoder.state_dict">state_dict() (shap_enhanced.explainers.LatentSHAP.Conv1dDecoder method)</a>
+
+        <ul>
+          <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.Conv1dEncoder.state_dict">(shap_enhanced.explainers.LatentSHAP.Conv1dEncoder method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.LatentModelWrapper.state_dict">(shap_enhanced.explainers.LatentSHAP.LatentModelWrapper method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.RLSHAP.html#shap_enhanced.explainers.RLSHAP.MaskingPolicy.state_dict">(shap_enhanced.explainers.RLSHAP.MaskingPolicy method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.predefined_models.html#shap_enhanced.tools.predefined_models.RealisticLSTM.state_dict">(shap_enhanced.tools.predefined_models.RealisticLSTM method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.predefined_models.html#shap_enhanced.tools.predefined_models.TabularMLP.state_dict">(shap_enhanced.tools.predefined_models.TabularMLP method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.RealisticLSTM.state_dict">(shap_enhanced.tools.RealisticLSTM method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.TabularMLP.state_dict">(shap_enhanced.tools.TabularMLP method)</a>
+</li>
+        </ul></li>
+        <li><a href="generated/shap_enhanced.explainers.html#shap_enhanced.explainers.SupportPreservingSHAPExplainer">SupportPreservingSHAPExplainer (class in shap_enhanced.explainers)</a>
+
+        <ul>
+          <li><a href="generated/shap_enhanced.explainers.SPSHAP.html#shap_enhanced.explainers.SPSHAP.SupportPreservingSHAPExplainer">(class in shap_enhanced.explainers.SPSHAP)</a>
+</li>
+        </ul></li>
+        <li><a href="generated/shap_enhanced.explainers.html#shap_enhanced.explainers.SurrogateSHAPExplainer">SurrogateSHAPExplainer (class in shap_enhanced.explainers)</a>
+
+        <ul>
+          <li><a href="generated/shap_enhanced.explainers.SurroSHAP.html#shap_enhanced.explainers.SurroSHAP.SurrogateSHAPExplainer">(class in shap_enhanced.explainers.SurroSHAP)</a>
+</li>
+        </ul></li>
+    </ul></td>
+  </tr></table>
+</section>
+
+<section id="T" class="genindex-section">
+  <h2>T</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.Conv1dDecoder.T_destination">T_destination (shap_enhanced.explainers.LatentSHAP.Conv1dDecoder attribute)</a>
+
+        <ul>
+          <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.Conv1dEncoder.T_destination">(shap_enhanced.explainers.LatentSHAP.Conv1dEncoder attribute)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.LatentModelWrapper.T_destination">(shap_enhanced.explainers.LatentSHAP.LatentModelWrapper attribute)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.RLSHAP.html#shap_enhanced.explainers.RLSHAP.MaskingPolicy.T_destination">(shap_enhanced.explainers.RLSHAP.MaskingPolicy attribute)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.predefined_models.html#shap_enhanced.tools.predefined_models.RealisticLSTM.T_destination">(shap_enhanced.tools.predefined_models.RealisticLSTM attribute)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.predefined_models.html#shap_enhanced.tools.predefined_models.TabularMLP.T_destination">(shap_enhanced.tools.predefined_models.TabularMLP attribute)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.RealisticLSTM.T_destination">(shap_enhanced.tools.RealisticLSTM attribute)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.TabularMLP.T_destination">(shap_enhanced.tools.TabularMLP attribute)</a>
+</li>
+        </ul></li>
+        <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.TabularMLP">TabularMLP (class in shap_enhanced.tools)</a>
+
+        <ul>
+          <li><a href="generated/shap_enhanced.tools.predefined_models.html#shap_enhanced.tools.predefined_models.TabularMLP">(class in shap_enhanced.tools.predefined_models)</a>
+</li>
+        </ul></li>
+        <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.Timer">Timer (class in shap_enhanced.tools)</a>
+
+        <ul>
+          <li><a href="generated/shap_enhanced.tools.timer.html#shap_enhanced.tools.timer.Timer">(class in shap_enhanced.tools.timer)</a>
+</li>
+        </ul></li>
+        <li><a href="generated/shap_enhanced.explainers.html#shap_enhanced.explainers.TimeSHAPExplainer">TimeSHAPExplainer (class in shap_enhanced.explainers)</a>
+
+        <ul>
+          <li><a href="generated/shap_enhanced.explainers.TimeSHAP.html#shap_enhanced.explainers.TimeSHAP.TimeSHAPExplainer">(class in shap_enhanced.explainers.TimeSHAP)</a>
+</li>
+        </ul></li>
+        <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.Conv1dDecoder.to">to() (shap_enhanced.explainers.LatentSHAP.Conv1dDecoder method)</a>
+
+        <ul>
+          <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.Conv1dEncoder.to">(shap_enhanced.explainers.LatentSHAP.Conv1dEncoder method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.LatentModelWrapper.to">(shap_enhanced.explainers.LatentSHAP.LatentModelWrapper method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.RLSHAP.html#shap_enhanced.explainers.RLSHAP.MaskingPolicy.to">(shap_enhanced.explainers.RLSHAP.MaskingPolicy method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.predefined_models.html#shap_enhanced.tools.predefined_models.RealisticLSTM.to">(shap_enhanced.tools.predefined_models.RealisticLSTM method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.predefined_models.html#shap_enhanced.tools.predefined_models.TabularMLP.to">(shap_enhanced.tools.predefined_models.TabularMLP method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.RealisticLSTM.to">(shap_enhanced.tools.RealisticLSTM method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.TabularMLP.to">(shap_enhanced.tools.TabularMLP method)</a>
+</li>
+        </ul></li>
+        <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.Conv1dDecoder.to_empty">to_empty() (shap_enhanced.explainers.LatentSHAP.Conv1dDecoder method)</a>
+
+        <ul>
+          <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.Conv1dEncoder.to_empty">(shap_enhanced.explainers.LatentSHAP.Conv1dEncoder method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.LatentModelWrapper.to_empty">(shap_enhanced.explainers.LatentSHAP.LatentModelWrapper method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.RLSHAP.html#shap_enhanced.explainers.RLSHAP.MaskingPolicy.to_empty">(shap_enhanced.explainers.RLSHAP.MaskingPolicy method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.predefined_models.html#shap_enhanced.tools.predefined_models.RealisticLSTM.to_empty">(shap_enhanced.tools.predefined_models.RealisticLSTM method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.predefined_models.html#shap_enhanced.tools.predefined_models.TabularMLP.to_empty">(shap_enhanced.tools.predefined_models.TabularMLP method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.RealisticLSTM.to_empty">(shap_enhanced.tools.RealisticLSTM method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.TabularMLP.to_empty">(shap_enhanced.tools.TabularMLP method)</a>
+</li>
+        </ul></li>
+    </ul></td>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.Conv1dDecoder.train">train() (shap_enhanced.explainers.LatentSHAP.Conv1dDecoder method)</a>
+
+        <ul>
+          <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.Conv1dEncoder.train">(shap_enhanced.explainers.LatentSHAP.Conv1dEncoder method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.LatentModelWrapper.train">(shap_enhanced.explainers.LatentSHAP.LatentModelWrapper method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.RLSHAP.html#shap_enhanced.explainers.RLSHAP.MaskingPolicy.train">(shap_enhanced.explainers.RLSHAP.MaskingPolicy method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.predefined_models.html#shap_enhanced.tools.predefined_models.RealisticLSTM.train">(shap_enhanced.tools.predefined_models.RealisticLSTM method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.predefined_models.html#shap_enhanced.tools.predefined_models.TabularMLP.train">(shap_enhanced.tools.predefined_models.TabularMLP method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.RealisticLSTM.train">(shap_enhanced.tools.RealisticLSTM method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.TabularMLP.train">(shap_enhanced.tools.TabularMLP method)</a>
+</li>
+        </ul></li>
+        <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.train_conv1d_autoencoder">train_conv1d_autoencoder() (in module shap_enhanced.explainers.LatentSHAP)</a>
+</li>
+        <li><a href="generated/shap_enhanced.explainers.RLSHAP.html#shap_enhanced.explainers.RLSHAP.RLShapExplainer.train_policy">train_policy() (shap_enhanced.explainers.RLSHAP.RLShapExplainer method)</a>
+
+        <ul>
+          <li><a href="generated/shap_enhanced.explainers.html#shap_enhanced.explainers.RLShapExplainer.train_policy">(shap_enhanced.explainers.RLShapExplainer method)</a>
+</li>
+        </ul></li>
+        <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.Conv1dDecoder.training">training (shap_enhanced.explainers.LatentSHAP.Conv1dDecoder attribute)</a>
+
+        <ul>
+          <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.Conv1dEncoder.training">(shap_enhanced.explainers.LatentSHAP.Conv1dEncoder attribute)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.LatentModelWrapper.training">(shap_enhanced.explainers.LatentSHAP.LatentModelWrapper attribute)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.RLSHAP.html#shap_enhanced.explainers.RLSHAP.MaskingPolicy.training">(shap_enhanced.explainers.RLSHAP.MaskingPolicy attribute)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.predefined_models.html#shap_enhanced.tools.predefined_models.RealisticLSTM.training">(shap_enhanced.tools.predefined_models.RealisticLSTM attribute)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.predefined_models.html#shap_enhanced.tools.predefined_models.TabularMLP.training">(shap_enhanced.tools.predefined_models.TabularMLP attribute)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.RealisticLSTM.training">(shap_enhanced.tools.RealisticLSTM attribute)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.TabularMLP.training">(shap_enhanced.tools.TabularMLP attribute)</a>
+</li>
+        </ul></li>
+        <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.Conv1dDecoder.type">type() (shap_enhanced.explainers.LatentSHAP.Conv1dDecoder method)</a>
+
+        <ul>
+          <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.Conv1dEncoder.type">(shap_enhanced.explainers.LatentSHAP.Conv1dEncoder method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.LatentModelWrapper.type">(shap_enhanced.explainers.LatentSHAP.LatentModelWrapper method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.RLSHAP.html#shap_enhanced.explainers.RLSHAP.MaskingPolicy.type">(shap_enhanced.explainers.RLSHAP.MaskingPolicy method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.predefined_models.html#shap_enhanced.tools.predefined_models.RealisticLSTM.type">(shap_enhanced.tools.predefined_models.RealisticLSTM method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.predefined_models.html#shap_enhanced.tools.predefined_models.TabularMLP.type">(shap_enhanced.tools.predefined_models.TabularMLP method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.RealisticLSTM.type">(shap_enhanced.tools.RealisticLSTM method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.TabularMLP.type">(shap_enhanced.tools.TabularMLP method)</a>
+</li>
+        </ul></li>
+    </ul></td>
+  </tr></table>
+</section>
+
+<section id="X" class="genindex-section">
+  <h2>X</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.Conv1dDecoder.xpu">xpu() (shap_enhanced.explainers.LatentSHAP.Conv1dDecoder method)</a>
+
+        <ul>
+          <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.Conv1dEncoder.xpu">(shap_enhanced.explainers.LatentSHAP.Conv1dEncoder method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.LatentModelWrapper.xpu">(shap_enhanced.explainers.LatentSHAP.LatentModelWrapper method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.RLSHAP.html#shap_enhanced.explainers.RLSHAP.MaskingPolicy.xpu">(shap_enhanced.explainers.RLSHAP.MaskingPolicy method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.predefined_models.html#shap_enhanced.tools.predefined_models.RealisticLSTM.xpu">(shap_enhanced.tools.predefined_models.RealisticLSTM method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.predefined_models.html#shap_enhanced.tools.predefined_models.TabularMLP.xpu">(shap_enhanced.tools.predefined_models.TabularMLP method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.RealisticLSTM.xpu">(shap_enhanced.tools.RealisticLSTM method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.TabularMLP.xpu">(shap_enhanced.tools.TabularMLP method)</a>
+</li>
+        </ul></li>
+    </ul></td>
+  </tr></table>
+</section>
+
+<section id="Z" class="genindex-section">
+  <h2>Z</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.Conv1dDecoder.zero_grad">zero_grad() (shap_enhanced.explainers.LatentSHAP.Conv1dDecoder method)</a>
+
+        <ul>
+          <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.Conv1dEncoder.zero_grad">(shap_enhanced.explainers.LatentSHAP.Conv1dEncoder method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.LatentSHAP.html#shap_enhanced.explainers.LatentSHAP.LatentModelWrapper.zero_grad">(shap_enhanced.explainers.LatentSHAP.LatentModelWrapper method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.explainers.RLSHAP.html#shap_enhanced.explainers.RLSHAP.MaskingPolicy.zero_grad">(shap_enhanced.explainers.RLSHAP.MaskingPolicy method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.predefined_models.html#shap_enhanced.tools.predefined_models.RealisticLSTM.zero_grad">(shap_enhanced.tools.predefined_models.RealisticLSTM method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.predefined_models.html#shap_enhanced.tools.predefined_models.TabularMLP.zero_grad">(shap_enhanced.tools.predefined_models.TabularMLP method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.RealisticLSTM.zero_grad">(shap_enhanced.tools.RealisticLSTM method)</a>
+</li>
+          <li><a href="generated/shap_enhanced.tools.html#shap_enhanced.tools.TabularMLP.zero_grad">(shap_enhanced.tools.TabularMLP method)</a>
+</li>
+        </ul></li>
+    </ul></td>
+  </tr></table>
+</section>
+
+
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          
+          
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 2025, Niyang Bai
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer no-toc">
+      
+      
+      
+    </aside>
+  </div>
+</div><script src="_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/scripts/furo.js?v=46bd48cc"></script>
+    </body>
+</html>

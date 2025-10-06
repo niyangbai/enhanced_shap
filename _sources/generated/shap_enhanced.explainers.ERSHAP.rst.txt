@@ -1,0 +1,12 @@
+shap\_enhanced.explainers.ERSHAP
+================================
+
+.. automodule:: shap_enhanced.explainers.ERSHAP
+
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      ERSHAPExplainer
+   

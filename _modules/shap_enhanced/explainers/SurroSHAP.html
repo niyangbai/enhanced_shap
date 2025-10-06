@@ -1,0 +1,605 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="../../../">
+  <head><meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../genindex.html"><link rel="search" title="Search" href="../../../search.html">
+        <link rel="prefetch" href="../../../_static/fau_wiso_light.png" as="image">
+        <link rel="prefetch" href="../../../_static/fau_wiso_dark.png" as="image">
+
+    <!-- Generated with Sphinx 8.2.3 and Furo 2025.09.25 -->
+        <title>shap_enhanced.explainers.SurroSHAP - Enhanced SHAP documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=d111a655" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=580074bf" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?v=8dab3a3b" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f2f2f2;
+  --color-code-foreground: #1e1e1e;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
+    <title>Auto light/dark, in light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path style="opacity: 50%" d="M 5.411 14.504 C 5.471 14.504 5.532 14.504 5.591 14.504 C 3.639 16.319 4.383 19.569 6.931 20.352 C 7.693 20.586 8.512 20.551 9.25 20.252 C 8.023 23.207 4.056 23.725 2.11 21.184 C 0.166 18.642 1.702 14.949 4.874 14.536 C 5.051 14.512 5.231 14.5 5.411 14.5 L 5.411 14.504 Z"/>
+      <line x1="14.5" y1="3.25" x2="14.5" y2="1.25"/>
+      <line x1="14.5" y1="15.85" x2="14.5" y2="17.85"/>
+      <line x1="10.044" y1="5.094" x2="8.63" y2="3.68"/>
+      <line x1="19" y1="14.05" x2="20.414" y2="15.464"/>
+      <line x1="8.2" y1="9.55" x2="6.2" y2="9.55"/>
+      <line x1="20.8" y1="9.55" x2="22.8" y2="9.55"/>
+      <line x1="10.044" y1="14.006" x2="8.63" y2="15.42"/>
+      <line x1="19" y1="5.05" x2="20.414" y2="3.636"/>
+      <circle cx="14.5" cy="9.55" r="3.6"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
+    <title>Auto light/dark, in dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path d="M 8.282 7.007 C 8.385 7.007 8.494 7.007 8.595 7.007 C 5.18 10.184 6.481 15.869 10.942 17.24 C 12.275 17.648 13.706 17.589 15 17.066 C 12.851 22.236 5.91 23.143 2.505 18.696 C -0.897 14.249 1.791 7.786 7.342 7.063 C 7.652 7.021 7.965 7 8.282 7 L 8.282 7.007 Z"/>
+      <line style="opacity: 50%" x1="18" y1="3.705" x2="18" y2="2.5"/>
+      <line style="opacity: 50%" x1="18" y1="11.295" x2="18" y2="12.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="4.816" x2="14.464" y2="3.964"/>
+      <line style="opacity: 50%" x1="20.711" y1="10.212" x2="21.563" y2="11.063"/>
+      <line style="opacity: 50%" x1="14.205" y1="7.5" x2="13.001" y2="7.5"/>
+      <line style="opacity: 50%" x1="21.795" y1="7.5" x2="23" y2="7.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="10.184" x2="14.464" y2="11.036"/>
+      <line style="opacity: 50%" x1="20.711" y1="4.789" x2="21.563" y2="3.937"/>
+      <circle style="opacity: 50%" cx="18" cy="7.5" r="2.169"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-pencil" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-pencil-code">
+      <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" />
+      <path d="M13.5 6.5l4 4" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+  <symbol id="svg-eye" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-eye-code">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+      <path
+        d="M11.11 17.958c-3.209 -.307 -5.91 -2.293 -8.11 -5.958c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6c-.21 .352 -.427 .688 -.647 1.008" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle site navigation sidebar">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc" aria-label="Toggle table of contents sidebar">
+<label class="overlay sidebar-overlay" for="__navigation"></label>
+<label class="overlay toc-overlay" for="__toc"></label>
+
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <span class="icon"><svg><use href="#svg-menu"></use></svg></span>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../../../index.html"><div class="brand">Enhanced SHAP  documentation</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+          <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+          <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+        <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../../../index.html">
+  <div class="sidebar-logo-container">
+    <img class="sidebar-logo only-light" src="../../../_static/fau_wiso_light.png" alt="Light Logo"/>
+    <img class="sidebar-logo only-dark" src="../../../_static/fau_wiso_dark.png" alt="Dark Logo"/>
+  </div>
+  
+  <span class="sidebar-brand-text">Enhanced SHAP  documentation</span>
+  
+</a><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../shap_enhanced_api.html">SHAP Enhanced API</a><input aria-label="Toggle navigation of SHAP Enhanced API" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../generated/shap_enhanced.html">shap_enhanced</a><input aria-label="Toggle navigation of shap_enhanced" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../generated/shap_enhanced.base_explainer.html">shap_enhanced.base_explainer</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../../generated/shap_enhanced.explainers.html">shap_enhanced.explainers</a><input aria-label="Toggle navigation of shap_enhanced.explainers" class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../generated/shap_enhanced.explainers.ABSHAP.html">shap_enhanced.explainers.ABSHAP</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../generated/shap_enhanced.explainers.AttnSHAP.html">shap_enhanced.explainers.AttnSHAP</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../generated/shap_enhanced.explainers.BSHAP.html">shap_enhanced.explainers.BSHAP</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../generated/shap_enhanced.explainers.CASHAP.html">shap_enhanced.explainers.CASHAP</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../generated/shap_enhanced.explainers.CMSHAP.html">shap_enhanced.explainers.CMSHAP</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../generated/shap_enhanced.explainers.ECSHAP.html">shap_enhanced.explainers.ECSHAP</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../generated/shap_enhanced.explainers.ERSHAP.html">shap_enhanced.explainers.ERSHAP</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../generated/shap_enhanced.explainers.ESSHAP.html">shap_enhanced.explainers.ESSHAP</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../generated/shap_enhanced.explainers.LatentSHAP.html">shap_enhanced.explainers.LatentSHAP</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../generated/shap_enhanced.explainers.MBSHAP.html">shap_enhanced.explainers.MBSHAP</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../generated/shap_enhanced.explainers.RLSHAP.html">shap_enhanced.explainers.RLSHAP</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../generated/shap_enhanced.explainers.SCSHAP.html">shap_enhanced.explainers.SCSHAP</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../generated/shap_enhanced.explainers.SPSHAP.html">shap_enhanced.explainers.SPSHAP</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../generated/shap_enhanced.explainers.SurroSHAP.html">shap_enhanced.explainers.SurroSHAP</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../generated/shap_enhanced.explainers.TimeSHAP.html">shap_enhanced.explainers.TimeSHAP</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../generated/shap_enhanced.explainers.hSHAP.html">shap_enhanced.explainers.hSHAP</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../../generated/shap_enhanced.tools.html">shap_enhanced.tools</a><input aria-label="Toggle navigation of shap_enhanced.tools" class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../generated/shap_enhanced.tools.comparison.html">shap_enhanced.tools.comparison</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../generated/shap_enhanced.tools.datasets.html">shap_enhanced.tools.datasets</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../generated/shap_enhanced.tools.evaluation.html">shap_enhanced.tools.evaluation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../generated/shap_enhanced.tools.predefined_models.html">shap_enhanced.tools.predefined_models</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../generated/shap_enhanced.tools.timer.html">shap_enhanced.tools.timer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../generated/shap_enhanced.tools.visulization.html">shap_enhanced.tools.visulization</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+              <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+              <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+            <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+          </label>
+        </div>
+        <article role="main" id="furo-main-content">
+          <h1>Source code for shap_enhanced.explainers.SurroSHAP</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">SurroSHAP: Surrogate Model SHAP Explainer</span>
+<span class="sd">=========================================</span>
+
+<span class="sd">Theoretical Explanation</span>
+<span class="sd">-----------------------</span>
+
+<span class="sd">**SurroSHAP** is a surrogate modeling approach to SHAP that accelerates feature attribution</span>
+<span class="sd">by training a regression model to **mimic SHAP values** produced by a base explainer.</span>
+<span class="sd">Once trained, the surrogate regressor can produce fast, approximate SHAP values for new inputs,</span>
+<span class="sd">bypassing the computational expense of re-running the base SHAP explainer.</span>
+
+<span class="sd">This method is particularly useful for large datasets, expensive black-box models, or scenarios</span>
+<span class="sd">where near-real-time interpretability is needed.</span>
+
+<span class="sd">Key Concepts</span>
+<span class="sd">^^^^^^^^^^^^</span>
+
+<span class="sd">- **Surrogate Regression**:</span>
+<span class="sd">    A regression model (e.g., Random Forest, Kernel Ridge, MLP) is trained to predict SHAP attributions</span>
+<span class="sd">    using inputs as features and base SHAP values as targets.</span>
+
+<span class="sd">- **Base SHAP Explainer**:</span>
+<span class="sd">    Any standard SHAP-style explainer (e.g., `DeepExplainer`, `GradientExplainer`, `KernelExplainer`)</span>
+<span class="sd">    can be used to generate training labels (pseudo-ground-truth SHAP values).</span>
+
+<span class="sd">- **Optional Scaling**:</span>
+<span class="sd">    Input features and/or SHAP attributions can be standardized to improve the surrogate&#39;s learning performance.</span>
+
+<span class="sd">- **Fast Inference**:</span>
+<span class="sd">    Once trained, the surrogate model can rapidly produce SHAP attributions for unseen inputs</span>
+<span class="sd">    without invoking the base SHAP explainer again.</span>
+
+<span class="sd">Algorithm</span>
+<span class="sd">---------</span>
+
+<span class="sd">1. **Initialization**:</span>
+<span class="sd">    - Accepts the following:</span>
+<span class="sd">        - A predictive model to explain.</span>
+<span class="sd">        - Background dataset for base SHAP explainer.</span>
+<span class="sd">        - SHAP-style base explainer class.</span>
+<span class="sd">        - Surrogate regressor class (e.g., `sklearn.ensemble.RandomForestRegressor`).</span>
+<span class="sd">        - Number of training samples for surrogate fitting.</span>
+<span class="sd">        - Options for input/output scaling.</span>
+<span class="sd">        - Device context (if applicable).</span>
+
+<span class="sd">2. **Surrogate Training**:</span>
+<span class="sd">    - Sample training points from the background dataset.</span>
+<span class="sd">    - For each sample:</span>
+<span class="sd">        - Compute SHAP values using the base explainer.</span>
+<span class="sd">        - Flatten the input and corresponding SHAP vector.</span>
+<span class="sd">    - Optionally scale both inputs and targets.</span>
+<span class="sd">    - Fit the surrogate regressor on the collected (input, attribution) pairs.</span>
+
+<span class="sd">3. **SHAP Value Prediction**:</span>
+<span class="sd">    - For a new sample:</span>
+<span class="sd">        - Flatten and optionally scale the input.</span>
+<span class="sd">        - Predict SHAP attributions using the surrogate model.</span>
+<span class="sd">        - Inverse-transform and reshape predictions to original attribution shape if needed.</span>
+
+<span class="sd">Use Case</span>
+<span class="sd">--------</span>
+
+<span class="sd">SurroSHAP is best suited for:</span>
+<span class="sd">    - Large-scale datasets requiring rapid SHAP value generation.</span>
+<span class="sd">    - Scenarios where base SHAP computation is slow or expensive.</span>
+<span class="sd">    - Situations where approximate explanations are acceptable in exchange for speed.</span>
+
+<span class="sd">References</span>
+<span class="sd">----------</span>
+
+<span class="sd">- **Lundberg &amp; Lee (2017), “A Unified Approach to Interpreting Model Predictions”**</span>
+<span class="sd">  [SHAP foundation—coalitional feature attribution framework]</span>
+
+<span class="sd">- **Zhou, Chen &amp; Hu (2022), “Shapley Computations Using Surrogate Model‑Based Trees”**</span>
+<span class="sd">  [Uses surrogate tree models to compute SHAP values via conditional expectation, trading accuracy for speed] :contentReference[oaicite:1]{index=1}</span>
+
+<span class="sd">- **ShapGAP (2024)**</span>
+<span class="sd">  [A metric for evaluating surrogate model fidelity by comparing SHAP explanations of surrogate vs. black‑box models, ensuring surrogate explanations align in reasoning] :contentReference[oaicite:2]{index=2}</span>
+
+<span class="sd">- **Arize MimicExplainer documentation**</span>
+<span class="sd">  [Describes practical use of surrogate explainability: fitting a model (e.g., RandomForest) to mimic black‑box outputs and generating SHAP values from surrogate] :contentReference[oaicite:3]{index=3}</span>
+
+<span class="sd">- **Interpretable Machine Learning book (Molnar, 2022), SHAP chapter**</span>
+<span class="sd">  [Discusses surrogate/approximation strategies and trade‑offs between fidelity and computational efficiency] :contentReference[oaicite:4]{index=4}</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">inspect</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">sklearn.ensemble</span><span class="w"> </span><span class="kn">import</span> <span class="n">RandomForestRegressor</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">sklearn.preprocessing</span><span class="w"> </span><span class="kn">import</span> <span class="n">StandardScaler</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">shap_enhanced.base_explainer</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseExplainer</span>
+
+
+<div class="viewcode-block" id="ensure_shap_input">
+<a class="viewcode-back" href="../../../generated/shap_enhanced.explainers.SurroSHAP.html#shap_enhanced.explainers.ensure_shap_input">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">ensure_shap_input</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">explainer</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="s2">&quot;cpu&quot;</span><span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Ensure compatibility of input format with the SHAP explainer type.</span>
+
+<span class="sd">    This function inspects the explainer type (e.g., DeepExplainer, KernelExplainer)</span>
+<span class="sd">    and converts the input `x` into the appropriate format—either a NumPy array or a</span>
+<span class="sd">    PyTorch tensor—based on the explainer&#39;s requirements.</span>
+
+<span class="sd">        - Deep/Gradient explainers require `torch.Tensor` input.</span>
+<span class="sd">        - Kernel/Partition explainers require `np.ndarray` input.</span>
+
+<span class="sd">    :param x: Input sample to format, shape (T, F) or (1, T, F).</span>
+<span class="sd">    :type x: np.ndarray or torch.Tensor</span>
+<span class="sd">    :param explainer: Instantiated SHAP explainer object.</span>
+<span class="sd">    :type explainer: Any</span>
+<span class="sd">    :param str device: Target torch device (&#39;cpu&#39; or &#39;cuda&#39;).</span>
+<span class="sd">    :return: Properly formatted input for SHAP explainer.</span>
+<span class="sd">    :rtype: np.ndarray or torch.Tensor</span>
+<span class="sd">    :raises TypeError: If the input type is unsupported.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">explainer</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+    <span class="n">is_deep</span> <span class="o">=</span> <span class="n">name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;deep&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;gradient&quot;</span><span class="p">)</span>
+    <span class="n">is_kernel</span> <span class="o">=</span> <span class="n">name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;kernel&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;partition&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">x</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">is_deep</span><span class="p">:</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">x</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">is_kernel</span><span class="p">:</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Unsupported type for SHAP input.&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">x</span></div>
+
+
+
+<div class="viewcode-block" id="shap_values_with_nsamples">
+<a class="viewcode-back" href="../../../generated/shap_enhanced.explainers.SurroSHAP.html#shap_enhanced.explainers.shap_values_with_nsamples">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">shap_values_with_nsamples</span><span class="p">(</span><span class="n">base_explainer</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">nsamples</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Safely compute SHAP values with optional support for `nsamples` argument.</span>
+
+<span class="sd">    This utility inspects the signature of the `shap_values` method and attempts</span>
+<span class="sd">    to call it with `nsamples`, `check_additivity`, and any additional kwargs.</span>
+<span class="sd">    It includes fallback logic for older SHAP versions that may not support these parameters.</span>
+
+<span class="sd">    :param base_explainer: SHAP explainer instance.</span>
+<span class="sd">    :type base_explainer: Any</span>
+<span class="sd">    :param x: Input to explain (already formatted for the explainer).</span>
+<span class="sd">    :type x: np.ndarray or torch.Tensor</span>
+<span class="sd">    :param int nsamples: Number of samples to use for SHAP estimation.</span>
+<span class="sd">    :param kwargs: Additional keyword arguments for `shap_values`.</span>
+<span class="sd">    :return: SHAP attributions for the input.</span>
+<span class="sd">    :rtype: np.ndarray or list</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">sig</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">signature</span><span class="p">(</span><span class="n">base_explainer</span><span class="o">.</span><span class="n">shap_values</span><span class="p">)</span>
+    <span class="n">params</span> <span class="o">=</span> <span class="n">sig</span><span class="o">.</span><span class="n">parameters</span>
+    <span class="c1"># Try nsamples if supported</span>
+    <span class="k">if</span> <span class="s2">&quot;nsamples&quot;</span> <span class="ow">in</span> <span class="n">params</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">base_explainer</span><span class="o">.</span><span class="n">shap_values</span><span class="p">(</span>
+                <span class="n">x</span><span class="p">,</span> <span class="n">nsamples</span><span class="o">=</span><span class="n">nsamples</span><span class="p">,</span> <span class="n">check_additivity</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
+            <span class="p">)</span>
+        <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">base_explainer</span><span class="o">.</span><span class="n">shap_values</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">nsamples</span><span class="o">=</span><span class="n">nsamples</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">base_explainer</span><span class="o">.</span><span class="n">shap_values</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">base_explainer</span><span class="o">.</span><span class="n">shap_values</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">check_additivity</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">base_explainer</span><span class="o">.</span><span class="n">shap_values</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="SurrogateSHAPExplainer">
+<a class="viewcode-back" href="../../../generated/shap_enhanced.explainers.SurroSHAP.html#shap_enhanced.explainers.SurrogateSHAPExplainer">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SurrogateSHAPExplainer</span><span class="p">(</span><span class="n">BaseExplainer</span><span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    SurrogateSHAPExplainer: Fast SHAP Approximation via Supervised Regression</span>
+
+<span class="sd">    SurroSHAP accelerates SHAP attribution by training a surrogate regression model that maps</span>
+<span class="sd">    input features to SHAP attributions. This is useful when repeated SHAP computation is too</span>
+<span class="sd">    costly or when near-instant explanations are needed for deployment.</span>
+
+<span class="sd">    The surrogate model is trained on a background dataset where &quot;true&quot; SHAP values are first computed</span>
+<span class="sd">    using a base explainer (e.g., `DeepExplainer`, `KernelExplainer`), and then used as regression targets.</span>
+
+<span class="sd">    .. note::</span>
+<span class="sd">        Any sklearn-style regressor can be used (e.g., `RandomForestRegressor`, `KernelRidge`, etc.).</span>
+
+<span class="sd">    :param model: Predictive model to be explained.</span>
+<span class="sd">    :type model: Any</span>
+<span class="sd">    :param background: Background dataset for training surrogate and computing SHAP targets. Shape: (N, T, F).</span>
+<span class="sd">    :type background: np.ndarray</span>
+<span class="sd">    :param base_explainer: A SHAP-style explainer instance (already constructed).</span>
+<span class="sd">    :type base_explainer: Any</span>
+<span class="sd">    :param regressor_class: Regressor class implementing fit/predict API. Defaults to RandomForestRegressor.</span>
+<span class="sd">    :type regressor_class: type</span>
+<span class="sd">    :param regressor_kwargs: Optional keyword arguments for the regressor.</span>
+<span class="sd">    :type regressor_kwargs: dict</span>
+<span class="sd">    :param int nsamples_base: Number of SHAP samples used for each background point.</span>
+<span class="sd">    :param bool scale_inputs: Whether to standardize input features during training.</span>
+<span class="sd">    :param bool scale_outputs: Whether to standardize SHAP values during training.</span>
+<span class="sd">    :param device: Torch device (e.g., &#39;cpu&#39; or &#39;cuda&#39;).</span>
+<span class="sd">    :type device: str or torch.device</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">model</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+        <span class="n">background</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">base_explainer</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+        <span class="n">regressor_class</span><span class="o">=</span><span class="n">RandomForestRegressor</span><span class="p">,</span>
+        <span class="n">regressor_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">nsamples_base</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
+        <span class="n">scale_inputs</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">scale_outputs</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">device</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">background</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">device</span> <span class="o">=</span> <span class="n">device</span> <span class="ow">or</span> <span class="p">(</span><span class="s2">&quot;cuda&quot;</span> <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">()</span> <span class="k">else</span> <span class="s2">&quot;cpu&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">base_explainer</span> <span class="o">=</span> <span class="n">base_explainer</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">regressor_class</span> <span class="o">=</span> <span class="n">regressor_class</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">regressor_kwargs</span> <span class="o">=</span> <span class="n">regressor_kwargs</span> <span class="ow">or</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nsamples_base</span> <span class="o">=</span> <span class="n">nsamples_base</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scale_inputs</span> <span class="o">=</span> <span class="n">scale_inputs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scale_outputs</span> <span class="o">=</span> <span class="n">scale_outputs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">input_scaler</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">output_scaler</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">background</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">F</span> <span class="o">=</span> <span class="n">background</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fit_surrogate</span><span class="p">(</span><span class="n">background</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_fit_surrogate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X_bg</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;[SurroSHAP] Computing SHAP attributions for background data...&quot;</span><span class="p">)</span>
+        <span class="n">Y_shap</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">X_bg</span><span class="p">):</span>
+            <span class="n">x_shap</span> <span class="o">=</span> <span class="n">ensure_shap_input</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">base_explainer</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+            <span class="n">shap_val</span> <span class="o">=</span> <span class="n">shap_values_with_nsamples</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">base_explainer</span><span class="p">,</span> <span class="n">x_shap</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nsamples_base</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">shap_val</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                <span class="n">shap_val</span> <span class="o">=</span> <span class="n">shap_val</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">Y_shap</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">shap_val</span><span class="o">.</span><span class="n">flatten</span><span class="p">())</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">%</span> <span class="mi">10</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">i</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">X_bg</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  </span><span class="si">{</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">X_bg</span><span class="p">)</span><span class="si">}</span><span class="s2"> attributions done...&quot;</span><span class="p">)</span>
+        <span class="n">Y_shap</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">Y_shap</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>  <span class="c1"># (N, T*F)</span>
+        <span class="n">X_feat</span> <span class="o">=</span> <span class="n">X_bg</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">X_bg</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">scale_inputs</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">input_scaler</span> <span class="o">=</span> <span class="n">StandardScaler</span><span class="p">()</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X_feat</span><span class="p">)</span>
+            <span class="n">X_feat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_scaler</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">X_feat</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">scale_outputs</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">output_scaler</span> <span class="o">=</span> <span class="n">StandardScaler</span><span class="p">()</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">Y_shap</span><span class="p">)</span>
+            <span class="n">Y_shap</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_scaler</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">Y_shap</span><span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;[SurroSHAP] Training surrogate regression model...&quot;</span><span class="p">)</span>
+        <span class="n">reg</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">regressor_class</span><span class="p">(</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">regressor_kwargs</span><span class="p">)</span>
+        <span class="n">reg</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X_feat</span><span class="p">,</span> <span class="n">Y_shap</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">regressor</span> <span class="o">=</span> <span class="n">reg</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;[SurroSHAP] Surrogate trained.&quot;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="SurrogateSHAPExplainer.shap_values">
+<a class="viewcode-back" href="../../../generated/shap_enhanced.explainers.SurroSHAP.html#shap_enhanced.explainers.SurrogateSHAPExplainer.shap_values">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">shap_values</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Predict SHAP attributions for new inputs using the trained surrogate model.</span>
+
+<span class="sd">        The input is reshaped and (optionally) standardized to match the format used</span>
+<span class="sd">        during surrogate training, and the predicted SHAP values are inverse-transformed</span>
+<span class="sd">        (if scaling was applied).</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            This bypasses SHAP computation entirely and relies on the surrogate regressor.</span>
+
+<span class="sd">        :param X: Input instance or batch, shape (T, F) or (B, T, F).</span>
+<span class="sd">        :type X: np.ndarray or torch.Tensor</span>
+<span class="sd">        :return: Approximated SHAP attributions, same shape as input.</span>
+<span class="sd">        :rtype: np.ndarray</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">is_torch</span> <span class="o">=</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="s2">&quot;detach&quot;</span><span class="p">)</span>
+        <span class="n">X_np</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span> <span class="k">if</span> <span class="n">is_torch</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+        <span class="n">single</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="n">X_np</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>  <span class="c1"># (T, F)</span>
+            <span class="n">X_np</span> <span class="o">=</span> <span class="n">X_np</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span>
+            <span class="n">single</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">X_feat</span> <span class="o">=</span> <span class="n">X_np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">X_np</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">scale_inputs</span><span class="p">:</span>
+            <span class="n">X_feat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_scaler</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">X_feat</span><span class="p">)</span>
+        <span class="n">pred</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">regressor</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">X_feat</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">scale_outputs</span><span class="p">:</span>
+            <span class="n">pred</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_scaler</span><span class="o">.</span><span class="n">inverse_transform</span><span class="p">(</span><span class="n">pred</span><span class="p">)</span>
+        <span class="n">pred</span> <span class="o">=</span> <span class="n">pred</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">X_np</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">F</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">pred</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="n">single</span> <span class="k">else</span> <span class="n">pred</span></div>
+</div>
+
+</pre></div>
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          
+          
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 2025, Niyang Bai
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer no-toc">
+      
+      
+      
+    </aside>
+  </div>
+</div><script src="../../../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/scripts/furo.js?v=46bd48cc"></script>
+    </body>
+</html>

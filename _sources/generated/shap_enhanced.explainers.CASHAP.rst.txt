@@ -1,0 +1,12 @@
+shap\_enhanced.explainers.CASHAP
+================================
+
+.. automodule:: shap_enhanced.explainers.CASHAP
+
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      CoalitionAwareSHAPExplainer
+   

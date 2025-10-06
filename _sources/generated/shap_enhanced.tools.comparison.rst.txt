@@ -1,0 +1,12 @@
+shap\_enhanced.tools.comparison
+===============================
+
+.. automodule:: shap_enhanced.tools.comparison
+
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      Comparison
+   
