@@ -75,22 +75,22 @@ Ideal for models operating on:
 References
 ----------
 
-- **Lundberg & Lee (2017), “A Unified Approach to Interpreting Model Predictions”**  
+- **Lundberg & Lee (2017), “A Unified Approach to Interpreting Model Predictions”**
   [SHAP foundation—coalitional feature attribution framework]
 
-- **Aas, Jullum & Løland (2021), “Explaining individual predictions when features are dependent: More accurate approximations to Shapley values”**  
+- **Aas, Jullum & Løland (2021), “Explaining individual predictions when features are dependent: More accurate approximations to Shapley values”**
   [Discusses conditional sampling for discrete and dependent features, relevant to preserving input structure] :contentReference[oaicite:1]{index=1}
 
-- **Redelmeier, Jullum & Aas (2020), “Explaining predictive models with mixed features using Shapley values and conditional inference trees”**  
+- **Redelmeier, Jullum & Aas (2020), “Explaining predictive models with mixed features using Shapley values and conditional inference trees”**
   [Imputes discrete/categorical features via conditional rules—addresses one-hot and binary feature dependencies] :contentReference[oaicite:2]{index=2}
 
-- **Jullum et al. (2021), “groupShapley: Efficient prediction explanation with Shapley values for feature groups”**  
+- **Jullum et al. (2021), “groupShapley: Efficient prediction explanation with Shapley values for feature groups”**
   [Introduces feature-group-wise Shapley values—related to grouping one-hot encoded variables as a coalition block] :contentReference[oaicite:3]{index=3}
 
-- **Laberge & Pequignot (2022), “Understanding Interventional TreeSHAP: How and Why it Works”**  
+- **Laberge & Pequignot (2022), “Understanding Interventional TreeSHAP: How and Why it Works”**
   [Covers interventional masking logic for one-hot encoded and categorical features in TreeSHAP context] :contentReference[oaicite:4]{index=4}
 
-- **Molnar, _Interpretable Machine Learning_ (2022), SHAP chapter**  
+- **Molnar, _Interpretable Machine Learning_ (2022), SHAP chapter**
   [Practical guidance on masking strategies, grouping discrete features, and ensuring validity under sparsity] :contentReference[oaicite:5]{index=5}
 """
 

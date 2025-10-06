@@ -56,22 +56,22 @@ Algorithm
 References
 ----------
 
-- **Lundberg & Lee (2017), “A Unified Approach to Interpreting Model Predictions”**  
+- **Lundberg & Lee (2017), “A Unified Approach to Interpreting Model Predictions”**
   [SHAP foundation—coalitional feature attribution framework]
 
-- **Teneggi, Luster & Sulam (2022), *Fast Hierarchical Games for Image Explanations (h‑Shap)***  
+- **Teneggi, Luster & Sulam (2022), *Fast Hierarchical Games for Image Explanations (h‑Shap)***
   [Exact hierarchical Shapley values for groups of pixels, with exponential computational improvements] :contentReference[oaicite:1]{index=1}
 
-- **Jullum, Redelmeier & Løland (2021), *groupShapley: Efficient prediction explanation with Shapley values for feature groups***  
+- **Jullum, Redelmeier & Løland (2021), *groupShapley: Efficient prediction explanation with Shapley values for feature groups***
   [Introduces grouping features and computing Shapley values at group level for efficiency and interpretability] :contentReference[oaicite:2]{index=2}
 
-- **Wang et al. (2025), *Group Shapley with Robust Significance Testing* **  
+- **Wang et al. (2025), *Group Shapley with Robust Significance Testing* **
   [Extends Shapley framework to hierarchical groups and provides statistical tests for group contributions] :contentReference[oaicite:3]{index=3}
 
-- **SHAP PartitionExplainer documentation**  
+- **SHAP PartitionExplainer documentation**
   [Implements recursive hierarchical coalitions and Owen‑value attribution via user‑defined feature hierarchies] :contentReference[oaicite:4]{index=4}
 
-- **Molnar, *Interpretable Machine Learning* (2022), SHAP chapter**  
+- **Molnar, *Interpretable Machine Learning* (2022), SHAP chapter**
   [Discusses hierarchical coalitions, Owen and Shapley values, and structured feature grouping strategies] :contentReference[oaicite:5]{index=5}
 """
 

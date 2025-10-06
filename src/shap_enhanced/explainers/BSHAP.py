@@ -51,14 +51,14 @@ Algorithm
 References
 ----------
 
-- **Lundberg & Lee (2017), “A Unified Approach to Interpreting Model Predictions”**  
-  [SHAP foundation—coalitional feature attribution framework]  
+- **Lundberg & Lee (2017), “A Unified Approach to Interpreting Model Predictions”**
+  [SHAP foundation—coalitional feature attribution framework]
 
-- **Molnar, “Interpretable Machine Learning” (2022), SHAP chapter**  
-  [Discusses various SHAP variants, including noise or zero baselines vs. data-driven baselines]  
+- **Molnar, “Interpretable Machine Learning” (2022), SHAP chapter**
+  [Discusses various SHAP variants, including noise or zero baselines vs. data-driven baselines]
 
-- **Chen, Lundberg & Lee (2022), “Explaining a Series of Models by Propagating Shapley Values” (Generalized DeepSHAP)**  
-  [Highlights how interpretation depends on baseline distributions and how multiple or synthetic baselines influence attribution] :contentReference[oaicite:2]{index=2}  
+- **Chen, Lundberg & Lee (2022), “Explaining a Series of Models by Propagating Shapley Values” (Generalized DeepSHAP)**
+  [Highlights how interpretation depends on baseline distributions and how multiple or synthetic baselines influence attribution] :contentReference[oaicite:2]{index=2}
 """
 
 import numpy as np

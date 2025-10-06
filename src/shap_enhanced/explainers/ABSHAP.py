@@ -49,13 +49,13 @@ Algorithm
 References
 ----------
 
-- **Lundberg & Lee (2017), “A Unified Approach to Interpreting Model Predictions”**  
+- **Lundberg & Lee (2017), “A Unified Approach to Interpreting Model Predictions”**
   [SHAP foundation]
 
-- **Merrick & Taly (2020), “Keep it Real: Towards Realistic and Efficient Shapley Value Explanations”**  
+- **Merrick & Taly (2020), “Keep it Real: Towards Realistic and Efficient Shapley Value Explanations”**
   [Proposes adaptive masking based on feature type and using real data to avoid out-of-distribution perturbations]
 
-- **Molnar, “Interpretable Machine Learning” (2022), SHAP chapter**  
+- **Molnar, “Interpretable Machine Learning” (2022), SHAP chapter**
   [Summarizes best practices and practical warnings about feature masking in SHAP for different data types]
 
 """

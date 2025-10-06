@@ -57,22 +57,22 @@ Algorithm
 References
 ----------
 
-- **Lundberg & Lee (2017), “A Unified Approach to Interpreting Model Predictions”**  
+- **Lundberg & Lee (2017), “A Unified Approach to Interpreting Model Predictions”**
   [SHAP foundation—coalitional feature attribution framework]
 
-- **Castro et al. (2009) and Mann & Shapley (1960), Monte Carlo sampling for Shapley values**  
+- **Castro et al. (2009) and Mann & Shapley (1960), Monte Carlo sampling for Shapley values**
   [Introduces simple uniform random sampling of permutations/coalitions for Shapley estimation] :contentReference[oaicite:1]{index=1}
 
-- **Okhrati & Lipani (2020), “A Multilinear Sampling Algorithm to Estimate Shapley Values”**  
+- **Okhrati & Lipani (2020), “A Multilinear Sampling Algorithm to Estimate Shapley Values”**
   [Proposes variance-reduced sampling for Shapley value estimation via multilinear extensions] :contentReference[oaicite:2]{index=2}
 
-- **Witter et al. (2025), “Regression‑adjusted Monte Carlo Estimators for Shapley Values and Probabilistic Values”**  
+- **Witter et al. (2025), “Regression‑adjusted Monte Carlo Estimators for Shapley Values and Probabilistic Values”**
   [Combines Monte Carlo with regression adjustments to achieve more efficient, low-variance Shapley approximations] :contentReference[oaicite:3]{index=3}
 
-- **Rozemberczki et al. (2023), “Ensembles of Random SHAPs” (ER‑SHAP)**  
+- **Rozemberczki et al. (2023), “Ensembles of Random SHAPs” (ER‑SHAP)**
   [Directly describes ER‑SHAP: building ensembles of SHAPs over random subsets and averaging—also includes weighted sampling via preliminary importance] :contentReference[oaicite:4]{index=4}
 
-- **Maleki et al. (2013), “Bounding the Estimation Error of Sampling‑based Shapley Value Approximation”**  
+- **Maleki et al. (2013), “Bounding the Estimation Error of Sampling‑based Shapley Value Approximation”**
   [Provides theoretical error bounds for Monte Carlo approximation and discusses stratified sampling for variance reduction] :contentReference[oaicite:5]{index=5}
 """
 

@@ -72,19 +72,19 @@ RL-SHAP is particularly beneficial when:
 References
 ----------
 
-- **Lundberg & Lee (2017), “A Unified Approach to Interpreting Model Predictions”**  
+- **Lundberg & Lee (2017), “A Unified Approach to Interpreting Model Predictions”**
   [SHAP foundation—coalitional feature attribution framework]
 
-- **Beechey et al. (2023), “Shapley Values for Explaining Reinforcement Learning (SVERL)”**  
+- **Beechey et al. (2023), “Shapley Values for Explaining Reinforcement Learning (SVERL)”**
   [Theoretical framework applying Shapley values to RL policies and value functions; analyzes limitations of prior heuristic FLUSE] :contentReference[oaicite:1]{index=1}
 
-- **Waldchen et al. (2022), “Training Characteristic Functions with Reinforcement Learning: XAI via Policy‑based Shapley Sampling”**  
+- **Waldchen et al. (2022), “Training Characteristic Functions with Reinforcement Learning: XAI via Policy‑based Shapley Sampling”**
   [Trains a masking policy network to learn cooperative coalition selection, allowing Shapley attributions via reinforcement learning over mask generation] :contentReference[oaicite:2]{index=2}
 
-- **Jang et al. (2017), “Categorical Reparameterization with Gumbel‑Softmax”**  
+- **Jang et al. (2017), “Categorical Reparameterization with Gumbel‑Softmax”**
   [Introduces Gumbel‑Softmax trick for differentiable sampling of discrete masks in neural networks] :contentReference[oaicite:3]{index=3}
 
-- **Engelhardt et al. (2024), “Exploring the Reliability of SHAP Values in Reinforcement Learning”**  
+- **Engelhardt et al. (2024), “Exploring the Reliability of SHAP Values in Reinforcement Learning”**
   [Evaluates SHAP stability and sensitivity in RL tasks; highlights challenges where adaptive masking strategies may help] :contentReference[oaicite:4]{index=4}
 """
 

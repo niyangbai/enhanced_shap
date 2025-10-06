@@ -56,22 +56,22 @@ Algorithm
 References
 ----------
 
-- **Lundberg & Lee (2017), “A Unified Approach to Interpreting Model Predictions”**  
+- **Lundberg & Lee (2017), “A Unified Approach to Interpreting Model Predictions”**
   [SHAP foundation—coalitional feature attribution framework]
 
-- **Smilkov et al. (2017), “SmoothGrad: removing noise by adding noise”**  
+- **Smilkov et al. (2017), “SmoothGrad: removing noise by adding noise”**
   [Uses multiple noisy variants of an input to stabilize gradient‑based attributions—similar to aggregation under noise]
 
-- **Jha et al. (2021), “Shaping Noise for Robust Attributions in Neural Stochastic Differential Equations” (AAAI‑22)**  
+- **Jha et al. (2021), “Shaping Noise for Robust Attributions in Neural Stochastic Differential Equations” (AAAI‑22)**
   [Demonstrates that injecting attribution‑driven noise improves attribution robustness and reduces sensitivity across methods including DeepSHAP] :contentReference[oaicite:1]{index=1}
 
-- **Slack et al. (2020), “Fooling SHAP with Stealthily Biased Sampling”**  
+- **Slack et al. (2020), “Fooling SHAP with Stealthily Biased Sampling”**
   [Highlights how SHAP attribution can be highly sensitive to sampling and background distribution perturbation, underscoring need for robust aggregation] :contentReference[oaicite:2]{index=2}
 
-- **Yasodhara et al. (2021), “On the Trustworthiness of Tree Ensemble Explainability Methods”**  
+- **Yasodhara et al. (2021), “On the Trustworthiness of Tree Ensemble Explainability Methods”**
   [Evaluates attribution stability under data and model perturbations, emphasizing SHAP’s sensitivity and need for robust strategies] :contentReference[oaicite:3]{index=3}
 
-- **Ben Braiek & Khomh (2024), “Machine Learning Robustness: A Primer”**  
+- **Ben Braiek & Khomh (2024), “Machine Learning Robustness: A Primer”**
   [Surveys robustness concepts including ensembling and noise injection as post‑hoc methods to enhance explainability reliability] :contentReference[oaicite:4]{index=4}
 """
 

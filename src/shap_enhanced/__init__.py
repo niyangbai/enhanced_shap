@@ -49,7 +49,7 @@ Example:
 """
 
 from . import explainers, tools
-from .base_explainer import BaseExplainer
 from ._version import __version__
+from .base_explainer import BaseExplainer
 
 __all__ = ["explainers", "tools", "BaseExplainer"]

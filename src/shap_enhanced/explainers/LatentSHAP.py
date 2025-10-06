@@ -77,19 +77,19 @@ Example
 References
 ----------
 
-- **Lundberg & Lee (2017), “A Unified Approach to Interpreting Model Predictions”**  
+- **Lundberg & Lee (2017), “A Unified Approach to Interpreting Model Predictions”**
   [Foundation of SHAP and coalitional feature attribution]
 
-- **Bitton et al. (2022), “Latent SHAP: Toward Practical Human‑Interpretable Explanations”**  
+- **Bitton et al. (2022), “Latent SHAP: Toward Practical Human‑Interpretable Explanations”**
   [Applies SHAP in latent space for human-interpretable feature attribution without requiring invertible encoders] :contentReference[oaicite:1]{index=1}
 
-- **Leeb et al. (2022), “Exploring the Latent Space of Autoencoders with Interventional Assays”**  
+- **Leeb et al. (2022), “Exploring the Latent Space of Autoencoders with Interventional Assays”**
   [Investigates interventions in latent space and relationships between latent variables for interpretability and attribution] :contentReference[oaicite:2]{index=2}
 
-- **Antwarg et al. (2019), “Explaining Anomalies Detected by Autoencoders Using SHAP”**  
+- **Antwarg et al. (2019), “Explaining Anomalies Detected by Autoencoders Using SHAP”**
   [Technique combining autoencoder latent-space anomaly detection with SHAP-based explanation in original input space] :contentReference[oaicite:3]{index=3}
 
-- **Molnar, _Interpretable Machine Learning_ (2022), SHAP chapter**  
+- **Molnar, _Interpretable Machine Learning_ (2022), SHAP chapter**
   [Discusses baseline choices, gradient-based SHAP (e.g., GradientExplainer), and challenges relating to dimensionality reduction and latent-space attribution]
 """
 

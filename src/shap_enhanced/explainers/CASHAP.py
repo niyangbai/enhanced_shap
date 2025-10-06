@@ -49,19 +49,19 @@ Algorithm
 References
 ----------
 
-- **Lundberg & Lee (2017), “A Unified Approach to Interpreting Model Predictions”**  
+- **Lundberg & Lee (2017), “A Unified Approach to Interpreting Model Predictions”**
   [SHAP foundation—coalitional feature attribution framework]
 
-- **Jutte et al. (2025), “C‑SHAP for time series: An approach to high‑level temporal explanations”**  
+- **Jutte et al. (2025), “C‑SHAP for time series: An approach to high‑level temporal explanations”**
   [Applies concept‑based SHAP to structured temporal data; treats temporal segments or concepts as coalition elements] :contentReference[oaicite:1]{index=1}
 
-- **Schlegel et al. (2019), “Towards a Rigorous Evaluation of XAI Methods on Time Series”**  
+- **Schlegel et al. (2019), “Towards a Rigorous Evaluation of XAI Methods on Time Series”**
   [Evaluates how SHAP and other methods behave for sequential/time‑series models, highlighting temporal structure challenges] :contentReference[oaicite:2]{index=2}
 
-- **Franco de la Peña et al. (2025), “ShaTS: A Shapley‑based Explainability Method for Time Series Models”**  
+- **Franco de la Peña et al. (2025), “ShaTS: A Shapley‑based Explainability Method for Time Series Models”**
   [Proposes temporally aware grouping for Shapley attribution in sequential IoT data, preserving temporal dependencies] :contentReference[oaicite:3]{index=3}
 
-- **Molnar, “Interpretable Machine Learning” (2022), SHAP chapter**  
+- **Molnar, “Interpretable Machine Learning” (2022), SHAP chapter**
   [Describes masking and coalition sampling strategies, including dealing with structured or dependent features]
 """
 
