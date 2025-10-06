@@ -49,12 +49,8 @@ show_help() {
 }
 
 check_dependencies() {
-    local deps=("python3" "git" "gh")
-    
-    if [[ "$DOCS_ONLY" == false ]]; then
-        deps+=("twine")
-    fi
-    
+    local deps=("python3" "git" "gh" "twine")
+
     for dep in "${deps[@]}"; do
         if ! command -v "$dep" &> /dev/null; then
             log_error "Required dependency '$dep' not found. Please install it first."
